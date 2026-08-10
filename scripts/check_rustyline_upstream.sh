@@ -36,8 +36,22 @@ MSG
   exit 1
 fi
 
-latest_version="$(curl -fsSL https://crates.io/api/v1/crates/rustyline \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["crate"]["max_stable_version"])')"
+# crates.io rejects requests without a descriptive User-Agent with a
+# bare 403, so send one. Fetch and parse are separate steps: piping
+# curl straight into python turns a network failure into an opaque
+# JSONDecodeError traceback instead of a readable message.
+crates_json="$(curl -fsSL \
+  -A "ush-ci check_rustyline_upstream (https://github.com/ubugeeei-prod/ush)" \
+  https://crates.io/api/v1/crates/rustyline)" || {
+  echo "check_rustyline_upstream: failed to query crates.io for rustyline" >&2
+  exit 1
+}
+
+latest_version="$(printf '%s' "$crates_json" \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["crate"]["max_stable_version"])')" || {
+  echo "check_rustyline_upstream: could not parse crates.io response" >&2
+  exit 1
+}
 
 if [ -z "$latest_version" ]; then
   echo "check_rustyline_upstream: could not determine latest rustyline version" >&2
