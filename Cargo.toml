@@ -15,7 +15,7 @@ resolver = "2"
 version = "0.9.0"
 edition = "2024"
 # Bumped to 1.89: criterion 0.8.2 needs 1.86, home 0.5.12 needs 1.88,
-# and rustyline (vendored, v18.0.0) uses std::fs::File::lock which
+# and rustyline (vendored, v18.0.1) uses std::fs::File::lock which
 # stabilised in 1.89.
 rust-version = "1.89"
 license = "MIT"
@@ -43,10 +43,10 @@ lsp-types = "0.97.0"
 memchr = { version = "2.7.6", default-features = false }
 phf = { version = "0.13.1", default-features = false, features = ["macros"] }
 rustc-hash = { version = "2.1.1", default-features = false }
-rustyline = { version = "18.0.0", features = ["custom-bindings"] }
+rustyline = { version = "18.0.1", features = ["custom-bindings"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
-quick-xml = "0.40.1"
+quick-xml = "0.41.0"
 shell-words = "1.1.1"
 smallvec = { version = "1.15.1", default-features = false }
 tempfile = "3.23.0"
