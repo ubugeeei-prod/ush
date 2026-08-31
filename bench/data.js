@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1780241916437,
+  "lastUpdate": 1788156028390,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -1469,6 +1469,126 @@ window.BENCHMARK_DATA = {
             "name": "compile adt ush program",
             "value": 104280,
             "range": "± 1859",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4156642cabeec9881ad7e8ed7d89f2386015228c",
+          "message": "test: expand coverage to 861 tests, fix six bugs, cut hot-path cost (#152)\n\nGrow the suite from 354 to 861 tests across every crate, then fix the\nbugs that coverage exposed and optimise the paths the tests pinned\ndown. The three parts ship together because the fixes were found by\nthe new tests and the optimisations are guarded by them.\n\nBugs found and fixed:\n\n- `continue` inside a `for` loop hung the shell. Both the range and\n  list lowerings advanced the loop counter at the end of the body, so\n  `continue` skipped it and the generated `while` spun forever.\n- `if let` on a non-matching variant aborted the script: the binding\n  was read before the tag test, so under `set -u` a payload slot\n  belonging to another variant was an unbound variable.\n- A failing `.ush` script could exit 0. The runtime source-map `EXIT`\n  trap ended on the status of its own last command rather than the\n  script's.\n- `ush check` and the LSP showed only the outermost error frame,\n  which for most compiler errors is just `line N`. They now render\n  the whole context chain and point at the innermost line.\n- `alias ls='ls --color=auto'` expanded eight times. Alias expansion\n  now refuses to re-expand a name already being expanded, which also\n  terminates mutually recursive aliases.\n- The semantic tokenizer never left multi-line-string mode, so every\n  line after a `\"\"\"` block highlighted as a string.\n\nPlus smaller fixes: `fg`/`bg` on a job that finished between the\nstatus refresh and the resume signal, `ls` errors that did not name\nthe path, `make` `define … endef` bodies leaking into completion, and\n`1 npm` reading as `1 npm task`.\n\nPerformance:\n\n- REPL prompts re-read every `PATH` directory on every command. The\n  completion name set is now cached behind a `stat` per `PATH` entry\n  plus the alias table: ~2.7 ms -> ~59 us per prompt.\n- `parse_line` is about 2x faster. The POSIX-fallback keyword scan\n  ran the line once per keyword and allocated a `String` each time;\n  it is now a single allocation-free pass. Builtin lookup uses a\n  perfect-hash set, and comment stripping and pipeline splitting\n  borrow instead of allocating.\n- Variable expansion walks bytes and borrows its input when there is\n  nothing to expand, instead of collecting into a `Vec<char>` and\n  allocating a `String` per variable name.\n- `.ush` -> `sh` compilation is ~30% faster: the output buffer counts\n  line breaks with `memchr` instead of decoding every character, and\n  block indentation no longer allocates a string per line.\n\nThe benchmark suites now cover the native and fallback parser paths,\nalias expansion, helper pipelines, and an empty compile (the fixed\nruntime prelude), so CI tracks all of the above against `main`.\n\nSnapshot suites gained an `UPDATE_SNAPSHOTS=1` path, documented in\nCONTRIBUTING.md alongside the rest of the local CI flow.\n\nCo-authored-by: Claude Opus 5 <noreply@anthropic.com>",
+          "timestamp": "2026-08-31T14:55:48+09:00",
+          "tree_id": "98958f41630fc61f096d4f27dc194f9ef96c8c74",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/4156642cabeec9881ad7e8ed7d89f2386015228c"
+        },
+        "date": 1788156027334,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1330,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 211,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 655,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1152,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1206,
+            "range": "± 41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1092,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/boolean chain",
+            "value": 171,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 154,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 99,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 177,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 799,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2151,
+            "range": "± 95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 6,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 39928,
+            "range": "± 386",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 47547,
+            "range": "± 2208",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 65656,
+            "range": "± 923",
             "unit": "ns/iter"
           }
         ]
