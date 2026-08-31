@@ -50,6 +50,20 @@ for f in examples/*.ush; do
 done
 ```
 
+### Updating snapshots
+
+Two suites compare generated output against committed fixtures: the
+compiler shell snapshots in
+`crates/ush_compiler/tests/fixtures/shell_snapshots/` (plus the
+catalog next to them) and the `apps/ush` stdout fixtures. When a
+codegen or renderer change is deliberate, regenerate them and review
+the diff before committing:
+
+```bash
+UPDATE_SNAPSHOTS=1 cargo test --workspace
+git diff -- '*/tests/fixtures/*' '*/src/fixtures/*'
+```
+
 ### rustfmt + edition 2024 gotcha
 
 CI runs `cargo fmt --all --check` on the GitHub-hosted Linux

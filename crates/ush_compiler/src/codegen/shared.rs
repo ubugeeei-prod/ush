@@ -21,7 +21,7 @@ pub(crate) fn push_output(out: &mut OutputBuffer, nested: &OutputBuffer, indent:
 }
 
 pub(crate) fn push_line(out: &mut OutputBuffer, line: &str, indent: usize) {
-    out.push_str(&" ".repeat(indent));
+    out.push_indent(indent);
     out.push_str(line);
     out.push('\n');
 }

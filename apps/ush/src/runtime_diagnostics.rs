@@ -37,7 +37,7 @@ pub fn instrument_compiled_script(origin: &Path, compiled: &CompiledScript) -> S
     out.push('\n');
     out.push_str("__ush_runtime_map_report() {\n");
     out.push_str("  __ush_runtime_map_status=\"$1\"\n");
-    out.push_str("  [ \"$__ush_runtime_map_status\" -eq 0 ] && return\n");
+    out.push_str("  [ \"$__ush_runtime_map_status\" -eq 0 ] && return 0\n");
     out.push_str("  if [ -n \"$__ush_runtime_map_source_line\" ]; then\n");
     out.push_str(
         "    printf '\\nush runtime map: %s:%s\\n' \"$__ush_runtime_map_origin\" \"$__ush_runtime_map_source_line\" >&2\n",
@@ -56,6 +56,11 @@ pub fn instrument_compiled_script(origin: &Path, compiled: &CompiledScript) -> S
     );
     out.push_str("    printf '  source : (no direct source mapping)\\n' >&2\n");
     out.push_str("  fi\n");
+    // A shell that dies on `set -u` / `set -e` rather than an
+    // explicit `exit` takes its status from the last command in the
+    // EXIT trap, so the handler has to hand the original status back
+    // or every hard failure would be reported as success.
+    out.push_str("  return \"$__ush_runtime_map_status\"\n");
     out.push_str("}\n");
     out.push('\n');
     out.push_str("trap '__ush_runtime_map_report \"$?\"' 0\n");

@@ -18,7 +18,7 @@ __ush_runtime_map_track() {
 
 __ush_runtime_map_report() {
   __ush_runtime_map_status="$1"
-  [ "$__ush_runtime_map_status" -eq 0 ] && return
+  [ "$__ush_runtime_map_status" -eq 0 ] && return 0
   if [ -n "$__ush_runtime_map_source_line" ]; then
     printf '\nush runtime map: %s:%s\n' "$__ush_runtime_map_origin" "$__ush_runtime_map_source_line" >&2
     printf '  section: %s\n' "$__ush_runtime_map_section" >&2
@@ -31,6 +31,7 @@ __ush_runtime_map_report() {
     printf '  shell  : G%04d | %s\n' "$__ush_runtime_map_generated" "$__ush_runtime_map_shell" >&2
     printf '  source : (no direct source mapping)\n' >&2
   fi
+  return "$__ush_runtime_map_status"
 }
 
 trap '__ush_runtime_map_report "$?"' 0

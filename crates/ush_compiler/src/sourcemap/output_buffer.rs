@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use core::mem;
+use core::{iter, mem};
 
 use crate::types::OutputString;
 
@@ -27,20 +27,31 @@ impl Default for OutputBuffer {
 }
 
 impl OutputBuffer {
-    pub(crate) fn with_section(section: SourceMapSection) -> Self {
+    /// Root buffer for a whole program. Every script carries the
+    /// shared runtime prelude, so the final text is always at least
+    /// this large — reserving up front avoids a dozen reallocations
+    /// and copies of a growing buffer.
+    pub(crate) fn for_program(section: SourceMapSection) -> Self {
+        const EXPECTED_BYTES: usize = 24 * 1024;
+        const EXPECTED_LINES: usize = 640;
+
         Self {
+            text: OutputString::with_capacity(EXPECTED_BYTES),
+            line_origins: Vec::with_capacity(EXPECTED_LINES),
+            line_sections: Vec::with_capacity(EXPECTED_LINES),
+            current_origin: None,
             current_section: section,
-            ..Self::default()
         }
     }
 
     pub(crate) fn push_str(&mut self, value: &str) {
         self.text.push_str(value);
-        for ch in value.chars() {
-            if ch == '\n' {
-                self.line_origins.push(self.current_origin);
-                self.line_sections.push(self.current_section);
-            }
+        // Codegen pushes multi-kilobyte runtime blobs through here,
+        // so count line breaks over the bytes instead of decoding
+        // every character.
+        for _ in memchr::memchr_iter(b'\n', value.as_bytes()) {
+            self.line_origins.push(self.current_origin);
+            self.line_sections.push(self.current_section);
         }
     }
 
@@ -65,17 +76,27 @@ impl OutputBuffer {
     }
 
     pub(crate) fn append_buffer(&mut self, other: &Self, indent: usize) {
-        let metadata = other.completed_line_metadata();
-        for (line, (origin, section)) in other.text.lines().zip(metadata) {
+        for (line, (origin, section)) in other.text.lines().zip(other.completed_line_metadata()) {
             let previous_origin = self.set_origin(origin);
             let previous_section = self.set_section(section);
-            if indent > 0 {
-                self.push_str(&" ".repeat(indent));
-            }
+            self.push_indent(indent);
             self.push_str(line);
             self.push('\n');
             self.set_origin(previous_origin);
             self.set_section(previous_section);
+        }
+    }
+
+    /// Writes `indent` spaces without building a temporary string.
+    /// Nested blocks re-indent every line they contain, so this runs
+    /// once per generated line.
+    pub(crate) fn push_indent(&mut self, indent: usize) {
+        const SPACES: &str = "                                ";
+        let mut remaining = indent;
+        while remaining > 0 {
+            let chunk = remaining.min(SPACES.len());
+            self.text.push_str(&SPACES[..chunk]);
+            remaining -= chunk;
         }
     }
 
@@ -96,9 +117,13 @@ impl OutputBuffer {
                 .line_origins
                 .into_iter()
                 .zip(self.line_sections)
+                .zip(
+                    generated_lines
+                        .into_iter()
+                        .chain(iter::repeat_with(OutputString::default)),
+                )
                 .enumerate()
-                .map(|(index, (source_line, section))| {
-                    let generated_text = generated_lines.get(index).cloned().unwrap_or_default();
+                .map(|(index, ((source_line, section), generated_text))| {
                     let source_text = source_line
                         .and_then(|line| source_lines.get(line.saturating_sub(1)))
                         .cloned();
@@ -118,17 +143,16 @@ impl OutputBuffer {
         }
     }
 
-    fn completed_line_metadata(&self) -> Vec<(Option<usize>, SourceMapSection)> {
-        let mut metadata = self
-            .line_origins
+    fn completed_line_metadata(
+        &self,
+    ) -> impl Iterator<Item = (Option<usize>, SourceMapSection)> + '_ {
+        let trailing = (!self.text.is_empty() && !self.text.ends_with('\n'))
+            .then_some((self.current_origin, self.current_section));
+        self.line_origins
             .iter()
             .copied()
             .zip(self.line_sections.iter().copied())
-            .collect::<Vec<_>>();
-        if !self.text.is_empty() && !self.text.ends_with('\n') {
-            metadata.push((self.current_origin, self.current_section));
-        }
-        metadata
+            .chain(trailing)
     }
 
     fn finish_partial_line(&mut self) {

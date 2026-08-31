@@ -472,8 +472,8 @@ printf '%s\n' "${__ush_value_0}"
 __ush_for_index_1=0
 while [ "${__ush_for_index_1}" -lt 3 ]; do
   item="${__ush_for_index_1}"
-  printf '%s\n' $((item))
   __ush_for_index_1=$((__ush_for_index_1 + 1))
+  printf '%s\n' $((item))
 done
 items__len='2'
 items__0=3
@@ -489,8 +489,8 @@ __ush_for_list_index_5=0
 while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   item="${__ush_for_value_6}"
-  printf '%s\n' $((item))
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
+  printf '%s\n' $((item))
 done
 pair__len='2'
 pair__0=5
@@ -524,7 +524,7 @@ case "${maybe__tag}" in
 __ush_match_8__0="${maybe__0}"
     ;;
 esac
-it="${__ush_match_8__0}"
+it="${__ush_match_8__0-}"
 [ "${__ush_match_8__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]

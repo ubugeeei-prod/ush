@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{fmt::Write as _, fs, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;

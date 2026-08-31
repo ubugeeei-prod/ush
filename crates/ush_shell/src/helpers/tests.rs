@@ -1,3 +1,7 @@
+mod lambdas;
+mod streams;
+mod syntax;
+
 use super::{HelperInvocation, ValueStream};
 
 #[test]

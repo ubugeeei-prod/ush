@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use compact_str::CompactString;
 use smallvec::SmallVec;
 

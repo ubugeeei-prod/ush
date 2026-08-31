@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -30,7 +33,8 @@ pub fn render_ls(cwd: &Path, args: &[String]) -> Result<Option<ValueStream>> {
         let mut summary = LsSummary::default();
         let mut body = String::new();
         for (file_name, entry_path) in entries {
-            let row = describe_ls_entry(&file_name, &entry_path, hidden_mode)?;
+            let row = describe_ls_entry(&file_name, &entry_path, hidden_mode)
+                .with_context(|| format!("failed to read {}", entry_path.display()))?;
             summary.observe(row.kind);
             render_ls_row(&mut body, &row);
         }

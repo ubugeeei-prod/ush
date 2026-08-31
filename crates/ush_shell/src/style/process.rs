@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{fmt::Write as _, path::Path, process::Command};
 
 use anyhow::{Context, Result};

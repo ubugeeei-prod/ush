@@ -1,76 +1,22 @@
+#[cfg(test)]
+mod tests;
+
 use std::{
-    collections::BTreeSet,
-    env, fs,
+    borrow::Cow,
+    collections::HashMap,
     path::{Path, PathBuf},
 };
 
 use anyhow::{Result, bail};
 
-use super::{Shell, commands::BUILTIN_COMMANDS};
+use super::{Shell, commands::CommandNames};
 use crate::prompt::render_prompt;
 
 impl Shell {
-    pub(crate) fn command_names(&self) -> Vec<String> {
-        let mut commands = BTreeSet::new();
-        commands.extend(
-            BUILTIN_COMMANDS
-                .iter()
-                .map(|builtin| (*builtin).to_string()),
-        );
-        commands.extend(
-            [
-                "len",
-                "length",
-                "lines",
-                "json",
-                "xml",
-                "html",
-                "car",
-                "cdr",
-                "map",
-                "fmap",
-                "head",
-                "tail",
-                "take",
-                "drop",
-                "nth",
-                "enumerate",
-                "swap",
-                "fst",
-                "snd",
-                "frev",
-                "fsort",
-                "funiq",
-                "fjoin",
-                "flat",
-                "ffmap",
-                "fzip",
-                "filter",
-                "ffilter",
-                "each",
-                "any",
-                "fany",
-                "some",
-                "fsome",
-            ]
-            .into_iter()
-            .map(str::to_string),
-        );
-        commands.extend(self.aliases.keys().cloned());
-
-        if let Some(path) = self.env.get("PATH") {
-            for dir in env::split_paths(path) {
-                if let Ok(entries) = fs::read_dir(dir) {
-                    for entry in entries.flatten() {
-                        if let Some(name) = entry.file_name().to_str() {
-                            commands.insert(name.to_string());
-                        }
-                    }
-                }
-            }
-        }
-
-        commands.into_iter().collect()
+    pub(crate) fn command_names(&self) -> CommandNames {
+        self.command_names
+            .borrow_mut()
+            .names(self.env.get("PATH").map(String::as_str), &self.aliases)
     }
 
     pub(crate) fn prompt(&self) -> String {
@@ -95,7 +41,7 @@ impl Shell {
 
     pub(crate) fn expand_value(&self, value: &str) -> Result<String> {
         let value = expand_home(value, &self.env);
-        expand_vars(&value, &self.env, self.last_status)
+        Ok(expand_vars(&value, &self.env, self.last_status)?.into_owned())
     }
 
     pub(crate) fn normalize_path(&self, value: &str) -> PathBuf {
@@ -134,63 +80,75 @@ pub(crate) fn strip_outer_quotes(value: &str) -> &str {
         .unwrap_or(value)
 }
 
-fn expand_home(value: &str, env: &std::collections::HashMap<String, String>) -> String {
+fn expand_home<'a>(value: &'a str, env: &HashMap<String, String>) -> Cow<'a, str> {
     if value == "~" {
-        return env.get("HOME").cloned().unwrap_or_else(|| "~".to_string());
+        return match env.get("HOME") {
+            Some(home) => Cow::Owned(home.clone()),
+            None => Cow::Borrowed("~"),
+        };
     }
     if let Some(rest) = value.strip_prefix("~/")
         && let Some(home) = env.get("HOME")
     {
-        return format!("{home}/{rest}");
+        return Cow::Owned(format!("{home}/{rest}"));
     }
-    value.to_string()
+    Cow::Borrowed(value)
 }
 
-fn expand_vars(
-    value: &str,
-    env: &std::collections::HashMap<String, String>,
+/// Expands `$NAME`, `${NAME}`, and `$?` against `env`.
+///
+/// Runs on every argument of every command, so it walks the bytes
+/// directly and borrows the input untouched when there is nothing to
+/// expand. Every character it reacts to is ASCII, which keeps the
+/// byte offsets on `char` boundaries.
+fn expand_vars<'a>(
+    value: &'a str,
+    env: &HashMap<String, String>,
     last_status: i32,
-) -> Result<String> {
-    let mut result = String::new();
-    let chars = value.chars().collect::<Vec<_>>();
-    let mut index = 0usize;
+) -> Result<Cow<'a, str>> {
+    let bytes = value.as_bytes();
+    let Some(first) = memchr::memchr(b'$', bytes) else {
+        return Ok(Cow::Borrowed(value));
+    };
 
-    while index < chars.len() {
-        if chars[index] != '$' {
-            result.push(chars[index]);
-            index += 1;
+    let mut result = String::with_capacity(value.len());
+    result.push_str(&value[..first]);
+    let mut index = first;
+
+    while index < bytes.len() {
+        if bytes[index] != b'$' {
+            let rest = &bytes[index..];
+            let run = memchr::memchr(b'$', rest).unwrap_or(rest.len());
+            result.push_str(&value[index..index + run]);
+            index += run;
             continue;
         }
-        if index + 1 >= chars.len() {
+        if index + 1 >= bytes.len() {
             result.push('$');
             break;
         }
 
-        match chars[index + 1] {
-            '?' => {
+        match bytes[index + 1] {
+            b'?' => {
                 result.push_str(&last_status.to_string());
                 index += 2;
             }
-            '{' => {
-                let mut end = index + 2;
-                while end < chars.len() && chars[end] != '}' {
-                    end += 1;
-                }
-                if end == chars.len() {
+            b'{' => {
+                let Some(offset) = memchr::memchr(b'}', &bytes[index + 2..]) else {
                     bail!("unterminated variable expansion");
-                }
-                let name = chars[index + 2..end].iter().collect::<String>();
-                result.push_str(env.get(&name).map(String::as_str).unwrap_or_default());
+                };
+                let end = index + 2 + offset;
+                push_var(&mut result, &value[index + 2..end], env);
                 index = end + 1;
             }
-            next if next == '_' || next.is_ascii_alphabetic() => {
+            next if next == b'_' || next.is_ascii_alphabetic() => {
                 let mut end = index + 1;
-                while end < chars.len() && (chars[end] == '_' || chars[end].is_ascii_alphanumeric())
+                while end < bytes.len()
+                    && (bytes[end] == b'_' || bytes[end].is_ascii_alphanumeric())
                 {
                     end += 1;
                 }
-                let name = chars[index + 1..end].iter().collect::<String>();
-                result.push_str(env.get(&name).map(String::as_str).unwrap_or_default());
+                push_var(&mut result, &value[index + 1..end], env);
                 index = end;
             }
             _ => {
@@ -200,7 +158,13 @@ fn expand_vars(
         }
     }
 
-    Ok(result)
+    Ok(Cow::Owned(result))
+}
+
+fn push_var(out: &mut String, name: &str, env: &HashMap<String, String>) {
+    if let Some(value) = env.get(name) {
+        out.push_str(value);
+    }
 }
 
 fn contains_glob(value: &str) -> bool {

@@ -30,6 +30,12 @@ match payload {
 fn bench_compile(criterion: &mut Criterion) {
     let compiler = UshCompiler;
 
+    criterion.bench_function("compile empty ush program", |bench| {
+        bench.iter(|| {
+            let _ = compiler.compile_source("").expect("compile empty");
+        });
+    });
+
     criterion.bench_function("compile small ush program", |bench| {
         bench.iter(|| {
             let _ = compiler

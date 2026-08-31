@@ -1,3 +1,8 @@
+mod aliases;
+mod background;
+mod fallback;
+mod tokens;
+
 use std::collections::BTreeMap;
 
 use super::{ParsedLine, Stage, parse_line};

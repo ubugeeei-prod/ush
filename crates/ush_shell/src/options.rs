@@ -75,6 +75,7 @@ impl Shell {
             next_job_id: 1,
             last_status: 0,
             paths,
+            command_names: Default::default(),
         })
     }
 }

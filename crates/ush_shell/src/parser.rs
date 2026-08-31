@@ -43,21 +43,21 @@ pub struct CommandSpec {
 }
 
 pub fn parse_line(line: &str, aliases: &BTreeMap<String, String>) -> Result<ParsedLine> {
-    let stripped = strip_comment(line).trim().to_string();
+    let stripped = strip_comment(line).trim();
     if stripped.is_empty() {
         return Ok(ParsedLine::Empty);
     }
 
-    if let Some(background) = split_background_job(&stripped) {
-        return Ok(ParsedLine::Background(background));
+    if let Some(background) = split_background_job(stripped) {
+        return Ok(ParsedLine::Background(background.to_string()));
     }
 
-    if needs_posix_fallback(&stripped) {
-        return Ok(ParsedLine::Fallback(stripped));
+    if needs_posix_fallback(stripped) {
+        return Ok(ParsedLine::Fallback(stripped.to_string()));
     }
 
     let mut stages = Vec::new();
-    for raw_stage in split_unquoted(&stripped, '|')? {
+    for raw_stage in split_unquoted(stripped, '|')? {
         let expanded = expand_alias(raw_stage.trim(), aliases)?;
         if let Some(helper) = HelperInvocation::parse(&expanded) {
             stages.push(Stage::Helper(helper?));
@@ -96,7 +96,7 @@ pub fn parse_line(line: &str, aliases: &BTreeMap<String, String>) -> Result<Pars
     }
 
     Ok(ParsedLine::Pipeline(Pipeline {
-        raw: stripped,
+        raw: stripped.to_string(),
         stages,
     }))
 }
@@ -128,7 +128,10 @@ fn is_assignment(token: &str) -> bool {
     is_identifier(name)
 }
 
-fn strip_comment(line: &str) -> String {
+/// Borrows the part of `line` before an unquoted `#` comment. The
+/// interactive path calls this for every keystroke-completed line, so
+/// it hands back a slice rather than a fresh `String`.
+fn strip_comment(line: &str) -> &str {
     let mut single = false;
     let mut double = false;
     for (index, ch) in line.char_indices() {
@@ -139,15 +142,15 @@ fn strip_comment(line: &str) -> String {
                 && !double
                 && (index == 0 || line[..index].ends_with(char::is_whitespace)) =>
             {
-                return line[..index].to_string();
+                return &line[..index];
             }
             _ => {}
         }
     }
-    line.to_string()
+    line
 }
 
-fn split_unquoted(source: &str, separator: char) -> Result<Vec<String>> {
+fn split_unquoted(source: &str, separator: char) -> Result<Vec<&str>> {
     let mut result = Vec::new();
     let mut start = 0usize;
     let mut single = false;
@@ -160,7 +163,7 @@ fn split_unquoted(source: &str, separator: char) -> Result<Vec<String>> {
             '\'' if !double && !escaped => single = !single,
             '"' if !single && !escaped => double = !double,
             _ if ch == separator && !single && !double && !escaped => {
-                result.push(source[start..index].trim().to_string());
+                result.push(source[start..index].trim());
                 start = index + ch.len_utf8();
             }
             _ => escaped = false,
@@ -171,7 +174,7 @@ fn split_unquoted(source: &str, separator: char) -> Result<Vec<String>> {
         bail!("unterminated quoted string");
     }
 
-    result.push(source[start..].trim().to_string());
+    result.push(source[start..].trim());
     Ok(result)
 }
 
@@ -186,7 +189,7 @@ fn is_identifier(source: &str) -> bool {
     chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
-fn split_background_job(line: &str) -> Option<String> {
+fn split_background_job(line: &str) -> Option<&str> {
     let mut single = false;
     let mut double = false;
     let mut escaped = false;
@@ -226,7 +229,7 @@ fn split_background_job(line: &str) -> Option<String> {
     if command.ends_with('&') {
         return None;
     }
-    Some(command.to_string())
+    Some(command)
 }
 
 pub fn is_builtin(command: &str) -> bool {

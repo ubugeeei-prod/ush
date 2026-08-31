@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::fmt::Write as _;
 
 use crate::repl::contextual::{TaskEntry, TaskSource};
@@ -46,10 +49,18 @@ fn write_task_meta(out: &mut String, counts: &[usize; 5]) {
             continue;
         }
         if meta.is_empty() {
-            meta.push_str(&pluralize(count, source.as_str(), source.plural_label()));
+            meta.push_str(&pluralize(
+                count,
+                source.singular_label(),
+                source.plural_label(),
+            ));
         } else {
             meta.push_str(", ");
-            meta.push_str(&pluralize(count, source.as_str(), source.plural_label()));
+            meta.push_str(&pluralize(
+                count,
+                source.singular_label(),
+                source.plural_label(),
+            ));
         }
     }
     if !meta.is_empty() {

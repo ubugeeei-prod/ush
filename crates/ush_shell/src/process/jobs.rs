@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::process::{Child, Command, Stdio};
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -71,9 +74,11 @@ impl Shell {
         let position = self
             .job_position(id)
             .ok_or_else(|| anyhow!("unknown job: %{id}"))?;
-        if self.jobs[position].state == JobState::Running {
-            signal::continue_background_job(self.jobs[position].pid)
-                .with_context(|| format!("failed to continue job %{id}"))?;
+        if self.jobs[position].state == JobState::Running
+            && let Err(error) = signal::continue_background_job(self.jobs[position].pid)
+            && !signal::is_missing_process(&error)
+        {
+            return Err(error).with_context(|| format!("failed to continue job %{id}"));
         }
         let status = self.wait_for_job(id)?;
         Ok((ValueStream::Empty, status))
@@ -89,8 +94,12 @@ impl Shell {
         if job.state != JobState::Running {
             bail!("job %{id} is no longer running");
         }
-        signal::continue_background_job(job.pid)
-            .with_context(|| format!("failed to continue job %{id}"))?;
+        if let Err(error) = signal::continue_background_job(job.pid) {
+            if signal::is_missing_process(&error) {
+                bail!("job %{id} is no longer running");
+            }
+            return Err(error).with_context(|| format!("failed to continue job %{id}"));
+        }
         job.state = JobState::Running;
         Ok((ValueStream::Empty, 0))
     }

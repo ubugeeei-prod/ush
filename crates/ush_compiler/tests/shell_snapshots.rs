@@ -1,4 +1,5 @@
 use std::{
+    env,
     ffi::OsStr,
     fmt::Write as _,
     fs,
@@ -71,6 +72,13 @@ fn render_catalog(source: &Path, source_text: &str, shell_text: &str, out: &mut 
     let _ = writeln!(out);
 }
 
+/// Matches the `UPDATE_SNAPSHOTS=1` workflow the `apps/ush` fixture
+/// tests already use, so a deliberate codegen change is one command
+/// away instead of a hand-edited `.sh` file.
+fn updating_snapshots() -> bool {
+    env::var_os("UPDATE_SNAPSHOTS").is_some()
+}
+
 #[test]
 fn compiled_shell_snapshots_match_expected_output() {
     let compiler = UshCompiler::default();
@@ -85,6 +93,9 @@ fn compiled_shell_snapshots_match_expected_output() {
             .compile_file(&source)
             .unwrap_or_else(|error| panic!("failed to compile {}: {error}", source.display()));
         let actual = normalize_shell(&compiled.to_string(), &workspace_roots);
+        if updating_snapshots() {
+            fs::write(&expected_path, &actual).expect("write shell snapshot");
+        }
         let expected = fs::read_to_string(&expected_path)
             .unwrap_or_else(|error| panic!("failed to read {}: {error}", expected_path.display()));
 
@@ -130,5 +141,10 @@ fn compiled_shell_snapshots_are_listed_in_catalog() {
         render_catalog(&source, &source_text, &shell_text, &mut catalog);
     }
 
+    if updating_snapshots() {
+        let catalog_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/shell_snapshots_catalog.md");
+        fs::write(catalog_path, &catalog).expect("write snapshot catalog");
+    }
     assert_eq!(catalog, include_str!("fixtures/shell_snapshots_catalog.md"));
 }

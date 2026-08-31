@@ -1,5 +1,5 @@
 [1;34mtasks[0m [2m9 tasks[0m
-[2m1 make, 1 just, 1 mise, 1 npm, 5 vp tasks[0m
+[2m1 make task, 1 just task, 1 mise task, 1 npm task, 5 vp tasks[0m
 [1;36mbuild[0m [1;33m[make][0m [2mmake build[0m
 [1;36mfmt[0m [1;34m[just][0m [2mjust fmt[0m
 [1;36mlint[0m [1;35m[mise][0m [2mmise run lint[0m

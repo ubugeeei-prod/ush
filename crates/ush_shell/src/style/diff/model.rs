@@ -49,7 +49,7 @@ pub(super) struct DiffLine {
     pub(super) text: String,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(super) enum DiffLineKind {
     Context,
     Added,

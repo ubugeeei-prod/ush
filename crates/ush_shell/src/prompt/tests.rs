@@ -1,3 +1,5 @@
+mod paths;
+
 use std::path::Path;
 
 use ush_config::StarshipPromptConfig;
