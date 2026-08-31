@@ -468,7 +468,11 @@ CMD ["ush"]
 cargo bench -p ush_shell
 ```
 
-The initial benchmark targets parser + helper-pipeline shapes and is intended as a seed for more aggressive profiling.
+The parser suite covers the native fast path, the POSIX fallback
+path, alias expansion, and helper pipelines; the compiler suite
+covers an empty program (the fixed runtime prelude), a small
+program, and an ADT-heavy one. CI compares every benchmark against
+the `main` baseline and fails a PR on a regression above 25%.
 
 ## Release
 

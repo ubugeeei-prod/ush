@@ -118,6 +118,22 @@ pub(crate) fn continue_background_job(_: u32) -> io::Result<()> {
     Ok(())
 }
 
+/// True when a signal failed because the target is already gone.
+///
+/// A job can exit between the `try_wait` that refreshes its state and
+/// the `SIGCONT` that resumes it, and its process group disappears
+/// with it. That is not a failure to report — the job simply
+/// finished.
+#[cfg(unix)]
+pub(crate) fn is_missing_process(error: &io::Error) -> bool {
+    error.raw_os_error() == Some(libc::ESRCH)
+}
+
+#[cfg(not(unix))]
+pub(crate) fn is_missing_process(_: &io::Error) -> bool {
+    false
+}
+
 #[cfg(unix)]
 pub(crate) fn send_process_signal(pid: i32, signal: i32) -> io::Result<()> {
     let result = unsafe { libc::kill(pid, signal) };

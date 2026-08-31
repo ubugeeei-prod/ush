@@ -26,6 +26,7 @@ mod startup;
 mod style;
 
 use std::{
+    cell::RefCell,
     collections::{BTreeMap, HashMap},
     path::PathBuf,
 };
@@ -49,4 +50,5 @@ pub struct Shell {
     next_job_id: usize,
     last_status: i32,
     paths: RuntimePaths,
+    command_names: RefCell<commands::CommandNameCache>,
 }

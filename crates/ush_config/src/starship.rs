@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{env, fs, path::PathBuf};
 
 use anyhow::{Context, Result};
@@ -182,49 +185,4 @@ fn unescape_starship_text(raw: &str) -> String {
         out.push('\\');
     }
     out
-}
-
-#[cfg(test)]
-mod tests {
-    use super::parse_starship_prompt;
-
-    #[test]
-    fn parses_directory_and_character_settings() {
-        let config = parse_starship_prompt(
-            r#"
-add_newline = true
-format = "$directory$line_break$character"
-
-[directory]
-truncation_length = 3
-truncation_symbol = "»/"
-home_symbol = "~home"
-
-[character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[✗](bold red)"
-
-[git_branch]
-format = " [$symbol$branch]($style)"
-symbol = "|- "
-"#,
-        )
-        .expect("parse");
-
-        assert!(config.add_newline);
-        assert_eq!(
-            config.format.as_deref(),
-            Some("$directory$line_break$character")
-        );
-        assert_eq!(config.directory.truncation_length, 3);
-        assert_eq!(config.directory.truncation_symbol, "»/");
-        assert_eq!(config.directory.home_symbol, "~home");
-        assert_eq!(config.character.success_symbol, "❯");
-        assert_eq!(config.character.error_symbol, "✗");
-        assert_eq!(
-            config.git_branch.format.as_deref(),
-            Some(" [$symbol$branch]($style)")
-        );
-        assert_eq!(config.git_branch.symbol, "|- ");
-    }
 }

@@ -20,6 +20,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::commands::CommandNames;
 use crate::parser::is_builtin;
 use rustyline::{
     CompletionType, Context, Helper,
@@ -35,7 +36,7 @@ use self::selection::SelectionHandle;
 pub(crate) use self::validate::validate_input;
 
 pub struct UshHelper {
-    commands: BTreeSet<String>,
+    commands: CommandNames,
     env_names: BTreeSet<String>,
     alias_names: BTreeSet<String>,
     jobs: Vec<ReplJobCandidate>,
@@ -53,9 +54,9 @@ pub(crate) struct ReplJobCandidate {
 }
 
 impl UshHelper {
-    pub fn new(commands: Vec<String>, env_names: Vec<String>, cwd: PathBuf) -> Self {
+    pub fn new(commands: impl Into<CommandNames>, env_names: Vec<String>, cwd: PathBuf) -> Self {
         Self {
-            commands: commands.into_iter().collect(),
+            commands: commands.into(),
             env_names: env_names.into_iter().collect(),
             alias_names: BTreeSet::new(),
             jobs: Vec::new(),
@@ -69,13 +70,13 @@ impl UshHelper {
 
     pub fn refresh(
         &mut self,
-        commands: Vec<String>,
+        commands: impl Into<CommandNames>,
         env_names: Vec<String>,
         cwd: PathBuf,
         alias_names: Vec<String>,
         jobs: Vec<ReplJobCandidate>,
     ) {
-        self.commands = commands.into_iter().collect();
+        self.commands = commands.into();
         self.env_names = env_names.into_iter().collect();
         self.alias_names = alias_names.into_iter().collect();
         self.jobs = jobs;

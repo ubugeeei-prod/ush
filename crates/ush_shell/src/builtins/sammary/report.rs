@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::{collections::BTreeMap, fmt::Write as _, path::Path};
 
 use crate::style::{badge, dim, human_bytes, paint, pluralize};

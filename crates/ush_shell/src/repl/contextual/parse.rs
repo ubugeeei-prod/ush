@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use bumpalo::{Bump, collections::String as BumpString};
 use compact_str::CompactString;
 use memchr::{memchr, memmem};
@@ -13,6 +16,8 @@ pub(crate) fn parse_make_targets(source: &str) -> Names {
     let mut seen = FxHashSet::default();
     let mut names = Names::new();
 
+    let mut in_define = false;
+
     for raw in source.lines() {
         let line = raw.trim_end();
         if let Some(prefix) = line.strip_suffix('\\') {
@@ -22,7 +27,13 @@ pub(crate) fn parse_make_targets(source: &str) -> Names {
         }
         logical.push_str(line);
         let current = logical.trim();
-        if keep_make_rule(raw, current)
+        // A `define ... endef` block holds recipe text, not rules, so
+        // its `name: value` lines must not become completions.
+        if in_define {
+            in_define = !current.starts_with("endef");
+        } else if current.starts_with("define ") {
+            in_define = true;
+        } else if keep_make_rule(raw, current)
             && let Some(colon) = memchr(b':', current.as_bytes())
         {
             push_make_targets(&current[..colon], &mut seen, &mut names);

@@ -1,3 +1,7 @@
+/// Longest POSIX keyword we look for (`while`, `until`). Words longer
+/// than this can never match, so the scanner stops buffering them.
+const MAX_KEYWORD_LEN: usize = 5;
+
 pub(super) fn needs_posix_fallback(line: &str) -> bool {
     let trimmed = line.trim_start();
     if trimmed.starts_with('!') || trimmed.starts_with('(') || trimmed.starts_with('{') {
@@ -20,71 +24,106 @@ pub(super) fn needs_posix_fallback(line: &str) -> bool {
         }
     }
 
-    line.contains("&&")
-        || line.contains("||")
-        || contains_unquoted_keyword(line, "if")
-        || contains_unquoted_keyword(line, "elif")
-        || contains_unquoted_keyword(line, "else")
-        || contains_unquoted_keyword(line, "for")
-        || contains_unquoted_keyword(line, "while")
-        || contains_unquoted_keyword(line, "until")
-        || contains_unquoted_keyword(line, "case")
-        || contains_unquoted_keyword(line, "do")
-        || contains_unquoted_keyword(line, "done")
-        || contains_unquoted_keyword(line, "then")
-        || contains_unquoted_keyword(line, "fi")
-        || contains_unquoted_keyword(line, "esac")
+    line.contains("&&") || line.contains("||") || contains_unquoted_keyword(line)
 }
 
-fn contains_unquoted_keyword(line: &str, keyword: &str) -> bool {
+/// True when `line` contains any POSIX shell keyword as an unquoted
+/// word. One pass over the line with a fixed-size word buffer: the
+/// previous shape re-scanned the line (and allocated a `String`) once
+/// per keyword, which is pure overhead on the interactive fast path.
+fn contains_unquoted_keyword(line: &str) -> bool {
     let mut single = false;
     let mut double = false;
     let mut escaped = false;
-    let mut token = String::new();
+    let mut word = KeywordWord::default();
 
     for ch in line.chars() {
         match ch {
             '\\' if !single => {
                 escaped = !escaped;
-                if !token.is_empty() && !escaped {
-                    if token == keyword {
-                        return true;
-                    }
-                    token.clear();
+                if !word.is_empty() && !escaped && word.take_is_keyword() {
+                    return true;
                 }
             }
             '\'' if !double && !escaped => {
-                if !token.is_empty() {
-                    if token == keyword {
-                        return true;
-                    }
-                    token.clear();
+                if !word.is_empty() && word.take_is_keyword() {
+                    return true;
                 }
                 single = !single;
             }
             '"' if !single && !escaped => {
-                if !token.is_empty() {
-                    if token == keyword {
-                        return true;
-                    }
-                    token.clear();
+                if !word.is_empty() && word.take_is_keyword() {
+                    return true;
                 }
                 double = !double;
             }
             _ if single || double => escaped = false,
             _ if ch == '_' || ch.is_ascii_alphanumeric() => {
-                token.push(ch);
+                word.push(ch);
                 escaped = false;
             }
             _ => {
-                if token == keyword {
+                if word.take_is_keyword() {
                     return true;
                 }
-                token.clear();
                 escaped = false;
             }
         }
     }
 
-    token == keyword
+    word.take_is_keyword()
+}
+
+/// A word under construction, held inline. Anything longer than the
+/// longest keyword is remembered only as "too long to match", so the
+/// buffer never needs to grow.
+#[derive(Default)]
+struct KeywordWord {
+    buffer: [u8; MAX_KEYWORD_LEN],
+    len: usize,
+    overflowed: bool,
+}
+
+impl KeywordWord {
+    fn is_empty(&self) -> bool {
+        self.len == 0 && !self.overflowed
+    }
+
+    fn push(&mut self, ch: char) {
+        // Only `_` and ASCII alphanumerics reach here, so one byte
+        // per character.
+        if self.len < MAX_KEYWORD_LEN {
+            self.buffer[self.len] = ch as u8;
+            self.len += 1;
+        } else {
+            self.overflowed = true;
+        }
+    }
+
+    /// Reports whether the buffered word is a keyword and starts a
+    /// new word either way.
+    fn take_is_keyword(&mut self) -> bool {
+        let matched = !self.overflowed && is_posix_keyword(&self.buffer[..self.len]);
+        self.len = 0;
+        self.overflowed = false;
+        matched
+    }
+}
+
+fn is_posix_keyword(word: &[u8]) -> bool {
+    matches!(
+        word,
+        b"if"
+            | b"elif"
+            | b"else"
+            | b"for"
+            | b"while"
+            | b"until"
+            | b"case"
+            | b"do"
+            | b"done"
+            | b"then"
+            | b"fi"
+            | b"esac"
+    )
 }

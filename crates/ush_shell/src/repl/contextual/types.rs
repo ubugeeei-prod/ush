@@ -42,6 +42,18 @@ impl TaskSource {
         }
     }
 
+    /// Paired with [`Self::plural_label`] so a count of one reads
+    /// `1 npm task` rather than `1 npm`.
+    pub(crate) fn singular_label(self) -> &'static str {
+        match self {
+            Self::Make => "make task",
+            Self::Just => "just task",
+            Self::Mise => "mise task",
+            Self::Npm => "npm task",
+            Self::Vp => "vp task",
+        }
+    }
+
     pub(crate) fn plural_label(self) -> &'static str {
         match self {
             Self::Make => "make tasks",

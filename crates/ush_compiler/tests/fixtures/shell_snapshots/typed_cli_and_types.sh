@@ -473,8 +473,8 @@ __ush_match_2__age="${user__age}"
     ;;
 esac
 if [ "${__ush_match_2__tag}" = 'User::User' ]; then
-  name="${__ush_match_2__name}"
-  age="${__ush_match_2__age}"
+  name="${__ush_match_2__name-}"
+  age="${__ush_match_2__age-}"
   printf '%s\n' "$(printf '%s' "${name}" ':' "${age}")"
 elif :; then
   printf '%s\n' 'fallback'

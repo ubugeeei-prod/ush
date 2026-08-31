@@ -1,6 +1,8 @@
 mod model;
 mod parse;
 mod render;
+#[cfg(test)]
+mod tests;
 
 use std::{path::Path, process::Command};
 

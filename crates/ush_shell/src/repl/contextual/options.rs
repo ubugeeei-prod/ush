@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::path::{Path, PathBuf};
 
 use compact_str::CompactString;

@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use std::fs;
 
 use anyhow::{Result, bail};
@@ -75,35 +78,4 @@ fn is_executable(path: &std::path::Path) -> bool {
 #[cfg(not(unix))]
 fn is_executable(path: &std::path::Path) -> bool {
     path.is_file()
-}
-
-#[cfg(test)]
-mod tests {
-    use ush_config::UshConfig;
-
-    use super::evaluate;
-    use crate::{Shell, ShellOptions};
-
-    fn shell() -> Shell {
-        let config = UshConfig::default();
-        let options = ShellOptions::resolve(false, false, false, false, &config);
-        Shell::new(config, options).expect("shell")
-    }
-
-    #[test]
-    fn evaluates_basic_string_tests() {
-        assert!(evaluate(&shell(), &[String::from("-n"), String::from("ok")]).expect("eval"));
-        assert!(!evaluate(&shell(), &[String::from("-z"), String::from("ok")]).expect("eval"));
-    }
-
-    #[test]
-    fn evaluates_integer_comparisons() {
-        assert!(
-            evaluate(
-                &shell(),
-                &[String::from("3"), String::from("-gt"), String::from("2")]
-            )
-            .expect("eval")
-        );
-    }
 }

@@ -57,7 +57,7 @@ pub(crate) fn compile_program(
     let mut traits = TraitRegistry::default();
     let mut trait_impls = TraitImplRegistry::default();
     let mut state = CodegenState::default();
-    let mut out = OutputBuffer::with_section(SourceMapSection::RuntimeSupport);
+    let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport);
     out.push_str(
         "#!/bin/sh\nset -eu\n\n__ush_jobs=''\n__ush_task_seq='0'\n__ush_task_files=''\n__ush_tmp_seq='0'\n\n",
     );

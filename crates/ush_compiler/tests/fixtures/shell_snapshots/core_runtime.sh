@@ -487,7 +487,7 @@ esac
     ;;
 esac
 if [ "${__ush_match_0__tag}" = 'Envelope::Wrap' ] && [ "${__ush_match_0__0__tag}" = 'Response::Ok' ]; then
-  message="${__ush_match_0__0__0}"
+  message="${__ush_match_0__0__0-}"
   __ush_value_1="$(__ush_capture_return='1' ush_fn_wrap "${message}")"
   printf '%s\n' "${__ush_value_1}"
 elif :; then

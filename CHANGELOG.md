@@ -10,6 +10,61 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+- `continue` inside a `for` loop no longer hangs. The range and list
+  lowerings advanced the loop counter at the end of the body, so a
+  `continue` skipped it and the generated `while` loop spun forever.
+- `if let` on a variant that does not match no longer aborts the
+  script. The binding was read before the tag test, so under
+  `set -u` a payload slot belonging to another variant was an
+  unbound variable.
+- A `.ush` script that fails now exits non-zero. The runtime
+  source-map `EXIT` trap returned the status of its own last
+  command, which could report a failed script as a success.
+- `ush check` and the LSP report what actually went wrong. Both
+  rendered only the outermost error frame, which for most compiler
+  errors is just `line N`; they now render the whole context chain
+  (`empty expression`, `unterminated match expression`, …) and point
+  at the innermost line.
+- `fg` on a job that finished between the status refresh and the
+  resume signal now reports the job's exit status instead of
+  failing with `failed to continue job %N`; `bg` in the same
+  situation says the job is no longer running.
+- `alias ls='ls --color=auto'` expands once instead of eight times.
+  Alias expansion now refuses to re-expand a name already being
+  expanded, matching POSIX, which also terminates mutually recursive
+  aliases.
+- Editor highlighting recovers after a `"""` block string. The
+  semantic tokenizer never left multi-line-string mode, so the rest
+  of the file was painted as one string; a block string that opens
+  and closes on one line no longer leaks either.
+- `ls` in stylish mode names the path it could not read instead of
+  surfacing a bare OS error.
+- `make` `define … endef` bodies no longer leak into target
+  completion.
+
+### Changed
+
+- Stylish `tasks` counts read `1 npm task` rather than `1 npm`.
+
+### Performance
+
+- REPL prompts no longer re-read every `PATH` directory. The
+  completion name set is cached and invalidated by a `stat` per
+  `PATH` entry plus the alias table, taking the per-prompt cost from
+  ~2.7 ms to ~59 µs on a typical `PATH`.
+- `parse_line` is roughly 2× faster: the POSIX-fallback keyword scan
+  runs once instead of once per keyword (and no longer allocates),
+  builtin lookup uses a perfect-hash set, and comment stripping and
+  pipeline splitting borrow instead of allocating.
+- Variable expansion walks bytes and borrows its input when there is
+  nothing to expand, instead of collecting the value into a
+  `Vec<char>` and allocating a `String` per variable name.
+- `.ush → sh` compilation is ~30% faster: the output buffer counts
+  line breaks with `memchr` rather than decoding every character,
+  and block indentation no longer allocates a string per line.
+
 ## [0.9.0] — 2026-05-19
 
 LSP build-out. The stdio language server gains nine new

@@ -157,9 +157,13 @@ fn compile_range_for(
         "{index}={start}\nwhile [ \"${{{index}}}\" -lt {end} ]; do\n"
     ));
     let mut body_env = bind_loop_var(name, &Type::Int, env);
-    out.push_str(&format!("  {name}=\"${{{index}}}\"\n"));
+    // The counter advances before the body so `continue` cannot skip
+    // it and spin forever.
+    out.push_str(&format!(
+        "  {name}=\"${{{index}}}\"\n  {index}=$(({index} + 1))\n"
+    ));
     push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 2);
-    out.push_str(&format!("  {index}=$(({index} + 1))\ndone\n"));
+    out.push_str("done\n");
     Ok(())
 }
 
@@ -222,8 +226,12 @@ fn compile_list_for(
         "  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n"
     ));
     let mut body_env = bind_loop_var(name, item_ty, env);
-    out.push_str(&format!("  {name}=\"${{{value}}}\"\n"));
+    // Same as the range lowering: advance before the body so
+    // `continue` still makes progress.
+    out.push_str(&format!(
+        "  {name}=\"${{{value}}}\"\n  {index}=$(({index} + 1))\n"
+    ));
     push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 2);
-    out.push_str(&format!("  {index}=$(({index} + 1))\ndone\n"));
+    out.push_str("done\n");
     Ok(())
 }

@@ -17,7 +17,12 @@ pub(super) fn bind_pattern(
     match (pattern, &subject.ty, &subject.storage) {
         (Pattern::Wildcard, _, _) => {}
         (Pattern::Binding(name), _, Storage::Primitive(var)) => {
-            plan.prelude.push(format!("{name}=\"${{{var}}}\""));
+            // `${var-}` rather than `${var}`: the prelude runs before
+            // the tag test, so a payload slot belonging to a variant
+            // that did not match is still unset and `set -u` would
+            // abort the script. The value is only ever read once the
+            // condition has passed.
+            plan.prelude.push(format!("{name}=\"${{{var}-}}\""));
             plan.env.insert(
                 name.clone(),
                 Binding {

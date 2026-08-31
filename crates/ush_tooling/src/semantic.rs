@@ -1,4 +1,12 @@
+mod scan;
+#[cfg(test)]
+mod tests;
+
 use self::KeywordContext::{Decl, Func, Let, NoKeyword, Shell};
+use self::scan::{
+    is_ident, is_ident_start, is_shell_escape, next_non_space, operator_end, string_end,
+    take_while, triple_string_span, variable_end,
+};
 use crate::token::{SemanticToken, SemanticTokenKind};
 
 const KEYWORDS: &[&str] = &[
@@ -36,10 +44,10 @@ fn tokenize_line(
 
     while index < bytes.len() {
         if in_multiline {
-            let end = triple_string_end(line, index);
+            let (end, closed) = triple_string_span(line, index);
             push(out, line_no, index, end - index, SemanticTokenKind::String);
             index = end;
-            in_multiline = end == line.len();
+            in_multiline = !closed;
             continue;
         }
         let ch = bytes[index] as char;
@@ -71,10 +79,10 @@ fn tokenize_line(
             break;
         }
         if line[index..].starts_with("\"\"\"") {
-            let end = triple_string_end(line, index);
+            let (end, closed) = triple_string_span(line, index + 3);
             push(out, line_no, index, end - index, SemanticTokenKind::String);
             index = end;
-            in_multiline = end == line.len();
+            in_multiline = !closed;
             context = NoKeyword;
             continue;
         }
@@ -171,78 +179,4 @@ fn push(
         length: len as u32,
         kind,
     });
-}
-
-fn string_end(line: &str, start: usize) -> usize {
-    let quote = line.as_bytes()[start] as char;
-    let mut escaped = false;
-    for (offset, ch) in line[start + 1..].char_indices() {
-        if quote == '"' && !escaped && ch == '\\' {
-            escaped = true;
-            continue;
-        }
-        if ch == quote && !(quote == '"' && escaped) {
-            return start + offset + 2;
-        }
-        escaped = false;
-    }
-    line.len()
-}
-
-fn triple_string_end(line: &str, start: usize) -> usize {
-    line[start + 3..]
-        .find("\"\"\"")
-        .map_or(line.len(), |offset| start + offset + 6)
-}
-
-fn variable_end(line: &str, start: usize) -> usize {
-    if line[start..].starts_with("${") {
-        return line[start..]
-            .find('}')
-            .map_or(line.len(), |offset| start + offset + 1);
-    }
-    take_while(line, start + 1, is_ident)
-}
-
-fn is_shell_escape(line: &str, start: usize) -> bool {
-    let prefix = line[..start].trim_end();
-    line[start + 1..]
-        .chars()
-        .next()
-        .is_some_and(|ch| ch.is_ascii_whitespace())
-        && (prefix.is_empty() || prefix.ends_with("=>"))
-}
-
-fn operator_end(line: &str, start: usize) -> usize {
-    let pair = line.get(start..start + 2).unwrap_or("");
-    if matches!(
-        pair,
-        "->" | "=>" | "::" | "==" | "!=" | "<=" | ">=" | "&&" | "||"
-    ) {
-        return start + 2;
-    }
-    start + 1
-}
-
-fn next_non_space(line: &str, start: usize) -> Option<char> {
-    line[start..].chars().find(|ch| !ch.is_ascii_whitespace())
-}
-
-fn take_while(line: &str, start: usize, pred: impl Fn(char) -> bool) -> usize {
-    let mut end = start;
-    for (offset, ch) in line[start..].char_indices() {
-        if !pred(ch) {
-            break;
-        }
-        end = start + offset + ch.len_utf8();
-    }
-    end.max(start)
-}
-
-fn is_ident_start(ch: char) -> bool {
-    ch == '_' || ch.is_ascii_alphabetic()
-}
-
-fn is_ident(ch: char) -> bool {
-    ch == '_' || ch.is_ascii_alphanumeric()
 }

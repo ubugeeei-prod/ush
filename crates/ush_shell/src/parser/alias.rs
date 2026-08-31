@@ -4,30 +4,43 @@ use anyhow::{Result, bail};
 
 use super::is_assignment;
 
+/// Upper bound on alias chains such as `a -> b -> c`. Self- and
+/// mutually recursive chains stop earlier, through `expanded`.
+const MAX_ALIAS_DEPTH: usize = 8;
+
 pub(super) fn expand_alias(stage: &str, aliases: &BTreeMap<String, String>) -> Result<String> {
+    if aliases.is_empty() {
+        return Ok(stage.to_string());
+    }
+
     let mut current = stage.to_string();
-    for _ in 0..8 {
-        let Some(target) = alias_expansion_target(&current)? else {
+    // POSIX forbids re-expanding a name that is already being
+    // expanded, which is what makes `alias ls='ls --color'` resolve
+    // to `ls --color` instead of repeating the flag until the depth
+    // limit runs out.
+    let mut expanded: Vec<String> = Vec::new();
+
+    for _ in 0..MAX_ALIAS_DEPTH {
+        let Some(span) = alias_expansion_span(&current)? else {
             return Ok(current);
         };
-        let Some(alias) = aliases.get(&target.word) else {
+        let word = &current[span.start..span.end];
+        let Some(alias) = aliases.get(word) else {
             return Ok(current);
         };
-        current = format!(
+        if expanded.iter().any(|seen| seen == word) {
+            return Ok(current);
+        }
+        let replaced = format!(
             "{}{}{}",
-            &current[..target.start],
+            &current[..span.start],
             alias,
-            &current[target.end..]
+            &current[span.end..]
         );
+        expanded.push(word.to_string());
+        current = replaced;
     }
     Ok(current)
-}
-
-#[derive(Debug)]
-struct AliasExpansionTarget {
-    start: usize,
-    end: usize,
-    word: String,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -37,23 +50,27 @@ struct ShellWordSpan {
     quoted: bool,
 }
 
-fn alias_expansion_target(stage: &str) -> Result<Option<AliasExpansionTarget>> {
+/// Locates the command word an alias would replace, skipping any
+/// leading `NAME=value` assignments. A quoted command word suppresses
+/// expansion, matching POSIX.
+fn alias_expansion_span(stage: &str) -> Result<Option<ShellWordSpan>> {
     let mut cursor = skip_whitespace(stage, 0);
     while let Some(span) = next_shell_word_span(stage, cursor)? {
         let raw = &stage[span.start..span.end];
-        let word = parse_single_shell_word(raw)?;
-        if is_assignment(&word) {
+        if !span.quoted {
+            // An unquoted word carries no escapes, so it already is
+            // its own parsed form — no tokenizer round trip needed.
+            if is_assignment(raw) {
+                cursor = skip_whitespace(stage, span.end);
+                continue;
+            }
+            return Ok(Some(span));
+        }
+        if is_assignment(&parse_single_shell_word(raw)?) {
             cursor = skip_whitespace(stage, span.end);
             continue;
         }
-        if span.quoted {
-            return Ok(None);
-        }
-        return Ok(Some(AliasExpansionTarget {
-            start: span.start,
-            end: span.end,
-            word,
-        }));
+        return Ok(None);
     }
     Ok(None)
 }

@@ -7,12 +7,13 @@ use rustyline::{
 use ush_config::ShellKeymap;
 
 use super::{UshHelper, bindings};
+use crate::commands::CommandNames;
 
 pub fn create_editor(
     history_file: &Path,
     history_size: usize,
     keymap: ShellKeymap,
-    commands: Vec<String>,
+    commands: impl Into<CommandNames>,
     env_names: Vec<String>,
     cwd: PathBuf,
 ) -> Result<Editor<UshHelper, DefaultHistory>> {
