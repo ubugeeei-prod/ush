@@ -48,6 +48,16 @@ project adheres to [Semantic Versioning][semver].
 
 - Stylish `tasks` counts read `1 npm task` rather than `1 npm`.
 
+### Security
+
+- Bump `anyhow` to 1.0.104, `quick-xml` to 0.42.0, and pull
+  `crossbeam-epoch` up to 0.9.20, clearing RUSTSEC-2026-0190
+  (`anyhow::Error::downcast_mut` unsoundness), RUSTSEC-2026-0194 and
+  RUSTSEC-2026-0195 (`quick-xml` quadratic attribute scan and
+  unbounded namespace allocation), and RUSTSEC-2026-0204
+  (`crossbeam-epoch` invalid pointer dereference). `cargo audit` and
+  `cargo deny` had been red on `main` since the advisories landed.
+
 ### Performance
 
 - REPL prompts no longer re-read every `PATH` directory. The
