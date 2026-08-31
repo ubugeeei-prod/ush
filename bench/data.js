@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788156028390,
+  "lastUpdate": 1788157134219,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -1589,6 +1589,126 @@ window.BENCHMARK_DATA = {
             "name": "compile adt ush program",
             "value": 65656,
             "range": "± 923",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "69c48c62271c7a7ef390d30c73b2870129819d2a",
+          "message": "build(deps): clear four RUSTSEC advisories (#153)\n\n`cargo audit` and `cargo deny` have been failing on `main` since the\nadvisories landed. Bump the three affected crates to their fixed\nversions:\n\n- `anyhow` 1.0.102 -> 1.0.104 — RUSTSEC-2026-0190, unsoundness in\n  `Error::downcast_mut()` after `Error::context`.\n- `quick-xml` 0.40.1 -> 0.42.0 — RUSTSEC-2026-0194 (quadratic run\n  time checking a start tag for duplicate attribute names) and\n  RUSTSEC-2026-0195 (unbounded namespace-declaration allocation in\n  `NsReader`, a memory-exhaustion DoS).\n- `crossbeam-epoch` 0.9.18 -> 0.9.20 — RUSTSEC-2026-0204, invalid\n  pointer dereference in the `fmt::Pointer` impl for `Atomic` and\n  `Shared`. Transitive through `criterion`/`rayon`, so the lockfile\n  is bumped directly.\n\nNo source changes were needed: the `xml` helper is the only\n`quick-xml` consumer and its `Reader`/`Writer` usage is unchanged\nacross 0.40 -> 0.42. Every bumped crate declares an MSRV well below\nthe workspace's 1.89 (1.86, 1.68, and 1.61 respectively).\n\nCo-authored-by: Claude Opus 5 <noreply@anthropic.com>",
+          "timestamp": "2026-08-31T15:14:04+09:00",
+          "tree_id": "aafc9dd833d352448ebdb0a5c77cf175c31e4bd8",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/69c48c62271c7a7ef390d30c73b2870129819d2a"
+        },
+        "date": 1788157132339,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1661,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 274,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 691,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1259,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1314,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1189,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/boolean chain",
+            "value": 228,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 210,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 137,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 235,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 854,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2774,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 13,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 49968,
+            "range": "± 1058",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 56694,
+            "range": "± 481",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 78613,
+            "range": "± 368",
             "unit": "ns/iter"
           }
         ]
