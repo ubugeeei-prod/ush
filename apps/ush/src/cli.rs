@@ -145,6 +145,16 @@ pub enum Action {
     },
     /// Type-check a `.ush` source file without producing output.
     Check { input: PathBuf },
+    /// Show the effect row `ush` infers for every function.
+    ///
+    /// Effects are inferred whether or not they are declared; an
+    /// `#[effects(...)]` row turns the inference into a check.
+    Effects {
+        input: PathBuf,
+        /// Only list functions whose effects are not declared.
+        #[arg(long)]
+        undeclared: bool,
+    },
     /// Map a generated-shell line back to the `.ush` code behind it.
     ///
     /// Takes the line numbers `/bin/sh` prints in its own errors, or

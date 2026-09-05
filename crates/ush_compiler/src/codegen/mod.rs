@@ -101,6 +101,10 @@ pub(crate) fn compile_program(
     let globals = functions::analyze_globals(program, &functions, &trait_impls, &enums)?;
     let function_errors =
         effects::analyze_function_errors(program, &globals, &functions, &trait_impls, &enums)?;
+    // Side effects are checked alongside error effects: a declared
+    // effect row that no longer covers the body is a compile error,
+    // the same way an undeclared raise is.
+    effects::analyze_function_effects(program)?;
     let previous_section = out.set_section(SourceMapSection::UserCode);
     for statement in program {
         if matches!(statement.kind, StatementKind::Enum(_)) {

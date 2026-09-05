@@ -1,4 +1,5 @@
 mod cli;
+mod effects_report;
 mod explain;
 mod panic_hook;
 mod runtime_diagnostics;
@@ -50,6 +51,9 @@ fn main() -> Result<()> {
                 stdout,
             } => process::exit(format_action(input, *check, *stdout)?),
             Action::Check { input } => process::exit(check_action(input)?),
+            Action::Effects { input, undeclared } => {
+                process::exit(effects_report::report(input, *undeclared)?)
+            }
             Action::Explain { input, lines } => process::exit(explain::explain(input, lines)?),
             Action::Test { targets } => {
                 process::exit(test_runner::run(targets, cli.config.as_deref())?)

@@ -49,6 +49,7 @@ extern crate alloc;
 
 use anyhow::Result;
 pub use docs::ScriptDocs;
+pub use effects::{Effect, EffectSet, FunctionEffects};
 pub use sourcemap::{
     CompiledScript, SourceMap, SourceMapLine, SourceMapSection, SourceMapSectionSummary,
     SourceMapSourceLine, SourceMapSummary,
@@ -128,6 +129,31 @@ impl UshCompiler {
     pub fn describe_source(&self, source: &str) -> ScriptDocs {
         ScriptDocs::parse(source)
     }
+
+    /// The effect row of every function in `path`, plus the effects
+    /// of the top-level program.
+    #[cfg(feature = "std")]
+    pub fn effects_file(&self, path: &Path) -> Result<EffectReport> {
+        let source = fs::read_to_string(path)
+            .with_context(|| format!("failed to read {}", path.display()))?;
+        self.effects_source(&source)
+            .with_context(|| format!("failed to analyze {}", path.display()))
+    }
+
+    pub fn effects_source(&self, source: &str) -> Result<EffectReport> {
+        let program = imports::resolve_program(parse::parse_program(source)?)?;
+        Ok(EffectReport {
+            functions: effects::describe_function_effects(&program)?,
+            top_level: effects::top_level_effects(&program)?,
+        })
+    }
+}
+
+/// What a whole program touches, function by function.
+#[derive(Debug, Clone)]
+pub struct EffectReport {
+    pub functions: alloc::vec::Vec<FunctionEffects>,
+    pub top_level: EffectSet,
 }
 
 #[cfg(test)]
