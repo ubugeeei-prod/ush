@@ -1,4 +1,5 @@
 mod cli;
+mod explain;
 mod panic_hook;
 mod runtime_diagnostics;
 mod script_docs;
@@ -49,6 +50,7 @@ fn main() -> Result<()> {
                 stdout,
             } => process::exit(format_action(input, *check, *stdout)?),
             Action::Check { input } => process::exit(check_action(input)?),
+            Action::Explain { input, lines } => process::exit(explain::explain(input, lines)?),
             Action::Test { targets } => {
                 process::exit(test_runner::run(targets, cli.config.as_deref())?)
             }
@@ -76,7 +78,7 @@ fn main() -> Result<()> {
                     runtime_diagnostics::instrument_compiled_script(script, &compiled);
                 let mut shell = Shell::new(config, options)?;
                 shell.load_session_startup(&startup)?;
-                shell.run_compiled_script(script, &instrumented, &cli.script_args)?
+                shell.run_compiled_script(script, &instrumented.text, &cli.script_args)?
             }
             ScriptMode::Posix => run_posix_script(script, &cli.script_args, &options)?,
         };

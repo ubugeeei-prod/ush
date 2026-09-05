@@ -145,6 +145,15 @@ pub enum Action {
     },
     /// Type-check a `.ush` source file without producing output.
     Check { input: PathBuf },
+    /// Map a generated-shell line back to the `.ush` code behind it.
+    ///
+    /// Takes the line numbers `/bin/sh` prints in its own errors, or
+    /// the `G####` ids from a sourcemap listing.
+    Explain {
+        input: PathBuf,
+        #[arg(value_name = "LINE", required = true)]
+        lines: Vec<String>,
+    },
     /// Run inline `#[test]` blocks in one or more `.ush` files.
     Test {
         #[arg(value_name = "TARGET")]

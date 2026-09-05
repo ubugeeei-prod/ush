@@ -1,7 +1,8 @@
 ush raise: Problem
 
-ush runtime map: <SCRIPT>:10
-  section: user-code
-  shell  : G0465 | __ush_value_0="$(__ush_capture_return='1' ush_fn_fail)"
+ush runtime map: <SCRIPT>:10 (exit 1)
   source : print $ wrap $ fail ()
+  section: user-code
+  shell  : line 504 | G0465 | __ush_value_0="$(__ush_capture_return='1' ush_fn_fail)"
   mapped : G0465, G0466, G0467
+  explain: ush explain <SCRIPT> 504
