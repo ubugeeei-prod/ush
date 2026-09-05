@@ -1,16 +1,21 @@
 mod alias;
+mod comment;
 mod fallback;
+mod list;
 #[cfg(test)]
 mod tests;
 
-use std::{borrow::Cow, collections::BTreeMap};
+use std::collections::BTreeMap;
 
 use anyhow::{Result, bail};
 
 use crate::commands;
 use crate::helpers::HelperInvocation;
 use alias::expand_alias;
-use fallback::{contains_unquoted_keyword, needs_posix_fallback};
+use comment::strip_comment;
+use fallback::needs_posix_fallback;
+use list::split_and_or;
+pub use list::{Connector, ListItem};
 
 #[derive(Debug, Clone)]
 pub enum ParsedLine {
@@ -22,25 +27,6 @@ pub enum ParsedLine {
     /// parsed (and executed) by `ush` itself rather than handed to
     /// `/bin/sh` as one opaque chunk.
     List(Vec<ListItem>),
-}
-
-/// One element of an and-or list, together with the operator that
-/// joined it to the element before it.
-#[derive(Debug, Clone)]
-pub struct ListItem {
-    pub connector: Connector,
-    pub line: ParsedLine,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Connector {
-    /// `;` — run regardless of the previous status. Also the
-    /// connector of the first element.
-    Always,
-    /// `&&` — run only when the previous status was `0`.
-    And,
-    /// `||` — run only when the previous status was non-zero.
-    Or,
 }
 
 #[derive(Debug, Clone)]
@@ -146,96 +132,6 @@ fn parse_segment(stripped: &str, aliases: &BTreeMap<String, String>) -> Result<P
     }))
 }
 
-/// Splits `source` into an and-or list on unquoted `;`, `&&`, and
-/// `||`, or reports `None` when the line has to stay whole.
-///
-/// Splitting is what lets `mkdir build && cd build` reach the `cd`
-/// builtin at all: handing the whole line to `/bin/sh` runs every
-/// part in a child process, where `ush` builtins (`cd`, `sammary`,
-/// `tasks`, the structured helpers, session aliases) do not exist.
-///
-/// Lines that open a POSIX compound command are left alone. `if x;
-/// then y; fi` uses `;` as an *inner* separator, so splitting it
-/// would hand `/bin/sh` fragments that do not parse. The same goes
-/// for a leading `(`, `{`, or `!`.
-fn split_and_or(source: &str) -> Option<Vec<(Connector, &str)>> {
-    let trimmed = source.trim_start();
-    if trimmed.starts_with('!') || trimmed.starts_with('(') || trimmed.starts_with('{') {
-        return None;
-    }
-    if contains_unquoted_keyword(source) {
-        return None;
-    }
-
-    let mut segments: Vec<(Connector, &str)> = Vec::new();
-    let mut connector = Connector::Always;
-    let mut start = 0usize;
-    let mut single = false;
-    let mut double = false;
-    let mut escaped = false;
-    let mut backtick = false;
-    let mut depth = 0usize;
-
-    let bytes = source.as_bytes();
-    let mut index = 0usize;
-    while index < bytes.len() {
-        let ch = bytes[index] as char;
-        if escaped {
-            escaped = false;
-            index += 1;
-            continue;
-        }
-        match ch {
-            '\\' if !single => escaped = true,
-            '\'' if !double && !backtick => single = !single,
-            '"' if !single && !backtick => double = !double,
-            '`' if !single && !double => backtick = !backtick,
-            _ if single || double || backtick => {}
-            '(' => depth += 1,
-            ')' => depth = depth.saturating_sub(1),
-            _ if depth > 0 => {}
-            '&' if bytes.get(index + 1) == Some(&b'&') => {
-                segments.push((connector, source[start..index].trim()));
-                connector = Connector::And;
-                index += 2;
-                start = index;
-                continue;
-            }
-            '|' if bytes.get(index + 1) == Some(&b'|') => {
-                segments.push((connector, source[start..index].trim()));
-                connector = Connector::Or;
-                index += 2;
-                start = index;
-                continue;
-            }
-            // A newline separates commands exactly like `;` does.
-            // Without this, `ush -c $'cd build\nmake'` — and every
-            // multi-line paste at the prompt — was parsed as one
-            // enormous command.
-            ';' | '\n' => {
-                segments.push((connector, source[start..index].trim()));
-                connector = Connector::Always;
-                index += 1;
-                start = index;
-                continue;
-            }
-            _ => {}
-        }
-        index += 1;
-    }
-
-    if segments.is_empty() {
-        return None;
-    }
-    if single || double || backtick || depth > 0 {
-        return None;
-    }
-
-    segments.push((connector, source[start..].trim()));
-    segments.retain(|(_, segment)| !segment.is_empty());
-    (segments.len() > 1).then_some(segments)
-}
-
 fn split_assignments(tokens: Vec<String>) -> (Vec<(String, String)>, Vec<String>) {
     let mut assignments = Vec::new();
     let mut rest = Vec::new();
@@ -261,57 +157,6 @@ fn is_assignment(token: &str) -> bool {
         return false;
     };
     is_identifier(name)
-}
-
-/// Removes unquoted `#` comments from `source`.
-///
-/// The interactive path calls this for every keystroke-completed
-/// line, so it borrows when there is nothing to strip. Input can
-/// span several lines (a multi-line `-c` string, a paste at the
-/// prompt), and a comment ends at its own newline — truncating the
-/// rest of the input at the first `#` would silently drop every
-/// command after a commented one.
-fn strip_comment(source: &str) -> Cow<'_, str> {
-    let Some(first) = comment_start(source, 0) else {
-        return Cow::Borrowed(source);
-    };
-
-    let mut out = String::with_capacity(source.len());
-    let mut cursor = 0usize;
-    let mut comment = Some(first);
-    while let Some(start) = comment {
-        out.push_str(&source[cursor..start]);
-        cursor = source[start..]
-            .find('\n')
-            .map_or(source.len(), |offset| start + offset);
-        comment = comment_start(source, cursor);
-    }
-    out.push_str(&source[cursor..]);
-    Cow::Owned(out)
-}
-
-/// The index of the next unquoted `#` that starts a comment, scanning
-/// from `from`. Quote state is tracked from the beginning of the
-/// input so a `#` inside a string that opened on an earlier line is
-/// still recognised as text.
-fn comment_start(source: &str, from: usize) -> Option<usize> {
-    let mut single = false;
-    let mut double = false;
-    for (index, ch) in source.char_indices() {
-        match ch {
-            '\'' if !double => single = !single,
-            '"' if !single => double = !double,
-            '#' if !single
-                && !double
-                && index >= from
-                && (index == 0 || source[..index].ends_with(char::is_whitespace)) =>
-            {
-                return Some(index);
-            }
-            _ => {}
-        }
-    }
-    None
 }
 
 fn split_unquoted(source: &str, separator: char) -> Result<Vec<&str>> {
