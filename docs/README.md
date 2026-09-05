@@ -13,9 +13,9 @@ Available today:
 - [`lowering.md`](./lowering.md): representative `.ush` to `sh` lowering for major
   language features, runtime scaffolding, Rust-like tail expressions, `bin(...)`,
   and typed error propagation
-- [`effects.md`](./effects.md): the side-effect system — the six effects,
-  how rows are inferred and propagated, and how `#[effects(...)]` / `#[pure]`
-  turn inference into a compile-time check
+- [`effects.md`](./effects.md): the effect system, modelled on Effekt — effect
+  rows in the signature, `effect` / `do` / `try … with`, the six inferred
+  built-in effects, and what the lowering to POSIX `sh` can and cannot do
 - [`source-docs.md`](./source-docs.md): how to write std-like `#|` source docs with
   summaries, paragraphs, notes, warnings, errors, examples, and see-also links
 - [`sourcemaps.md`](./sourcemaps.md): the sourcemap JSON format, section model,

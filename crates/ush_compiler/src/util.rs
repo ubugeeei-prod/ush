@@ -174,7 +174,9 @@ pub(crate) fn strip_wrapping_parens(source: &str) -> Option<&str> {
 pub(crate) fn parse_brace_body(source: &str) -> Option<(&str, &str)> {
     let open = memchr(b'{', source.as_bytes())?;
     let close = memrchr(b'}', source.as_bytes())?;
-    (close > open).then_some((source[..open].trim(), source[open + 1..close].trim()))
+    // `then_some` would slice eagerly, and a `}` that comes before
+    // its `{` — as in `} with log {` — makes that range backwards.
+    (close > open).then(|| (source[..open].trim(), source[open + 1..close].trim()))
 }
 
 pub(crate) fn parse_string_literal(source: &str) -> Option<String> {

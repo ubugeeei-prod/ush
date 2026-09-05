@@ -27,9 +27,14 @@ pub(crate) struct CodegenState {
 
 impl CodegenState {
     pub(crate) fn temp_var(&mut self, prefix: &str) -> String {
+        format!("__ush_{prefix}_{}", self.next_handler_id()).into()
+    }
+
+    /// A fresh id for anything that needs a unique shell name.
+    pub(crate) fn next_handler_id(&mut self) -> usize {
         let id = self.next_id;
         self.next_id += 1;
-        format!("__ush_{prefix}_{id}").into()
+        id
     }
 }
 

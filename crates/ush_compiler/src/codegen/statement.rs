@@ -55,6 +55,20 @@ pub(crate) fn compile_statement(
             StatementKind::Use(_) => {}
             StatementKind::Enum(_) => {}
             StatementKind::Trait(_) | StatementKind::Impl(_) => {}
+            StatementKind::Effect(def) => super::effects_lowering::compile_effect(def, out),
+            StatementKind::Handle { body, handlers } => super::effects_lowering::compile_handle(
+                body,
+                handlers,
+                env,
+                globals,
+                functions,
+                impls,
+                enums,
+                function_errors,
+                state,
+                inside_function,
+                out,
+            )?,
             StatementKind::Function(def) => compile_function(
                 def,
                 globals,

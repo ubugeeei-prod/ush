@@ -9,6 +9,7 @@ use super::{
     },
     SourceLine,
     declaration_support::{finish_block, parse_name},
+    effect_decl,
     expr::{parse_expr, parse_named_type_list, parse_pattern, parse_type_list},
     impls, inline, signature, use_decl,
 };
@@ -39,6 +40,9 @@ pub(super) fn parse_declaration(
     }
     if let Some(rest) = trimmed.strip_prefix("fn ") {
         return Ok(Some(parse_function(line_no, rest, lines, cursor, attrs)?));
+    }
+    if let Some(rest) = trimmed.strip_prefix("effect ") {
+        return Ok(Some(effect_decl::parse_effect(rest)?));
     }
     Ok(None)
 }
@@ -158,7 +162,8 @@ fn parse_function(
         .strip_suffix('{')
         .ok_or_else(|| anyhow!("expected `{{` after function signature"))?
         .trim();
-    let (name, params, return_type, declared_errors) = signature::parse_function_header(head)?;
+    let (name, params, return_type, declared_errors, declared_effects) =
+        signature::parse_function_header(head)?;
     *cursor += 1;
     let body = super::statement::parse_block(lines, cursor, false, return_type.is_some())?;
     let _ = finish_block(lines, cursor, "function body")?;
@@ -169,6 +174,7 @@ fn parse_function(
         params,
         return_type,
         declared_errors,
+        declared_effects,
         body,
     }))
 }

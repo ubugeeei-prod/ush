@@ -8,6 +8,7 @@ mod compare;
 mod control;
 mod control_support;
 mod docs;
+mod effects_lowering;
 mod enum_registry;
 mod functions;
 mod io;
@@ -76,6 +77,13 @@ pub(crate) fn compile_program(
             StatementKind::Trait(def) => register_trait(def, &mut traits)?,
             StatementKind::Impl(item) => register_trait_impl(item, &traits, &mut trait_impls)?,
             StatementKind::Function(def) => functions::register_function(def, &mut functions)?,
+            // An effect operation is a call target like any other:
+            // the declaration generates the dispatcher function that
+            // `do name(…)` resolves to.
+            StatementKind::Effect(def) => functions::register_function(
+                &effects_lowering::effect_dispatcher(def),
+                &mut functions,
+            )?,
             _ => {}
         }
     }
