@@ -2,6 +2,7 @@ mod analyze;
 mod control;
 mod declared_errors;
 mod matching;
+mod side;
 mod support;
 
 use anyhow::Result;
@@ -15,6 +16,9 @@ use crate::{
     types::{AstString as String, Map as HashMap},
 };
 use declared_errors::{exposed_errors, validate_function_errors};
+
+pub use side::{Effect, EffectSet, FunctionEffects};
+pub(crate) use side::{analyze_function_effects, describe_function_effects, top_level_effects};
 
 pub(crate) type FunctionErrorRegistry = HashMap<String, ErrorSet>;
 type TaskErrorRegistry = HashMap<String, ErrorSet>;

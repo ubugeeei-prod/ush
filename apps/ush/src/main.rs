@@ -1,4 +1,6 @@
 mod cli;
+mod effects_report;
+mod explain;
 mod panic_hook;
 mod runtime_diagnostics;
 mod script_docs;
@@ -9,7 +11,6 @@ use std::path::Path;
 use std::process;
 
 use anyhow::{Context, Result};
-use clap::Parser;
 
 use ush_compiler::UshCompiler;
 use ush_config::UshConfig;
@@ -31,7 +32,7 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    let cli = Cli::parse();
+    let cli = Cli::parse_argv();
     let config = UshConfig::load(cli.config.as_deref())?;
 
     if let Some(action) = &cli.action {
@@ -50,6 +51,10 @@ fn main() -> Result<()> {
                 stdout,
             } => process::exit(format_action(input, *check, *stdout)?),
             Action::Check { input } => process::exit(check_action(input)?),
+            Action::Effects { input, undeclared } => {
+                process::exit(effects_report::report(input, *undeclared)?)
+            }
+            Action::Explain { input, lines } => process::exit(explain::explain(input, lines)?),
             Action::Test { targets } => {
                 process::exit(test_runner::run(targets, cli.config.as_deref())?)
             }
@@ -77,7 +82,7 @@ fn main() -> Result<()> {
                     runtime_diagnostics::instrument_compiled_script(script, &compiled);
                 let mut shell = Shell::new(config, options)?;
                 shell.load_session_startup(&startup)?;
-                shell.run_compiled_script(script, &instrumented, &cli.script_args)?
+                shell.run_compiled_script(script, &instrumented.text, &cli.script_args)?
             }
             ScriptMode::Posix => run_posix_script(script, &cli.script_args, &options)?,
         };
@@ -153,11 +158,12 @@ fn script_mode(path: &Path) -> ScriptMode {
 }
 
 fn session_startup(cli: &Cli) -> SessionStartup {
-    let is_repl = cli.action.is_none() && cli.script.is_none() && cli.command.is_none();
-
     SessionStartup {
+        load_env: !cli.no_env || cli.env_file.is_some(),
+        env_file: cli.env_file.clone(),
         load_profile: (cli.login && !cli.no_profile) || cli.profile_file.is_some(),
-        load_rc: (is_repl && !cli.no_rc) || cli.rc_file.is_some(),
+        load_system_profile: cli.login && !cli.no_profile,
+        load_rc: (cli.is_interactive() && !cli.no_rc) || cli.rc_file.is_some(),
         profile_file: cli.profile_file.clone(),
         rc_file: cli.rc_file.clone(),
     }

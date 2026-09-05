@@ -2,27 +2,76 @@ mod history;
 mod process_control;
 mod source;
 
-use std::env;
+use std::{
+    env,
+    path::{Component, Path, PathBuf},
+};
 
 use anyhow::{Context, Result, anyhow, bail};
 
 use super::test_eval;
 use crate::{Shell, ValueStream, expand::strip_outer_quotes, style};
 
+/// Resolves `.` and `..` textually, without touching the filesystem.
+///
+/// This is what keeps `cd` logical: `..` moves up the path the user
+/// typed, and a symlinked directory keeps the name it was reached by.
+fn lexically_normalize(path: &Path) -> PathBuf {
+    let mut out = PathBuf::new();
+    for component in path.components() {
+        match component {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                if !out.pop() {
+                    out.push("..");
+                }
+            }
+            other => out.push(other.as_os_str()),
+        }
+    }
+    if out.as_os_str().is_empty() {
+        out.push(".");
+    }
+    out
+}
+
 impl Shell {
     pub(super) fn change_directory(&mut self, args: &[String]) -> Result<(ValueStream, i32)> {
-        let target = args.first().cloned().unwrap_or_else(|| {
-            self.env
+        let target = match args.first().map(String::as_str) {
+            None => self
+                .env
                 .get("HOME")
                 .cloned()
-                .unwrap_or_else(|| ".".to_string())
-        });
-        let path = self.normalize_path(&target);
+                .unwrap_or_else(|| ".".to_string()),
+            // `cd -` returns to the previous directory and echoes it,
+            // the way every other shell does.
+            Some("-") => self
+                .env
+                .get("OLDPWD")
+                .cloned()
+                .ok_or_else(|| anyhow!("OLDPWD not set"))?,
+            Some(value) => value.to_string(),
+        };
+        let echo_target = args.first().map(String::as_str) == Some("-");
+
+        // Keep the path the user asked for rather than the one the
+        // kernel resolves to. POSIX `cd` is logical unless you ask
+        // for `cd -P`, and on macOS resolving symlinks silently turns
+        // `cd /tmp` into `/private/tmp` — in `pwd`, in `$PWD`, and in
+        // the prompt.
+        let path = lexically_normalize(&self.normalize_path(&target));
         env::set_current_dir(&path)
             .with_context(|| format!("failed to change directory to {}", path.display()))?;
-        self.cwd = env::current_dir()?;
+
+        let previous = std::mem::replace(&mut self.cwd, path);
+        self.env
+            .insert("OLDPWD".to_string(), previous.display().to_string());
         self.env
             .insert("PWD".to_string(), self.cwd.display().to_string());
+
+        if echo_target {
+            return Ok((ValueStream::Text(format!("{}\n", self.cwd.display())), 0));
+        }
         Ok((ValueStream::Empty, 0))
     }
 

@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::{self, IsTerminal, Write};
 
 use anyhow::Result;
 
@@ -20,8 +20,23 @@ impl Shell {
             }
         }
 
+        // The guard reads from stdin, so it can only ever ask a
+        // human. Editor terminals and agent runners hand `ush` a pipe
+        // they never write to, and blocking on that pipe is what
+        // "rm is extremely slow" turns out to be: the read waits for
+        // an answer that is never coming. With no terminal to ask,
+        // decline instead of blocking, and say how to proceed.
         let dangerous = rm_requests_recursive_delete(&filtered);
         if dangerous && self.options.interaction && !force_yes {
+            if !io::stdin().is_terminal() {
+                eprintln!(
+                    "ush: refusing `rm {}`: recursive delete needs a terminal to confirm on.\n\
+                     ush: pass `--yes`, or set USH_INTERACTION=false, to run it unattended.",
+                    filtered.join(" ")
+                );
+                return Ok((ValueStream::Empty, 130));
+            }
+
             eprint!("ush: confirm `rm {}` [y/N] ", filtered.join(" "));
             io::stderr().flush()?;
             let mut answer = String::new();

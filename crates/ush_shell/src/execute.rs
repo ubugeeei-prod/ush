@@ -4,22 +4,32 @@ use std::io::{self, Write};
 use anyhow::{Result, bail};
 use ush_config::ShellKeymap;
 
-use super::{ParsedLine, Shell, ValueStream, parser::Stage, process, repl};
+use super::{
+    ParsedLine, Shell, ValueStream,
+    parser::{Connector, ListItem, Stage},
+    process, repl,
+};
 
 impl Shell {
     pub fn execute(&mut self, line: &str) -> Result<i32> {
-        match super::parse_line(line, &self.aliases)? {
+        let parsed = super::parse_line(line, &self.aliases)?;
+        self.execute_parsed(&parsed)
+    }
+
+    fn execute_parsed(&mut self, parsed: &ParsedLine) -> Result<i32> {
+        match parsed {
             ParsedLine::Empty => Ok(self.last_status),
             ParsedLine::Background(source) => {
-                let text = self.spawn_background_job(&source)?;
+                let text = self.spawn_background_job(source)?;
                 print!("{text}");
                 io::stdout().flush()?;
                 self.finish((ValueStream::Empty, 0))
             }
             ParsedLine::Fallback(source) => {
-                let result = self.run_fallback(&source, ValueStream::Empty, false)?;
+                let result = self.run_fallback(source, ValueStream::Empty, false)?;
                 self.finish(result)
             }
+            ParsedLine::List(items) => self.execute_list(items),
             ParsedLine::Pipeline(pipeline) => {
                 if self.options.print_ast {
                     eprintln!("{pipeline:#?}");
@@ -57,6 +67,39 @@ impl Shell {
                 Ok(status)
             }
         }
+    }
+
+    /// Runs an and-or list left to right, short-circuiting the way
+    /// POSIX does: `&&` needs the previous status to be `0`, `||`
+    /// needs it to be non-zero, and a skipped element leaves the
+    /// status it was tested against untouched.
+    fn execute_list(&mut self, items: &[ListItem]) -> Result<i32> {
+        let mut status = self.last_status;
+        for (index, item) in items.iter().enumerate() {
+            let run = index == 0
+                || match item.connector {
+                    Connector::Always => true,
+                    Connector::And => status == 0,
+                    Connector::Or => status != 0,
+                };
+            if !run {
+                continue;
+            }
+            // A builtin that fails reports a Rust error rather than
+            // an exit status. Inside a list that has to become a
+            // status, or `cd missing || echo fallback` would abandon
+            // the line instead of running the fallback.
+            status = match self.execute_parsed(&item.line) {
+                Ok(status) => status,
+                Err(error) => {
+                    eprintln!("ush: {error:#}");
+                    1
+                }
+            };
+            self.last_status = status;
+        }
+        self.last_status = status;
+        Ok(status)
     }
 
     pub fn run_repl(&mut self) -> Result<()> {

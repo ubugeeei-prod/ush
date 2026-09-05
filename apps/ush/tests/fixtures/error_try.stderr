@@ -1,7 +1,8 @@
 ush raise: Problem
 
-ush runtime map: <SCRIPT>:11
-  section: user-code
-  shell  : G0461 | ( __ush_capture_return='0' __ush_return_path=''; ush_fn_outer )
+ush runtime map: <SCRIPT>:11 (exit 1)
   source : outer ()
+  section: user-code
+  shell  : line 500 | G0461 | ( __ush_capture_return='0' __ush_return_path=''; ush_fn_outer )
   mapped : G0461
+  explain: ush explain <SCRIPT> 500

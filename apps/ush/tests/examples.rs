@@ -46,6 +46,7 @@ fn runnable_examples_exit_successfully() {
         ("bin_defaults.ush", &["--target", "prod", "--verbose"]),
         ("control_flow.ush", &[]),
         ("docs.ush", &[]),
+        ("effects.ush", &[]),
         ("functional.ush", &[]),
         ("hello.ush", &[]),
         ("http_regex.ush", &[]),

@@ -1,0 +1,33 @@
+# Effects are inferred for every function whether or not they are
+# declared. Run `ush effects examples/effects.ush` to see the rows.
+#
+# An `#[effects(...)]` row turns the inference into a check: the
+# function is refused if its body grows an effect the row does not
+# cover. `#[pure]` says a function may touch nothing at all.
+
+use std::env
+use std::string
+
+#[pure]
+fn slug(name: String) -> String {
+  std::string::replace(name, " ", "-")
+}
+
+#[effects(env)]
+fn greeting_target() -> String {
+  std::env::get_or("USER", "world")
+}
+
+#[effects(exec)]
+fn stamp() -> unknown!() {
+  $ date '+%Y-%m-%d'
+}
+
+# No row here: `report` is inferred as `io, env, exec` from what it
+# calls. Declaring a row is opt-in, not a requirement.
+fn report() -> unknown!() {
+  print "hello " + slug(greeting_target())
+  stamp()?
+}
+
+report()?

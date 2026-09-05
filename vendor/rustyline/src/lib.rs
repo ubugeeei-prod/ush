@@ -141,6 +141,34 @@ fn complete_line<H: Helper, P: Prompt + ?Sized>(
                         i = (i - 1) % (candidates.len() + 1); // Circular
                     }
                 }
+                // While the menu is on screen the arrow keys move
+                // through it instead of through history. Without
+                // this, Down on an open menu jumped to the next
+                // history entry and threw the menu (and the line)
+                // away, which is the single thing that makes a
+                // completion menu feel broken. Unlike Tab these wrap
+                // straight from the last candidate to the first: a
+                // menu has no "no selection" row to land on.
+                Cmd::NextHistory | Cmd::LineDownOrNextHistory(_)
+                    if !candidates.is_empty() && i < candidates.len() =>
+                {
+                    i = (i + 1) % candidates.len();
+                }
+                Cmd::PreviousHistory | Cmd::LineUpOrPreviousHistory(_)
+                    if !candidates.is_empty() && i < candidates.len() =>
+                {
+                    i = if i == 0 { candidates.len() - 1 } else { i - 1 };
+                }
+                // Right / End take the highlighted candidate and hand
+                // control back to the editor with the cursor where
+                // the user put it.
+                Cmd::Move(Movement::ForwardChar(_) | Movement::EndOfLine)
+                    if i < candidates.len() =>
+                {
+                    s.refresh_with_msg(None)?;
+                    s.changes.end();
+                    return Ok(None);
+                }
                 Cmd::Abort => {
                     // Re-show original buffer
                     if i < candidates.len() {

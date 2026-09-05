@@ -43,10 +43,15 @@ This repository is an MVP focused on architecture and interaction experiments.
 Implemented today:
 
 - Interactive shell REPL in Rust
-- `-c` command execution
+- `-c` command execution, including multi-line command strings
+- POSIX session shapes: `-i`, `-l`, and the `-`-prefixed `argv[0]` that terminal emulators use to mark a login shell
+- Startup tiers: an `env.sh` / `~/.ush_env` file read on *every* invocation (the `.zshenv` tier), a login profile that also picks up `/etc/profile`, and an interactive rc file
+- `&&`, `||`, `;`, and newline-separated command lists run inside `ush`, so builtins, helpers, and aliases work in a chained line
 - `.sh` / POSIX scripts executed through `/bin/sh`
 - `.ush` scripts compiled to `sh` and then executed by `/bin/sh`
 - Generated `.ush` output stays within POSIX `sh` syntax and POSIX command usage
+- A side-effect system: `io` / `fs` / `env` / `net` / `exec` / `task` rows inferred for every function, with `#[effects(...)]` and `#[pure]` turning inference into a compile-time check, and `ush effects` to list them
+- `ush explain` to map a `/bin/sh` line number from a failing generated script back to the `.ush` line behind it
 - Prototype typed language features: `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, Zig-style error signatures like `Problem!String`, and Rust-like `?` propagation
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
 - Rust-like `std::module::function` paths plus `use` imports for selected std helpers, including `std::env`, `std::path`, `std::fs`, `std::command`, `std::string`, `std::http`, and `std::regex` with capture support
@@ -57,6 +62,7 @@ Implemented today:
 - `apps/ush` and `crates/ush_shell` remain `std`-based by design
 - Installer patterns such as `curl -fsSL https://... | sh` are detected from the parsed pipeline and executed through POSIX `/bin/sh`
 - `.ush` inline shell escapes via `$ command ...`, alongside `shell expr` for dynamic command strings
+- Prompt templates from `USH_PROMPT`, `PS1`, or `shell.prompt`, with the familiar `PS1` escapes plus `\g` (git branch) and `\?` (last status)
 - Builtins: `:`, `.`, `cd`, `pwd`, `echo`, `true`, `false`, `alias`, `unalias`, `jobs`, `wait`, `disown`, `fg`, `bg`, `port`, `stop`, `history`, `export`, `unset`, `confirm`, `input`, `select`, `env`, `command`, `which`, `type`, `test`, `[`, `help`, `source`, `rm`
 - Login/profile startup loading via `--login`, `--profile-file`, `--rc-file`, legacy `~/.ush_profile` / `~/.ushrc`, and rc defaults from `~/.config/ush/.config.ush` or `~/.config.ush`
 - Builtin utility: `sammary` for recursive file and type summaries across paths and globs, with lockfiles excluded by default
@@ -76,6 +82,7 @@ Not there yet:
 - Full native POSIX grammar coverage inside the Rust runtime
 - Richer typed structured values beyond text / JSON helpers
 - Broader language features such as HM inference, generics, HKT, modules, `yield`, and real green-thread scheduling
+- Effect polymorphism: rows are inferred and checked, but a function cannot yet be generic over the effects of a callback
 - Inherent `impl Type { ... }` methods and a Rust-complete type system; the current prototype is still a small subset
 - A truly finished shell UX; editing, completion, and IME behavior are still being tuned
 
@@ -158,12 +165,38 @@ Disable interactive confirmations:
 export USH_INTERACTION=false
 ```
 
-Load login/profile startup files explicitly:
+Set the prompt from a startup file, with `PS1` escapes:
+
+```bash
+export PS1='\[\e[36m\]\W\[\e[0m\] \g \$ '
+```
+
+Load startup files explicitly:
 
 ```bash
 cargo run -p ush -- --login
+cargo run -p ush -- --env-file ~/.ush_env -c 'echo $PATH'
 cargo run -p ush -- --profile-file ~/.config/ush/profile.sh -c 'echo $PWD'
 cargo run -p ush -- --rc-file ~/.config.ush
+```
+
+`ush` reads three tiers, in this order:
+
+| Tier | Read when | Default lookup |
+| --- | --- | --- |
+| env | always, including `ush -c ...` | `~/.config/ush/env.sh`, `~/.ush_env` |
+| profile | login shells (`-l`, or a `-` in `argv[0]`) | `/etc/profile`, `~/.config/ush/profile.sh`, `~/.ush_profile` |
+| rc | interactive shells (`-i`, or the bare REPL) | `~/.config/ush/rc.sh`, `~/.ushrc`, `~/.config.ush`, `~/.config/ush/.config.ush` |
+
+Anything that has to exist for *every* invocation — `PATH` above all —
+belongs in the env tier, the same way it would go in `~/.zshenv`. Each
+tier can be skipped with `--no-env` / `--no-profile` / `--no-rc`.
+
+See what a `.ush` script touches, and map a shell error back to its source:
+
+```bash
+cargo run -p ush -- effects examples/effects.ush
+cargo run -p ush -- explain examples/hello.ush 452
 ```
 
 ## Interactive Editing
@@ -176,7 +209,8 @@ The REPL is tuned around `rustyline`'s Emacs mode with extra bindings for shell-
 - `Ctrl-P` / `Ctrl-N`: previous and next history entry
 - `Ctrl-U` / `Ctrl-K`: kill to the line start/end
 - `Ctrl-W`: kill the previous shell word
-- `Up` / `Down`: previous and next history entry
+- `Up` / `Down`: move through an open completion menu, or through history when no menu is showing
+- `Right` / `End`: accept the highlighted completion candidate
 - `Shift-Left` / `Shift-Right`: extend a visible character selection
 - `Shift-Up` / `Shift-Down`: behaves like normal history movement when the terminal forwards those keys
 - `Option-Up` / `Option-Down`: prefix history search
@@ -318,6 +352,13 @@ Example `config.pkl`:
   }
 }
 ```
+
+`shell.prompt` is a template, not a literal: `$VAR` is expanded, and
+the `PS1` escapes apply (`\w`, `\W`, `\u`, `\h`, `\H`, `\$`, `\n`,
+`\t`, `\e`, `\[`, `\]`) alongside two of ush's own — `\g` for the
+current git branch and `\?` for the last exit status. `USH_PROMPT` and
+`PS1` from the environment take priority over it, so a startup file can
+set the prompt with a plain `export`.
 
 Because Pkl tooling differs by version, `ush` tries a few `pkl eval` JSON output flag variants before falling back to JSON config.
 Legacy `~/.config/ubsh` config files and `UBSHELL_*` env vars are still accepted for compatibility.

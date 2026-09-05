@@ -1,6 +1,6 @@
-use crate::parser::{
-    is_assignment, is_identifier, split_assignments, split_unquoted, strip_comment,
-};
+use crate::parser::comment::strip_comment;
+use crate::parser::split_unquoted;
+use crate::parser::tokens::{is_assignment, is_identifier, split_assignments};
 
 fn owned(values: &[&str]) -> Vec<String> {
     values.iter().map(|value| (*value).to_string()).collect()
@@ -138,4 +138,27 @@ fn identifier_rules_match_posix_names() {
     assert!(!is_identifier("1a"));
     assert!(!is_identifier("a.b"));
     assert!(!is_identifier("日本語"));
+}
+
+#[test]
+fn a_comment_ends_at_its_own_line() {
+    // Truncating the whole input at the first `#` would drop every
+    // command after a commented one in a multi-line `-c` string.
+    assert_eq!(
+        strip_comment("echo one # note\necho two"),
+        "echo one \necho two"
+    );
+    assert_eq!(strip_comment("# only a note\necho two"), "\necho two");
+}
+
+#[test]
+fn an_operator_inside_a_comment_does_not_split_a_line() {
+    let parsed =
+        crate::parser::parse_line("echo one # && echo two", &std::collections::BTreeMap::new())
+            .expect("parse");
+
+    assert!(
+        matches!(parsed, crate::ParsedLine::Pipeline(_)),
+        "{parsed:?}"
+    );
 }

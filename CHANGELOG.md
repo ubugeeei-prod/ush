@@ -10,8 +10,70 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-09-06
+
+### Added
+
+- A side-effect system for `.ush`. Every function gets an effect row
+  inferred from what it touches — `io`, `fs`, `env`, `net`, `exec`,
+  `task` — propagated through calls by fixpoint so mutual recursion
+  resolves instead of reporting one side as pure. `#[effects(...)]`
+  and `#[pure]` turn the inference into a compile-time check, with
+  the row treated as an upper bound so over-declaring is allowed.
+  `ush effects` lists the rows, `ush effects --undeclared` lists the
+  ones still missing an annotation. See [`docs/effects.md`].
+- `ush explain <script.ush> <LINE>` maps a line number out of a
+  `/bin/sh` diagnostic — or a `G####` sourcemap id — back to the
+  `.ush` line behind it, with surrounding source and the rest of the
+  group that line lowered into.
+- A `.zshenv`-style startup tier: `~/.config/ush/env.sh` and
+  `~/.ush_env` are read on *every* invocation, including
+  `ush -c ...`, with `--env-file` / `--no-env` to steer it. `PATH`
+  set up for `ush` now applies to the invocation tools actually use.
+- `PS1` and `USH_PROMPT` are honoured, and `shell.prompt` is a
+  template rather than a literal: the familiar `PS1` escapes plus
+  `\g` for the git branch and `\?` for the last exit status.
+- `cd -` returns to the previous directory, and `$OLDPWD` is
+  maintained.
+
 ### Fixed
 
+- `ush -i` is accepted. Editor terminals and agent runners spawn
+  `$SHELL -i -c ...`, and rejecting the flag killed every such
+  session at argv parsing.
+- A login shell started the POSIX way — with a `-` in front of
+  `argv[0]`, which is what terminal emulators do — now loads the
+  profile. It was previously ignored, so a `PATH` configured there
+  looked like it had been thrown away. Login shells also read
+  `/etc/profile`, which is what runs `path_helper` on macOS.
+- External commands resolve through the shell's own `PATH` and are
+  spawned by absolute path. Lookup went through the *process*
+  environment, and `execvp` resolves a bare program name the same
+  way, so a `PATH` exported at the prompt or from a startup file
+  decided nothing.
+- `a && b`, `a || b`, and `a; b` run inside `ush` instead of being
+  handed to `/bin/sh` whole. Builtins (`cd`, `sammary`, `tasks`),
+  the structured helpers, and session aliases were "command not
+  found" in any chained line. Compound commands (`if`, `for`,
+  `case`, `(`, `{`) still go to `/bin/sh` in one piece.
+- A newline separates commands, so a multi-line `ush -c` runs every
+  line instead of parsing the whole string as one command.
+- `rm -rf` no longer blocks reading a confirmation from a stdin pipe
+  nobody is going to write to. Without a terminal to ask on it
+  declines with an actionable message instead of hanging.
+- The completion menu moves with the arrow keys. `Up` / `Down` used
+  to fall through to history navigation, discarding the menu and the
+  line; `Right` / `End` now accept the highlighted candidate.
+- `cd` keeps the logical path, so `cd /tmp` reports `/tmp` rather
+  than `/private/tmp` in `pwd`, `$PWD`, and the prompt.
+- A word that merely looks like a glob (`echo [$?]`) no longer fails
+  the whole command with a pattern-syntax error.
+- A `#` comment ends at its own line instead of truncating the rest
+  of the input, so a multi-line `-c` string or a paste keeps running
+  after a commented line.
+- A builtin that fails inside a list becomes a status the next
+  element can test, so `cd missing || echo fallback` runs the
+  fallback rather than abandoning the line.
 - `continue` inside a `for` loop no longer hangs. The range and list
   lowerings advanced the loop counter at the end of the body, so a
   `continue` skipped it and the generated `while` loop spun forever.
@@ -46,6 +108,11 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+- The runtime failure report from a `.ush` script names the line
+  number `/bin/sh` itself uses, alongside the sourcemap id, the exit
+  status, and the `ush explain` invocation for that line. The
+  instrumentation header used to shift every line, so the ids in the
+  report matched nothing the shell had printed.
 - Stylish `tasks` counts read `1 npm task` rather than `1 npm`.
 
 ### Security
@@ -74,6 +141,11 @@ project adheres to [Semantic Versioning][semver].
 - `.ush → sh` compilation is ~30% faster: the output buffer counts
   line breaks with `memchr` rather than decoding every character,
   and block indentation no longer allocates a string per line.
+- Chained commands no longer spawn `/bin/sh` and six temp files per
+  line. `a && b` is executed directly, so only a segment that
+  genuinely needs POSIX syntax pays for a subshell.
+
+[`docs/effects.md`]: ./docs/effects.md
 
 ## [0.9.0] — 2026-05-19
 
@@ -264,7 +336,8 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei/ush/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/ubugeeei/ush/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
 [0.9.0]: https://github.com/ubugeeei/ush/releases/tag/v0.9.0
 [0.8.0]: https://github.com/ubugeeei/ush/releases/tag/v0.8.0
 [0.7.0]: https://github.com/ubugeeei/ush/releases/tag/v0.7.0

@@ -2,7 +2,21 @@
 /// than this can never match, so the scanner stops buffering them.
 const MAX_KEYWORD_LEN: usize = 5;
 
+/// The keyword-scanning form, kept for the tests that exercise the
+/// decision on its own.
+#[cfg(test)]
 pub(super) fn needs_posix_fallback(line: &str) -> bool {
+    needs_posix_fallback_with(line, None)
+}
+
+/// Reports whether `line` has to be handed to `/bin/sh`, with the
+/// keyword scan already done.
+///
+/// The and-or splitter has to know whether the line contains a POSIX
+/// keyword before it can decide to split, and that answer is equally
+/// valid here — scanning for the same keywords twice per line is
+/// pure overhead on the interactive path.
+pub(super) fn needs_posix_fallback_with(line: &str, keyword: Option<bool>) -> bool {
     let trimmed = line.trim_start();
     if trimmed.starts_with('!') || trimmed.starts_with('(') || trimmed.starts_with('{') {
         return true;
@@ -24,14 +38,18 @@ pub(super) fn needs_posix_fallback(line: &str) -> bool {
         }
     }
 
-    line.contains("&&") || line.contains("||") || contains_unquoted_keyword(line)
+    // `&&`, `||`, and `;` no longer imply a fallback: the parser
+    // splits an and-or list before it gets here, so the only ones
+    // left in a segment are quoted, and `echo 'a && b'` has no
+    // business spawning `/bin/sh`.
+    keyword.unwrap_or_else(|| contains_unquoted_keyword(line))
 }
 
 /// True when `line` contains any POSIX shell keyword as an unquoted
 /// word. One pass over the line with a fixed-size word buffer: the
 /// previous shape re-scanned the line (and allocated a `String`) once
 /// per keyword, which is pure overhead on the interactive fast path.
-fn contains_unquoted_keyword(line: &str) -> bool {
+pub(super) fn contains_unquoted_keyword(line: &str) -> bool {
     let mut single = false;
     let mut double = false;
     let mut escaped = false;

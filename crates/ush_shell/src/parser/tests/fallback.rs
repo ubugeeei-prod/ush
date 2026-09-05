@@ -34,11 +34,18 @@ fn control_operators_fall_back() {
         "echo hi > out.txt",
         "echo hi >> out.txt",
         "echo $(date)",
-        "true && false",
-        "true || false",
     ] {
         assert!(needs_posix_fallback(line), "{line} should fall back");
     }
+}
+
+#[test]
+fn quoted_and_or_operators_stay_native() {
+    // `parse_line` splits an unquoted and-or list before this check
+    // runs, so the only `&&` that reaches it is inside quotes — and
+    // that is a plain argument, not a reason to spawn `/bin/sh`.
+    assert!(!needs_posix_fallback("echo 'a && b'"));
+    assert!(!needs_posix_fallback("echo \"a || b\""));
 }
 
 #[test]

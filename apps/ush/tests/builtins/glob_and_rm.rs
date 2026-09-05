@@ -65,6 +65,24 @@ fn bracket_test_builtin_returns_zero_for_true_expression() {
 }
 
 #[test]
+fn rm_guard_runs_unattended_when_interaction_is_disabled() {
+    let dir = tempdir().expect("tempdir");
+    let target = dir.path().join("target");
+    fs::create_dir_all(target.join("nested")).expect("mkdir target");
+    fs::write(target.join("nested/file.txt"), "remove\n").expect("write target");
+
+    let output = ush()
+        .args(["-c", "rm -rf target"])
+        .env("USH_INTERACTION", "false")
+        .current_dir(dir.path())
+        .output()
+        .expect("run ush");
+
+    assert!(output.status.success());
+    assert!(!target.exists());
+}
+
+#[test]
 fn rm_guard_rejects_split_recursive_short_flags_without_yes() {
     let dir = tempdir().expect("tempdir");
     let target = dir.path().join("target");

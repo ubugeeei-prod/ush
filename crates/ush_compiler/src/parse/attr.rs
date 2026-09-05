@@ -9,6 +9,7 @@ use super::{
 };
 use crate::scan::{ScanState, advance};
 use crate::types::HeapVec as Vec;
+use crate::util::split_top_level;
 
 pub(super) fn parse_attribute_line(source: &str) -> Result<Attribute> {
     parse_attribute(
@@ -34,14 +35,30 @@ pub(super) fn parse_inline_attrs(source: &str) -> Result<(Vec<Attribute>, &str)>
 fn parse_attribute(source: &str) -> Result<Attribute> {
     let trimmed = source.trim();
     if let Some((name, inner)) = parse_paren_body(trimmed) {
+        let args = split_top_level(inner, ',')
+            .into_iter()
+            .map(str::trim)
+            .filter(|part| !part.is_empty())
+            .map(crate::types::AstString::from)
+            .collect::<Vec<_>>();
+        // A single argument is an expression (`#[default(1)]`); a
+        // list is a set of names (`#[effects(fs, exec)]`) that no
+        // expression grammar covers.
+        let value = if args.len() == 1 {
+            Some(parse_expr(inner)?)
+        } else {
+            None
+        };
         return Ok(Attribute {
             name: parse_name(name)?,
-            value: Some(parse_expr(inner)?),
+            value,
+            args,
         });
     }
     Ok(Attribute {
         name: parse_name(trimmed)?,
         value: None,
+        args: Vec::new(),
     })
 }
 

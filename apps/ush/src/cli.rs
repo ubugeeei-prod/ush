@@ -22,11 +22,34 @@ pub struct Cli {
     pub config: Option<PathBuf>,
 
     /// Treat this invocation as a login shell (loads the profile file).
+    ///
+    /// A leading `-` in `argv[0]` — how terminal emulators mark a
+    /// login shell — has the same effect, see `Cli::parse_argv`.
     #[arg(short = 'l', long = "login")]
     pub login: bool,
 
+    /// Force interactive behaviour (loads the rc file).
+    ///
+    /// Accepted for POSIX compatibility. Editor terminals and agent
+    /// runners spawn `$SHELL -i -c ...`, and rejecting `-i` made
+    /// every such session fail before it started.
+    #[arg(short = 'i', long = "interactive")]
+    pub interactive: bool,
+
+    /// Skip the env file (~/.config/ush/env.sh etc.).
+    #[arg(long = "no-env", alias = "noenv", conflicts_with = "env_file")]
+    pub no_env: bool,
+
+    /// Use FILE as the env file instead of the default lookup.
+    #[arg(long = "env-file", value_name = "FILE", conflicts_with = "no_env")]
+    pub env_file: Option<PathBuf>,
+
     /// Skip the profile file even in login mode.
-    #[arg(long = "no-profile", conflicts_with = "profile_file")]
+    #[arg(
+        long = "no-profile",
+        alias = "noprofile",
+        conflicts_with = "profile_file"
+    )]
     pub no_profile: bool,
 
     /// Use FILE as the profile file instead of the default lookup.
@@ -38,7 +61,7 @@ pub struct Cli {
     pub profile_file: Option<PathBuf>,
 
     /// Skip the rc file (~/.config/ush/.config.ush etc.).
-    #[arg(long = "no-rc", conflicts_with = "rc_file")]
+    #[arg(long = "no-rc", alias = "norc", conflicts_with = "rc_file")]
     pub no_rc: bool,
 
     /// Use FILE as the rc file instead of the default lookup.
@@ -69,6 +92,35 @@ pub struct Cli {
     pub script_args: Vec<String>,
 }
 
+impl Cli {
+    /// Parses the process arguments, honouring the POSIX convention
+    /// that a login shell is launched with a `-` in front of
+    /// `argv[0]`.
+    ///
+    /// Ghostty, Terminal.app, and most editor terminals start a login
+    /// shell that way rather than by passing `-l`. Ignoring it meant
+    /// the profile never ran, which is why a `PATH` set up in
+    /// `~/.ush_profile` looked like it had been thrown away.
+    pub fn parse_argv() -> Self {
+        let argv0_is_login = std::env::args_os()
+            .next()
+            .map(|arg| arg.to_string_lossy().starts_with('-'))
+            .unwrap_or(false);
+
+        let mut cli = Self::parse();
+        cli.login |= argv0_is_login;
+        cli
+    }
+
+    /// True when this session should behave like an interactive
+    /// shell: an explicit `-i`, or a bare `ush` that drops into the
+    /// REPL.
+    pub fn is_interactive(&self) -> bool {
+        self.interactive
+            || (self.action.is_none() && self.script.is_none() && self.command.is_none())
+    }
+}
+
 #[derive(Debug, Clone, Subcommand)]
 pub enum Action {
     /// Lower a `.ush` source file to POSIX `sh`.
@@ -93,6 +145,25 @@ pub enum Action {
     },
     /// Type-check a `.ush` source file without producing output.
     Check { input: PathBuf },
+    /// Show the effect row `ush` infers for every function.
+    ///
+    /// Effects are inferred whether or not they are declared; an
+    /// `#[effects(...)]` row turns the inference into a check.
+    Effects {
+        input: PathBuf,
+        /// Only list functions whose effects are not declared.
+        #[arg(long)]
+        undeclared: bool,
+    },
+    /// Map a generated-shell line back to the `.ush` code behind it.
+    ///
+    /// Takes the line numbers `/bin/sh` prints in its own errors, or
+    /// the `G####` ids from a sourcemap listing.
+    Explain {
+        input: PathBuf,
+        #[arg(value_name = "LINE", required = true)]
+        lines: Vec<String>,
+    },
     /// Run inline `#[test]` blocks in one or more `.ush` files.
     Test {
         #[arg(value_name = "TARGET")]

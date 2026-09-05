@@ -14,7 +14,7 @@ Detailed per-feature notes live next to this file
 | --- | --- | --- |
 | `apps/ush` | binary | The user-facing CLI (`ush`). Owns argument parsing, config loading, panic hook, subcommands. Glue between everything else. |
 | `apps/ush_lsp` | binary | Stdio LSP server (`ush_lsp`). Wraps `ush_tooling`. |
-| `crates/ush_compiler` | library, `no_std + alloc` capable | `.ush → sh` compiler. Parser, AST, effects pass (incl. match exhaustiveness), codegen, sourcemap emission, pattern matching lowering, runtime support, stdlib lowering. |
+| `crates/ush_compiler` | library, `no_std + alloc` capable | `.ush → sh` compiler. Parser, AST, effects passes (typed errors, side effects, match exhaustiveness), codegen, sourcemap emission, pattern matching lowering, runtime support, stdlib lowering. |
 | `crates/ush_shell` | library | The interactive shell: parser, dispatch, stylish renderers, helper pipelines (`json`, `xml`, `len`, …), built-ins, REPL bindings, vendored rustyline integration. |
 | `crates/ush_config` | library | Config file lookup, profile / rc resolution, ush directory paths. |
 | `crates/ush_tooling` | library | Formatter, diagnostics, semantic-token generation for the LSP. |
@@ -70,6 +70,7 @@ ush  ──parse args──>  apps/ush::cli
 | Match arm not lowered correctly | `crates/ush_compiler/src/matching/` |
 | Match exhaustiveness diagnostic missing or wrong | `crates/ush_compiler/src/matching/exhaustiveness.rs` |
 | Error effect / `Problem!T` typing | `crates/ush_compiler/src/effects/` |
+| Side-effect inference and `#[effects(...)]` checking | `crates/ush_compiler/src/effects/side.rs` |
 | Sourcemap entry missing / pointing at wrong line | `crates/ush_compiler/src/sourcemap.rs` |
 | Built-in (`cd`, `pwd`, `port`, …) behaves wrong | `crates/ush_shell/src/builtins/` |
 | Job control / signals / pipelines | `crates/ush_shell/src/process/` |

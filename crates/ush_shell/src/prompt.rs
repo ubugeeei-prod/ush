@@ -4,9 +4,13 @@ use ush_config::StarshipPromptConfig;
 
 mod path;
 mod starship;
+mod template;
 
 #[cfg(test)]
 mod tests;
+
+pub(crate) use self::starship::current_git_branch;
+pub(crate) use self::template::{PromptContext, render_template, wants_git_branch};
 
 pub(crate) fn render_prompt(
     cwd: &Path,

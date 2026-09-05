@@ -21,6 +21,11 @@ pub(crate) struct TraitImpl {
 pub(crate) struct Attribute {
     pub name: String,
     pub value: Option<super::Expr>,
+    /// The argument list exactly as written, split on top-level
+    /// commas. Attributes such as `#[effects(fs, exec)]` are lists of
+    /// names rather than a single expression, so the raw text is kept
+    /// alongside the parsed `value`.
+    pub args: Vec<String>,
 }
 
 #[derive(Debug, Clone)]

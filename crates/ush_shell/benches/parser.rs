@@ -23,16 +23,30 @@ const NATIVE_LINES: &[(&str, &str)] = &[
 ];
 
 const FALLBACK_LINES: &[(&str, &str)] = &[
-    (
-        "boolean chain",
-        "cargo fmt --all && cargo clippy --workspace",
-    ),
     ("redirect", "cargo test --workspace > out.log"),
     ("command substitution", "echo $(git rev-parse HEAD)"),
     (
         "shell keyword",
         "for file in src/*.rs; do wc -l $file; done",
     ),
+    ("subshell", "(cd build && cmake --build .)"),
+];
+
+/// And-or lists, which `ush` parses itself.
+///
+/// These used to live in `FALLBACK_LINES`, where the measurement was
+/// the cost of copying the line into `ParsedLine::Fallback` and
+/// handing the whole thing to `/bin/sh` — which is exactly the bug
+/// that made `mkdir x && cd x` unable to reach the `cd` builtin.
+/// They now measure what they say: parsing every command in the
+/// list.
+const LIST_LINES: &[(&str, &str)] = &[
+    (
+        "boolean chain",
+        "cargo fmt --all && cargo clippy --workspace",
+    ),
+    ("sequence", "cd crates/ush_shell; cargo test --lib"),
+    ("or fallback", "cargo build || echo build failed"),
 ];
 
 fn alias_table() -> BTreeMap<String, String> {
@@ -71,6 +85,14 @@ fn bench_parser(criterion: &mut Criterion) {
         });
     }
     fallback.finish();
+
+    let mut lists = criterion.benchmark_group("parse and-or list");
+    for (name, line) in LIST_LINES {
+        lists.bench_with_input(BenchmarkId::from_parameter(name), line, |bench, line| {
+            bench.iter(|| parse_line(line, &empty));
+        });
+    }
+    lists.finish();
 
     let table = alias_table();
     criterion.bench_function("parse with alias table", |bench| {

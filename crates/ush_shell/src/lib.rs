@@ -36,7 +36,7 @@ use ush_config::{RuntimePaths, UshConfig};
 pub use self::{
     helpers::{HelperInvocation, ValueStream},
     options::{ShellOptions, run_posix_script},
-    parser::{ParsedLine, parse_line},
+    parser::{Connector, ListItem, ParsedLine, Pipeline, parse_line},
     startup::SessionStartup,
 };
 
