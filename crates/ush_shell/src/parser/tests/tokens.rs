@@ -139,3 +139,26 @@ fn identifier_rules_match_posix_names() {
     assert!(!is_identifier("a.b"));
     assert!(!is_identifier("日本語"));
 }
+
+#[test]
+fn a_comment_ends_at_its_own_line() {
+    // Truncating the whole input at the first `#` would drop every
+    // command after a commented one in a multi-line `-c` string.
+    assert_eq!(
+        strip_comment("echo one # note\necho two"),
+        "echo one \necho two"
+    );
+    assert_eq!(strip_comment("# only a note\necho two"), "\necho two");
+}
+
+#[test]
+fn an_operator_inside_a_comment_does_not_split_a_line() {
+    let parsed =
+        crate::parser::parse_line("echo one # && echo two", &std::collections::BTreeMap::new())
+            .expect("parse");
+
+    assert!(
+        matches!(parsed, crate::ParsedLine::Pipeline(_)),
+        "{parsed:?}"
+    );
+}

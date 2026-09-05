@@ -68,6 +68,12 @@ project adheres to [Semantic Versioning][semver].
   than `/private/tmp` in `pwd`, `$PWD`, and the prompt.
 - A word that merely looks like a glob (`echo [$?]`) no longer fails
   the whole command with a pattern-syntax error.
+- A `#` comment ends at its own line instead of truncating the rest
+  of the input, so a multi-line `-c` string or a paste keeps running
+  after a commented line.
+- A builtin that fails inside a list becomes a status the next
+  element can test, so `cd missing || echo fallback` runs the
+  fallback rather than abandoning the line.
 - `continue` inside a `for` loop no longer hangs. The range and list
   lowerings advanced the loop counter at the end of the body, so a
   `continue` skipped it and the generated `while` loop spun forever.

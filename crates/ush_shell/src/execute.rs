@@ -85,7 +85,18 @@ impl Shell {
             if !run {
                 continue;
             }
-            status = self.execute_parsed(&item.line)?;
+            // A builtin that fails reports a Rust error rather than
+            // an exit status. Inside a list that has to become a
+            // status, or `cd missing || echo fallback` would abandon
+            // the line instead of running the fallback.
+            status = match self.execute_parsed(&item.line) {
+                Ok(status) => status,
+                Err(error) => {
+                    eprintln!("ush: {error:#}");
+                    1
+                }
+            };
+            self.last_status = status;
         }
         self.last_status = status;
         Ok(status)

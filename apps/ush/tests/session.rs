@@ -189,3 +189,41 @@ fn cd_keeps_the_logical_path() {
     assert!(output.status.success());
     assert_eq!(stdout_of(&output), "/tmp\n");
 }
+
+#[test]
+fn a_failing_builtin_is_a_status_the_next_element_can_test() {
+    // `cd` reports a Rust error rather than an exit status, so
+    // without translation `|| echo` would never get to run.
+    let output = ush()
+        .args(["-c", "cd /nonexistent-ush-test-dir || echo fallback"])
+        .output()
+        .expect("run ush");
+
+    assert!(output.status.success());
+    assert_eq!(stdout_of(&output), "fallback\n");
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("failed to change directory"),
+        "the failure itself should still be reported"
+    );
+}
+
+#[test]
+fn a_failing_element_does_not_abandon_the_rest_of_a_semicolon_list() {
+    let output = ush()
+        .args(["-c", "echo a; ush-no-such-command; echo b"])
+        .output()
+        .expect("run ush");
+
+    assert_eq!(stdout_of(&output), "a\nb\n");
+}
+
+#[test]
+fn a_comment_does_not_swallow_the_lines_after_it() {
+    let output = ush()
+        .args(["-c", "echo one # && echo skipped\necho two"])
+        .output()
+        .expect("run ush");
+
+    assert!(output.status.success());
+    assert_eq!(stdout_of(&output), "one\ntwo\n");
+}
