@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788632326082,
+  "lastUpdate": 1788637980320,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -1847,6 +1847,144 @@ window.BENCHMARK_DATA = {
             "name": "compile adt ush program",
             "value": 79991,
             "range": "± 2898",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "687b36d8b07c5bd5a7fe6645de419d312a6b56c8",
+          "message": "feat(compiler): rebuild the effect system on Effekt's model (#155)\n\nThe first cut tracked effects with an attribute (`#[effects(fs)]`).\nThat records what a function touches but misses the point of an\neffect system: an effect is a *requirement* a computation has of its\ncaller, and the interesting operation is handling one.\n\nReworked to follow Effekt. The row lives in the signature, after the\nreturn type, and says what the body still needs:\n\n    effect log(message: String) -> ()\n\n    fn greet(name: String) -> String / { log } {\n      do log(\"greeting \" + name)\n      \"hello \" + name\n    }\n\n    try {\n      print greet(\"ubu\")\n    } with log { (message) =>\n      print \"[log] \" + message\n    }\n\n`effect` declares an operation, `do` performs it, and `try … with`\ndischarges it for the block it wraps. The handler's value is what\n`do` evaluates to, so the body carries on where it left off — a\ntail-resumptive handler, which is as far as POSIX `sh` goes without\ndelimited continuations. Handlers nest and shadow, and an effect that\nreaches the top of the program is a compile error, the way Effekt\ndemands of `main`.\n\nLowering keeps it readable: an `effect` declaration becomes a shell\nfunction that forwards to whichever handler is installed, and a\nhandler is compiled as an ordinary function the indirection points at\nfor the duration of the body. Save/restore around that binding is\nwhat makes nesting work.\n\nThe six built-ins (`io`, `fs`, `env`, `net`, `exec`, `task`) stay:\nthey describe what the generated shell does, are inferred rather than\nperformed, and no handler can take them back. `/ {}` replaces\n`#[pure]`, and an omitted row still means \"infer, don't check\".\n\nAlso fixed on the way: `parse_brace_body` panicked on a line where\n`}` precedes `{` (it sliced before checking the range ran forwards),\nand `ush format` flattened the body of a block that opens on a\nclosing line.\n\nCo-authored-by: Claude Opus 5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-06T04:47:45+09:00",
+          "tree_id": "7b1abaf766af38ba60520e87c956765b1e102478",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/687b36d8b07c5bd5a7fe6645de419d312a6b56c8"
+        },
+        "date": 1788637979635,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1660,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 292,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 683,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1232,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1285,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1149,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 206,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 134,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 244,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 121,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1486,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1292,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1215,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 841,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2654,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 21,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 51447,
+            "range": "± 1257",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 57741,
+            "range": "± 1491",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 79284,
+            "range": "± 623",
             "unit": "ns/iter"
           }
         ]
