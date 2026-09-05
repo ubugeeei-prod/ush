@@ -1,6 +1,8 @@
 mod analyze;
 mod control;
 mod declared_errors;
+mod handled;
+mod loops;
 mod matching;
 mod side;
 mod support;

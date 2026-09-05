@@ -59,8 +59,19 @@ fn resolve_statement(
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)
         | StatementKind::Await { .. }
+        | StatementKind::Effect(_)
         | StatementKind::Break
         | StatementKind::Continue => {}
+        StatementKind::Handle { body, handlers } => {
+            for statement in body {
+                resolve_statement(statement, imports);
+            }
+            for handler in handlers {
+                for statement in &mut handler.body {
+                    resolve_statement(statement, imports);
+                }
+            }
+        }
         StatementKind::Impl(item) => {
             for method in &mut item.methods {
                 resolve_function(method, imports);

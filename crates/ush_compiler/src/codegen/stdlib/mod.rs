@@ -52,6 +52,7 @@ pub(super) fn builtin(
     return_type: Option<Type>,
 ) -> FunctionDef {
     FunctionDef {
+        declared_effects: None,
         attrs: Vec::new(),
         name: name.into(),
         receiver: None,

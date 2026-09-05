@@ -21,11 +21,6 @@ pub(crate) struct TraitImpl {
 pub(crate) struct Attribute {
     pub name: String,
     pub value: Option<super::Expr>,
-    /// The argument list exactly as written, split on top-level
-    /// commas. Attributes such as `#[effects(fs, exec)]` are lists of
-    /// names rather than a single expression, so the raw text is kept
-    /// alongside the parsed `value`.
-    pub args: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -42,6 +37,31 @@ pub(crate) struct FunctionDef {
     pub params: Vec<FunctionParam>,
     pub return_type: Option<Type>,
     pub declared_errors: Option<ErrorSet>,
+    /// The effect row written after the return type, as in
+    /// `-> String / { fs, log }`. `None` means no row was written and
+    /// the inferred one is not checked; `Some([])` is `/ {}`, a
+    /// function that may need nothing at all.
+    pub declared_effects: Option<Vec<String>>,
+    pub body: Vec<super::Statement>,
+}
+
+/// `effect log(message: String) -> ()`
+///
+/// One operation, the way Effekt's short form declares one. A `do`
+/// on it is a call the enclosing computation cannot answer itself,
+/// so it shows up in the effect row until a handler takes it.
+#[derive(Debug, Clone)]
+pub(crate) struct EffectDef {
+    pub name: String,
+    pub params: Vec<FunctionParam>,
+    pub return_type: Option<Type>,
+}
+
+/// One `with NAME { (a, b) => … }` arm of a `try`.
+#[derive(Debug, Clone)]
+pub(crate) struct EffectHandler {
+    pub effect: String,
+    pub params: Vec<String>,
     pub body: Vec<super::Statement>,
 }
 

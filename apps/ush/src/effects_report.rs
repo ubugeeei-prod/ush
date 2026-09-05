@@ -31,7 +31,7 @@ pub fn report(input: &Path, undeclared_only: bool) -> Result<i32> {
             "{:width$}  {}{}",
             function.name,
             function.inferred,
-            declared_suffix(function.declared, function.inferred),
+            declared_suffix(function.declared.as_ref(), &function.inferred),
         );
     }
 
@@ -44,7 +44,7 @@ pub fn report(input: &Path, undeclared_only: bool) -> Result<i32> {
 /// Shows the declared row only when it says something the inferred
 /// row does not — an over-declaration is the interesting case, since
 /// an under-declaration is a compile error and never gets this far.
-fn declared_suffix(declared: Option<EffectSet>, inferred: EffectSet) -> String {
+fn declared_suffix(declared: Option<&EffectSet>, inferred: &EffectSet) -> String {
     match declared {
         Some(declared) if declared != inferred => format!("  (declared: {declared})"),
         Some(_) => "  (declared)".to_string(),

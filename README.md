@@ -50,7 +50,7 @@ Implemented today:
 - `.sh` / POSIX scripts executed through `/bin/sh`
 - `.ush` scripts compiled to `sh` and then executed by `/bin/sh`
 - Generated `.ush` output stays within POSIX `sh` syntax and POSIX command usage
-- A side-effect system: `io` / `fs` / `env` / `net` / `exec` / `task` rows inferred for every function, with `#[effects(...)]` and `#[pure]` turning inference into a compile-time check, and `ush effects` to list them
+- An effect system modelled on [Effekt](https://effekt-lang.org): an effect row after the return type (`-> String / { net, log }`) saying what a function needs from its caller, inferred for every function whether or not it is written; `effect` declarations, `do` to perform one, and `try … with` handlers that discharge it; six built-in rows (`io`, `fs`, `env`, `net`, `exec`, `task`) inferred from the stdlib; and `ush effects` to list them
 - `ush explain` to map a `/bin/sh` line number from a failing generated script back to the `.ush` line behind it
 - Prototype typed language features: `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, Zig-style error signatures like `Problem!String`, and Rust-like `?` propagation
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
@@ -82,7 +82,7 @@ Not there yet:
 - Full native POSIX grammar coverage inside the Rust runtime
 - Richer typed structured values beyond text / JSON helpers
 - Broader language features such as HM inference, generics, HKT, modules, `yield`, and real green-thread scheduling
-- Effect polymorphism: rows are inferred and checked, but a function cannot yet be generic over the effects of a callback
+- Effect polymorphism, and multi-operation effect interfaces; handlers are tail-resumptive, so there is no `resume` to capture a continuation with
 - Inherent `impl Type { ... }` methods and a Rust-complete type system; the current prototype is still a small subset
 - A truly finished shell UX; editing, completion, and IME behavior are still being tuned
 

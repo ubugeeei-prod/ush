@@ -4,10 +4,10 @@ use super::{
     super::{
         ast::{Attribute, Call, CallArg, Expr, FunctionParam},
         errors::ErrorSet,
-        util::{parse_type, split_once_top_level, split_top_level, split_top_level_whitespace},
+        util::{split_once_top_level, split_top_level, split_top_level_whitespace},
     },
-    attr,
     expr::parse_expr,
+    params::parse_params,
     path::{looks_like_call_target, parse_call_target, parse_identifier},
     returns::parse_function_return,
 };
@@ -19,17 +19,19 @@ type ParsedFunctionHeader = (
     Vec<FunctionParam>,
     Option<super::super::ast::Type>,
     Option<ErrorSet>,
+    Option<Vec<String>>,
 );
 
 pub(super) fn parse_function_header(header: &str) -> Result<ParsedFunctionHeader> {
     let (name, inner, tail) =
         split_paren_form(header).ok_or_else(|| anyhow!("functions must use `fn name(args)`"))?;
-    let (return_type, declared_errors) = parse_function_return(tail)?;
+    let (return_type, declared_errors, declared_effects) = parse_function_return(tail)?;
     Ok((
         parse_identifier(name)?,
         parse_params(inner)?,
         return_type,
         declared_errors,
+        declared_effects,
     ))
 }
 
@@ -115,24 +117,6 @@ fn parse_args(source: &str) -> Result<Vec<CallArg>> {
         .collect()
 }
 
-fn parse_params(source: &str) -> Result<Vec<FunctionParam>> {
-    split_top_level(source, ',')
-        .into_iter()
-        .filter(|part| !part.is_empty())
-        .map(|part| {
-            let (attrs, rest) = attr::parse_inline_attrs(part)?;
-            let (name, ty) = split_once_top_level(rest, ':')
-                .ok_or_else(|| anyhow!("invalid parameter: {part}"))?;
-            Ok(FunctionParam {
-                name: parse_identifier(name)?,
-                ty: parse_type(ty).ok_or_else(|| anyhow!("invalid type: {ty}"))?,
-                default: attr_expr(&attrs, "default")?,
-                cli_alias: attr_string(&attrs, "alias")?,
-            })
-        })
-        .collect()
-}
-
 pub(super) fn parse_await_task(source: &str) -> Result<Option<String>> {
     let trimmed = source.trim();
     if let Some(task) = trimmed.strip_suffix(".await") {
@@ -144,7 +128,7 @@ pub(super) fn parse_await_task(source: &str) -> Result<Option<String>> {
     Ok(None)
 }
 
-fn split_paren_form(source: &str) -> Option<(&str, &str, &str)> {
+pub(super) fn split_paren_form(source: &str) -> Option<(&str, &str, &str)> {
     let mut state = ScanState::default();
     let mut open = None;
     let mut index = 0usize;
@@ -219,7 +203,7 @@ fn parse_call_arg(source: &str) -> Result<CallArg> {
     })
 }
 
-fn attr_expr(attrs: &[Attribute], name: &str) -> Result<Option<Expr>> {
+pub(super) fn attr_expr(attrs: &[Attribute], name: &str) -> Result<Option<Expr>> {
     let mut value = None;
     for attr in attrs {
         match attr.name.as_str() {
@@ -240,7 +224,7 @@ fn attr_expr(attrs: &[Attribute], name: &str) -> Result<Option<Expr>> {
     Ok(value)
 }
 
-fn attr_string(attrs: &[Attribute], name: &str) -> Result<Option<String>> {
+pub(super) fn attr_string(attrs: &[Attribute], name: &str) -> Result<Option<String>> {
     match attr_expr(attrs, name)? {
         None => Ok(None),
         Some(Expr::String(value)) => Ok(Some(value)),

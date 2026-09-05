@@ -14,14 +14,40 @@ project adheres to [Semantic Versioning][semver].
 
 ### Added
 
-- A side-effect system for `.ush`. Every function gets an effect row
-  inferred from what it touches — `io`, `fs`, `env`, `net`, `exec`,
-  `task` — propagated through calls by fixpoint so mutual recursion
-  resolves instead of reporting one side as pure. `#[effects(...)]`
-  and `#[pure]` turn the inference into a compile-time check, with
-  the row treated as an upper bound so over-declaring is allowed.
+- An effect system for `.ush`, modelled on [Effekt]. A function's
+  effect row is written after its return type and says what the body
+  still needs from its caller:
+
+  ```ush
+  effect log(message: String) -> ()
+
+  fn greet(name: String) -> String / { log } {
+    do log("greeting " + name)
+    "hello " + name
+  }
+
+  try {
+    print greet("ubu")
+  } with log { (message) =>
+    print "[log] " + message
+  }
+  ```
+
+  `effect` declares an operation, `do` performs it, and `try … with`
+  discharges it for the block it wraps — the handler's value is what
+  `do` evaluates to, so the body carries on where it left off.
+  Handlers nest and shadow, and an effect that reaches the top of the
+  program without a handler is a compile error.
+
+  Six built-in effects — `io`, `fs`, `env`, `net`, `exec`, `task` —
+  are inferred from the stdlib rather than performed, and describe
+  what the generated shell does; no handler can take them back. Rows
+  are inferred for every function whether or not one is written, by
+  fixpoint, so mutual recursion converges instead of one side being
+  reported as needing nothing. A written row turns the inference into
+  a check and is an upper bound, so over-declaring is allowed.
   `ush effects` lists the rows, `ush effects --undeclared` lists the
-  ones still missing an annotation. See [`docs/effects.md`].
+  functions still missing one. See [`docs/effects.md`].
 - `ush explain <script.ush> <LINE>` maps a line number out of a
   `/bin/sh` diagnostic — or a `G####` sourcemap id — back to the
   `.ush` line behind it, with surrounding source and the rest of the
@@ -68,6 +94,12 @@ project adheres to [Semantic Versioning][semver].
   than `/private/tmp` in `pwd`, `$PWD`, and the prompt.
 - A word that merely looks like a glob (`echo [$?]`) no longer fails
   the whole command with a pattern-syntax error.
+- The compiler no longer panics on a line where `}` comes before its
+  `{`, such as a handler arm: `parse_brace_body` sliced the range
+  before checking that it ran forwards.
+- `ush format` keeps the body of a block that opens on a closing
+  line indented, and does not leave a trailing space after an arrow
+  that ends its line.
 - A `#` comment ends at its own line instead of truncating the rest
   of the input, so a multi-line `-c` string or a paste keeps running
   after a commented line.
@@ -145,6 +177,7 @@ project adheres to [Semantic Versioning][semver].
   line. `a && b` is executed directly, so only a segment that
   genuinely needs POSIX syntax pays for a subshell.
 
+[Effekt]: https://effekt-lang.org
 [`docs/effects.md`]: ./docs/effects.md
 
 ## [0.9.0] — 2026-05-19

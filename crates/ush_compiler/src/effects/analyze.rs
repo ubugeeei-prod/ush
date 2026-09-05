@@ -12,7 +12,6 @@ use crate::{
 
 use super::{
     FunctionErrorRegistry, TaskErrorRegistry,
-    control::{analyze_condition, body_errors_with_binding, iterable_item_type},
     matching::match_errors,
     support::{binding_for_type, call_arg_errors, call_errors, expr_errors, raised_error},
 };
@@ -56,7 +55,18 @@ fn statement_errors(
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)
         | StatementKind::Impl(_)
-        | StatementKind::Function(_) => Ok(ErrorSet::default()),
+        | StatementKind::Function(_)
+        | StatementKind::Effect(_) => Ok(ErrorSet::default()),
+        StatementKind::Handle { body, handlers } => super::handled::handle_errors(
+            body,
+            handlers,
+            env,
+            tasks,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        ),
         StatementKind::Alias { value, .. } => {
             expr_errors(value, env, functions, impls, enums, function_errors)
         }
@@ -145,100 +155,18 @@ fn statement_errors(
             enums,
             function_errors,
         ),
-        StatementKind::If { branch, .. } => {
-            let effect = analyze_condition(
-                &branch.condition,
-                env,
-                tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?;
-            let mut errors = effect.errors;
-            let mut then_tasks = tasks.clone();
-            let mut then_env = effect.env;
-            errors.extend(&block_errors(
-                &branch.then_body,
-                &mut then_env,
-                &mut then_tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-            if let Some(else_body) = &branch.else_body {
-                let mut else_tasks = tasks.clone();
-                let mut else_env = env.clone();
-                errors.extend(&block_errors(
-                    else_body,
-                    &mut else_env,
-                    &mut else_tasks,
-                    functions,
-                    impls,
-                    enums,
-                    function_errors,
-                )?);
-            }
-            Ok(errors)
-        }
-        StatementKind::While { condition, body } => {
-            let effect = analyze_condition(
-                condition,
-                env,
-                tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?;
-            let mut errors = effect.errors;
-            let mut body_tasks = tasks.clone();
-            let mut body_env = effect.env;
-            errors.extend(&block_errors(
-                body,
-                &mut body_env,
-                &mut body_tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-            Ok(errors)
-        }
-        StatementKind::For {
-            name,
-            iterable,
-            body,
-        } => {
-            let mut errors = expr_errors(iterable, env, functions, impls, enums, function_errors)?;
-            let ty = infer(iterable, env, functions, impls, enums)?;
-            errors.extend(&body_errors_with_binding(
-                name,
-                iterable_item_type(&ty)?,
-                body,
-                env,
-                tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-            Ok(errors)
-        }
-        StatementKind::Loop { body } => {
-            let mut body_tasks = tasks.clone();
-            let mut body_env = env.clone();
-            block_errors(
-                body,
-                &mut body_env,
-                &mut body_tasks,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )
-        }
+        StatementKind::If { .. }
+        | StatementKind::While { .. }
+        | StatementKind::For { .. }
+        | StatementKind::Loop { .. } => super::loops::loop_errors(
+            statement,
+            env,
+            tasks,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        ),
         StatementKind::Break | StatementKind::Continue => Ok(ErrorSet::default()),
     }
 }
