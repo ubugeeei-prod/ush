@@ -47,7 +47,7 @@ fn normalize_character(symbol: &str) -> String {
     }
 }
 
-fn current_git_branch(cwd: &Path) -> Option<String> {
+pub(crate) fn current_git_branch(cwd: &Path) -> Option<String> {
     let branch = git_output(cwd, &["rev-parse", "--abbrev-ref", "HEAD"])?;
     if branch != "HEAD" {
         return Some(branch);

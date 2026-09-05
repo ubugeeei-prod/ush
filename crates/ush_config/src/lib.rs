@@ -48,6 +48,8 @@ pub struct ShellConfig {
     pub keymap: ShellKeymap,
     #[serde(default)]
     pub prompt: Option<String>,
+    #[serde(default, alias = "envFiles")]
+    pub env_files: Vec<PathBuf>,
     #[serde(default, alias = "profileFiles")]
     pub profile_files: Vec<PathBuf>,
     #[serde(default, alias = "rcFiles")]
@@ -64,6 +66,7 @@ impl Default for ShellConfig {
             history_size: default_history_size(),
             keymap: ShellKeymap::default(),
             prompt: None,
+            env_files: Vec::new(),
             profile_files: Vec::new(),
             rc_files: Vec::new(),
             starship: None,

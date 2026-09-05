@@ -24,14 +24,18 @@ pub(super) fn needs_posix_fallback(line: &str) -> bool {
         }
     }
 
-    line.contains("&&") || line.contains("||") || contains_unquoted_keyword(line)
+    // `&&`, `||`, and `;` no longer imply a fallback: the parser
+    // splits an and-or list before it gets here, so the only ones
+    // left in a segment are quoted, and `echo 'a && b'` has no
+    // business spawning `/bin/sh`.
+    contains_unquoted_keyword(line)
 }
 
 /// True when `line` contains any POSIX shell keyword as an unquoted
 /// word. One pass over the line with a fixed-size word buffer: the
 /// previous shape re-scanned the line (and allocated a `String`) once
 /// per keyword, which is pure overhead on the interactive fast path.
-fn contains_unquoted_keyword(line: &str) -> bool {
+pub(super) fn contains_unquoted_keyword(line: &str) -> bool {
     let mut single = false;
     let mut double = false;
     let mut escaped = false;

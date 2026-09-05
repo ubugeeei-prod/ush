@@ -1,1 +1,2 @@
-ush: confirm `rm -r -f target` [y/N] 
+ush: refusing `rm -r -f target`: recursive delete needs a terminal to confirm on.
+ush: pass `--yes`, or set USH_INTERACTION=false, to run it unattended.

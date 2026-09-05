@@ -149,3 +149,59 @@ fn stripping_quotes_leaves_a_single_quote_character_alone() {
     assert_eq!(strip_outer_quotes("'"), "'");
     assert_eq!(strip_outer_quotes("\"\""), "");
 }
+
+mod prompt {
+    use ush_config::UshConfig;
+
+    use crate::{Shell, ShellOptions};
+
+    fn shell() -> Shell {
+        Shell::new(
+            UshConfig::default(),
+            ShellOptions {
+                stylish: false,
+                interaction: false,
+                print_ast: false,
+            },
+        )
+        .expect("shell")
+    }
+
+    #[test]
+    fn ps1_from_the_environment_wins_over_the_default_prompt() {
+        let mut shell = shell();
+        shell.cwd = "/home/ubu/src".into();
+        shell.env.insert("HOME".into(), "/home/ubu".into());
+        shell.env.insert("PS1".into(), "\\w > ".into());
+
+        assert_eq!(shell.prompt(), "~/src > ");
+    }
+
+    #[test]
+    fn ush_prompt_wins_over_ps1() {
+        let mut shell = shell();
+        shell.env.insert("PS1".into(), "ps1> ".into());
+        shell.env.insert("USH_PROMPT".into(), "ush> ".into());
+
+        assert_eq!(shell.prompt(), "ush> ");
+    }
+
+    #[test]
+    fn a_prompt_template_expands_variables_too() {
+        let mut shell = shell();
+        shell.env.insert("NAME".into(), "ubu".into());
+        shell.env.insert("PS1".into(), "$NAME:\\? $ ".into());
+        shell.last_status = 7;
+
+        assert_eq!(shell.prompt(), "ubu:7 $ ");
+    }
+
+    #[test]
+    fn an_empty_ps1_falls_through_to_the_built_in_prompt() {
+        let mut shell = shell();
+        shell.cwd = "/".into();
+        shell.env.insert("PS1".into(), String::new());
+
+        assert_eq!(shell.prompt(), "/ $ ");
+    }
+}

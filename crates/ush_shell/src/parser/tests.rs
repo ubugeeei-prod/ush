@@ -5,7 +5,7 @@ mod tokens;
 
 use std::collections::BTreeMap;
 
-use super::{ParsedLine, Stage, parse_line};
+use super::{Connector, ParsedLine, Stage, parse_line};
 
 #[test]
 fn parses_trailing_background_jobs_before_fallback() {
@@ -18,13 +18,46 @@ fn parses_trailing_background_jobs_before_fallback() {
 }
 
 #[test]
-fn keeps_boolean_and_as_posix_fallback() {
+fn splits_boolean_and_into_an_and_or_list() {
     let parsed = parse_line("true && false", &BTreeMap::new()).expect("parse");
 
+    let ParsedLine::List(items) = parsed else {
+        panic!("expected an and-or list");
+    };
+    assert_eq!(items.len(), 2);
+    assert_eq!(items[0].connector, Connector::Always);
+    assert_eq!(items[1].connector, Connector::And);
+    assert!(matches!(items[1].line, ParsedLine::Pipeline(_)));
+}
+
+#[test]
+fn keeps_compound_commands_whole_for_posix_fallback() {
+    // `;` separates the *inside* of an `if`, so splitting on it
+    // would hand `/bin/sh` fragments that do not parse on their own.
+    let parsed = parse_line("if true; then echo hi; fi", &BTreeMap::new()).expect("parse");
+
     match parsed {
-        ParsedLine::Fallback(source) => assert_eq!(source, "true && false"),
+        ParsedLine::Fallback(source) => assert_eq!(source, "if true; then echo hi; fi"),
         other => panic!("expected fallback line, got {other:?}"),
     }
+}
+
+#[test]
+fn leaves_quoted_operators_alone() {
+    let parsed = parse_line("echo 'a && b'", &BTreeMap::new()).expect("parse");
+
+    assert!(matches!(parsed, ParsedLine::Pipeline(_)));
+}
+
+#[test]
+fn treats_a_newline_as_a_command_separator() {
+    let parsed = parse_line("echo one\necho two", &BTreeMap::new()).expect("parse");
+
+    let ParsedLine::List(items) = parsed else {
+        panic!("expected an and-or list");
+    };
+    assert_eq!(items.len(), 2);
+    assert!(items.iter().all(|item| item.connector == Connector::Always));
 }
 
 #[test]

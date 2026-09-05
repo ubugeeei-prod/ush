@@ -76,7 +76,8 @@ impl Shell {
             let mut rows = Vec::new();
             let mut status = 0;
             for arg in args {
-                let matches = commands::lookup_all_commands(arg, &self.aliases);
+                let matches =
+                    commands::lookup_all_commands(arg, &self.aliases, &self.command_search());
                 if matches.is_empty() {
                     status = 1;
                 }
@@ -89,7 +90,7 @@ impl Shell {
             let mut rows = Vec::new();
             let mut status = 0;
             for arg in args {
-                let result = commands::lookup_command(arg, &self.aliases);
+                let result = commands::lookup_command(arg, &self.aliases, &self.command_search());
                 if result.is_none() {
                     status = 1;
                 }
@@ -99,11 +100,11 @@ impl Shell {
         }
 
         if name == "which" {
-            let (text, status) = describe_which(&self.aliases, args);
+            let (text, status) = describe_which(&self.aliases, args, &self.command_search());
             return Ok((ValueStream::Text(text), status));
         }
 
-        let (text, status) = describe_commands(&self.aliases, args, style);
+        let (text, status) = describe_commands(&self.aliases, args, style, &self.command_search());
         Ok((ValueStream::Text(text), status))
     }
 

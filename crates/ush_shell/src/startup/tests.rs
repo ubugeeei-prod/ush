@@ -28,6 +28,9 @@ fn explicit_startup_files_load_before_command_execution() {
     let mut shell = new_shell();
     shell
         .load_session_startup(&SessionStartup {
+            load_env: false,
+            env_file: None,
+            load_system_profile: false,
             load_profile: true,
             load_rc: true,
             profile_file: Some(profile),
@@ -64,6 +67,9 @@ fn config_relative_startup_paths_resolve_from_config_dir() {
 
     shell
         .load_session_startup(&SessionStartup {
+            load_env: false,
+            env_file: None,
+            load_system_profile: false,
             load_profile: false,
             load_rc: true,
             profile_file: None,
@@ -111,6 +117,9 @@ fn default_candidates_load_from_config_dir_and_home() {
 
     shell
         .load_session_startup(&SessionStartup {
+            load_env: false,
+            env_file: None,
+            load_system_profile: false,
             load_profile: true,
             load_rc: true,
             profile_file: None,
@@ -134,6 +143,9 @@ fn missing_explicit_startup_file_is_reported() {
     let mut shell = new_shell();
     let error = shell
         .load_session_startup(&SessionStartup {
+            load_env: false,
+            env_file: None,
+            load_system_profile: false,
             load_profile: true,
             load_rc: false,
             profile_file: Some(PathBuf::from("missing-profile.sh")),

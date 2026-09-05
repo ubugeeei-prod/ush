@@ -9,8 +9,13 @@ use std::{
 
 use anyhow::{Result, bail};
 
-use super::{Shell, commands::CommandNames};
-use crate::prompt::render_prompt;
+use super::{
+    Shell,
+    commands::{CommandNames, CommandSearch},
+};
+use crate::prompt::{
+    PromptContext, current_git_branch, render_prompt, render_template, wants_git_branch,
+};
 
 impl Shell {
     pub(crate) fn command_names(&self) -> CommandNames {
@@ -19,15 +24,59 @@ impl Shell {
             .names(self.env.get("PATH").map(String::as_str), &self.aliases)
     }
 
+    /// Where external commands are looked up: the shell's own
+    /// `PATH` plus its own working directory, never `std::env`.
+    pub(crate) fn command_search(&self) -> CommandSearch {
+        CommandSearch::new(self.env.get("PATH").map(String::as_str), &self.cwd)
+    }
+
     pub(crate) fn prompt(&self) -> String {
-        if let Some(prompt) = &self.config.shell.prompt {
-            return prompt.clone();
+        if let Some(template) = self.prompt_template() {
+            return self.render_prompt_template(&template);
         }
         render_prompt(
             &self.cwd,
             self.env.get("HOME").map(String::as_str),
             self.last_status,
             self.config.shell.starship.as_ref(),
+        )
+    }
+
+    /// The prompt template in effect, most specific source first.
+    ///
+    /// `USH_PROMPT` and `PS1` come from the shell's own environment,
+    /// so an rc file can set the prompt with a plain `export` — which
+    /// is what people reach for first, and what silently did nothing
+    /// while `shell.prompt` was the only supported source.
+    fn prompt_template(&self) -> Option<String> {
+        for key in ["USH_PROMPT", "PS1"] {
+            if let Some(value) = self.env.get(key)
+                && !value.is_empty()
+            {
+                return Some(value.clone());
+            }
+        }
+        self.config.shell.prompt.clone()
+    }
+
+    fn render_prompt_template(&self, template: &str) -> String {
+        let expanded = self
+            .expand_value(template)
+            .unwrap_or_else(|_| template.to_string());
+        let branch = wants_git_branch(&expanded)
+            .then(|| current_git_branch(&self.cwd))
+            .flatten();
+
+        render_template(
+            &expanded,
+            &PromptContext {
+                cwd: &self.cwd,
+                home: self.env.get("HOME").map(String::as_str),
+                user: self.env.get("USER").map(String::as_str),
+                host: self.env.get("HOSTNAME").map(String::as_str),
+                last_status: self.last_status,
+                git_branch: branch.as_deref(),
+            },
         )
     }
 
@@ -55,8 +104,13 @@ impl Shell {
 
     fn expand_arg(&self, arg: &str) -> Result<Vec<String>> {
         let expanded = self.expand_value(arg)?;
-        if contains_glob(&expanded) {
-            let matches = glob::glob(&expanded)?
+        // A word that merely *looks* like a glob is still a word.
+        // `echo [$?]` is not a character class, and failing the whole
+        // command over it is worse than passing the text through.
+        if contains_glob(&expanded)
+            && let Ok(paths) = glob::glob(&expanded)
+        {
+            let matches = paths
                 .filter_map(Result::ok)
                 .map(|path| path.display().to_string())
                 .collect::<Vec<_>>();

@@ -65,8 +65,13 @@ impl Shell {
         input: ValueStream,
         capture: bool,
     ) -> Result<(ValueStream, i32)> {
-        commands::ensure_external_command(&resolved.command)?;
-        let mut command = Command::new(&resolved.command);
+        // Resolve through the shell's own `PATH` and hand `Command`
+        // an absolute program: `execvp` would otherwise search the
+        // *parent* process' `PATH`, which is not the one the user
+        // just exported.
+        let program =
+            commands::resolve_external_command(&resolved.command, &self.command_search())?;
+        let mut command = Command::new(&program);
         populate_command(
             &mut command,
             &self.cwd,
