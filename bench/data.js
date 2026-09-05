@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788157134219,
+  "lastUpdate": 1788632326082,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -1709,6 +1709,144 @@ window.BENCHMARK_DATA = {
             "name": "compile adt ush program",
             "value": 78613,
             "range": "± 368",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4be1d7254032c0d0fcc86b0cf587a5501ac66b41",
+          "message": "fix: make ush usable as a login/editor shell, map generated-sh errors, add an effect system (#154)\n\n* fix(shell): make ush usable as the shell an editor terminal starts\n\nSeven things went wrong the moment `ush` was launched by something\nother than a hand-typed `ush`:\n\n- `-i` was rejected outright. Editor terminals and agent runners\n  spawn `$SHELL -i -c ...`, so every such session died at argv\n  parsing. `-i` is now accepted and loads the rc file.\n- A login shell is started with a `-` in front of `argv[0]`, not with\n  `-l`. That convention was ignored, so the profile never ran and a\n  `PATH` set up there looked discarded. Login shells now also read\n  `/etc/profile`, which is what runs `path_helper` on macOS.\n- Nothing at all was read for a bare `ush -c ...` — the invocation\n  tools actually use. Adds the `.zshenv` tier: `~/.config/ush/env.sh`\n  / `~/.ush_env`, read on every invocation, with `--env-file` and\n  `--no-env`.\n- Command lookup resolved through the *process* `PATH` and spawned a\n  bare program name, which `execvp` also resolves through the parent\n  `PATH`. A `PATH` exported at the prompt or from a startup file\n  therefore decided nothing. Lookup now uses the shell's own `PATH`\n  and spawns the resolved absolute path.\n- `a && b`, `a || b`, and `a; b` were handed to `/bin/sh` whole, so\n  `cd`, `sammary`, `tasks`, the structured helpers, and session\n  aliases were \"command not found\" in any chained line. They are now\n  parsed and run as a real and-or list, with POSIX short-circuiting.\n  Compound commands (`if`, `for`, `case`, `(`, `{`) still go to\n  `/bin/sh` in one piece. A newline separates commands too, which\n  fixes multi-line `ush -c`.\n- `rm -rf` blocked reading a confirmation from a stdin pipe nobody\n  was ever going to write to — the \"rm is extremely slow\" report. It\n  now declines with an actionable message when there is no terminal\n  to ask on.\n- The prompt could only be a literal string. `PS1` and `USH_PROMPT`\n  are now honoured, with the familiar escapes (`\\w`, `\\u`, `\\h`,\n  `\\$`, `\\e`, …) plus `\\g` for the git branch and `\\?` for the last\n  status.\n\nAlso: the completion menu now moves with the arrow keys instead of\nthrowing itself away and jumping through history; `cd` keeps the\nlogical path (`/tmp`, not `/private/tmp`) and understands `cd -`; and\na word that merely looks like a glob no longer fails the command.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* feat(compiler): map generated-shell failures back to .ush source\n\nA `.ush` script runs as generated `sh`, so when it fails the shell\ncomplains about its own text: `/bin/sh: line 490: ...`. Nothing\nconnected that number to the program the author wrote.\n\nThe instrumentation now knows how tall its own header is, so the\nruntime report prints the line number `/bin/sh` uses alongside the\nsourcemap id, plus the exit status and the exact command to run next:\n\n    /bin/sh: line 490: definitely_not_a_real_command: command not found\n\n    ush runtime map: script.ush:3 (exit 127)\n      source : $ definitely_not_a_real_command\n      section: user-code\n      shell  : line 490 | G0451 | definitely_not_a_real_command\n      mapped : G0451\n      explain: ush explain script.ush 490\n\n`ush explain <script.ush> <LINE>...` is the other half. It accepts\neither a `/bin/sh` line number or a `G####` sourcemap id and prints\nthe generated line, the `.ush` line behind it with surrounding\ncontext, and the rest of the group the source line lowered into. A\nnumber that lands inside the scaffolding says so instead of pointing\nsomewhere misleading.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* feat(compiler): add a side-effect system\n\n`.ush` already tracked which errors a function can raise. It said\nnothing about what a function *touches*, so a signature gave no hint\nthat a helper shells out, reads the environment, or reaches the\nnetwork — the thing you most want to know before calling it from a\nscript that runs unattended.\n\nEffects are now inferred for every function, bottom-up from the\nstdlib and propagated through calls by fixpoint (so mutual recursion\nresolves rather than reporting one side pure):\n\n    $ ush effects examples/effects.ush\n    greeting_target  env  (declared)\n    report           io, env, exec\n    slug             pure  (declared)\n    stamp            exec  (declared)\n    (top level)      io, env, exec\n\nSix effects: `io`, `fs`, `env`, `net`, `exec`, `task`. `std::string`\nand `std::regex` are pure; `std::path` is split, because half of it\nis path algebra and the other half asks the filesystem.\n\nAnnotating turns the inference into a check. `#[effects(fs, exec)]`\nis an upper bound — declaring more than the body uses is fine, so a\npublic signature can stay stable while an implementation shrinks —\nand a body that outgrows its row is a compile error, reported by\n`ush check` and by running the script. `#[pure]` allows nothing.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* docs: document the effect system, source mapping, and startup tiers\n\nAlso cuts 0.10.0: the release carries the session fixes that make\n`ush` usable as the shell an editor terminal starts, the generated-sh\nsource mapping, and the new effect system.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* fix(shell): keep comments and failing builtins from derailing a list\n\nTwo things surfaced once `&&`, `;`, and newlines started being parsed\nby `ush` instead of `/bin/sh`:\n\n- Comment stripping truncated the whole input at the first unquoted\n  `#`. On a single line that was invisible; on a multi-line `-c`\n  string or a paste it dropped every command after a commented one,\n  and an operator inside the comment could split the line. Comments\n  now end at their own newline, with quote state tracked across\n  lines.\n- A builtin reports a Rust error rather than an exit status, so\n  `cd missing || echo fallback` abandoned the line instead of\n  running the fallback. Inside a list the error is reported and\n  becomes status 1, which is what the next element tests.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* refactor: split the files that outgrew the 250-line limit\n\n`scripts/check_rs_line_limit.sh` caps a Rust file at 250 lines. Four\nfiles crossed it, so each is split along the seam it already had:\n\n- `parser.rs` → `parser/list.rs` (and-or lists) and\n  `parser/comment.rs` (comment stripping)\n- `effects/side.rs` → `side/kinds.rs` (the effect bitset),\n  `side/infer.rs` (the walk), `side/table.rs` (the stdlib table)\n- `ush_compiler/lib.rs` → `tests.rs`\n- `runtime_diagnostics.rs` → `runtime_diagnostics/header.rs`\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* perf(parser): keep the and-or split off the hot path\n\nParsing every line for `&&` / `||` / `;` slowed down every line that\nhas none of them, which is most of them. Three changes put the cost\nback where it belongs:\n\n- One `memchr3` for `;`, a newline, or `&`, plus a search for `||`,\n  rejects a line before anything walks it. A pipeline's single `|`\n  is not a separator, so pipelines take the fast exit too.\n- The POSIX-keyword scan moved ahead of the byte walk and its result\n  is threaded into the fallback check, so a line is scanned for\n  keywords once rather than twice.\n- Comment stripping keeps its single-pass borrowed form for\n  single-line input, taking the multi-line path only when there is a\n  newline to worry about.\n\nAgainst `main`, every existing case is now within ~10% (several are\nfaster). Two notes on the benchmark numbers:\n\n- `parse comment only` goes 4.8 ns → 7.6 ns, the cost of learning\n  whether the input has a newline before deciding to borrow.\n- The `boolean chain` case moved out of `parse fallback line` into a\n  new `parse and-or list` group, because the thing it measures\n  changed: it used to time copying the line into a `Fallback` for\n  `/bin/sh` (~175 ns), and it now times parsing both commands\n  (~1.5 µs). That is the fix, not a regression — the old path is\n  exactly why `mkdir x && cd x` could not reach the `cd` builtin —\n  but it is a different measurement, so it gets a different name and\n  a fresh baseline.\n\nAlso fixes two things CI caught: the `ush explain` test now reads the\nline number out of dash's `sh: 490:` wording as well as bash's\n`sh: line 490:`, and the effects tests import `ToString` so the\n`no_std` build of `ush_compiler` still compiles them.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* docs(parser): drop an intra-doc link to a test-only helper\n\n`needs_posix_fallback` is `#[cfg(test)]` now, so the link resolved\nto nothing in a normal doc build and `cargo doc --document-private-items`\nwith `-D warnings` failed.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n* perf(parser): keep the newline probe off lines without a comment\n\nComment stripping only needs to know whether the input spans several\nlines once it has actually found a comment, so the scan for a\nnewline moved behind that check. A line with no `#` in it now leaves\n`strip_comment` after exactly the walk it always did.\n\nThe one case that still costs more than before is a line that is\nnothing but a comment (`parse comment only`, 13 ns → 18 ns on CI):\nthe comment starts at the top, so the newline probe covers the whole\nline. That is the price of a comment ending at its own newline\ninstead of truncating everything after it, which is what silently\ndropped commands from a multi-line `-c` string.\n\nCo-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-06T03:12:40+09:00",
+          "tree_id": "a9fef280ffeaa9a1dd186db2877d6d275e0dd8ca",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/4be1d7254032c0d0fcc86b0cf587a5501ac66b41"
+        },
+        "date": 1788632324145,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1650,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 272,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 672,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1237,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1237,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1155,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 214,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 135,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 244,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 121,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1507,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1305,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1221,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 848,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2678,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 21,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 51164,
+            "range": "± 365",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 58369,
+            "range": "± 803",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 79991,
+            "range": "± 2898",
             "unit": "ns/iter"
           }
         ]
