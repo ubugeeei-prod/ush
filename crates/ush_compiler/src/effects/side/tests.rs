@@ -1,3 +1,5 @@
+use alloc::string::ToString;
+
 use crate::UshCompiler;
 
 use super::{Effect, EffectSet};

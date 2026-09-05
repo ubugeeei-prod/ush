@@ -18,16 +18,19 @@ const SCRIPT: &str = concat!(
 );
 
 /// The line number `/bin/sh` itself printed for the failure.
+///
+/// The wording differs by shell — bash writes `/bin/sh: line 490:`
+/// and dash writes `/bin/sh: 490:` — so this takes the first integer
+/// out of the shell's own diagnostic rather than matching a phrase.
 fn failing_shell_line(stderr: &str) -> String {
     let line = stderr
         .lines()
-        .find(|line| line.starts_with("/bin/sh: line ") || line.contains(": line "))
-        .unwrap_or_else(|| panic!("no `line N` diagnostic in: {stderr}"));
-    line.split("line ")
-        .nth(1)
-        .and_then(|rest| rest.split(':').next())
-        .expect("line number")
-        .trim()
+        .find(|line| line.starts_with("/bin/sh:") || line.starts_with("sh:"))
+        .unwrap_or_else(|| panic!("no shell diagnostic in: {stderr}"));
+
+    line.split(|ch: char| !ch.is_ascii_digit())
+        .find(|part| !part.is_empty())
+        .unwrap_or_else(|| panic!("no line number in: {line}"))
         .to_string()
 }
 

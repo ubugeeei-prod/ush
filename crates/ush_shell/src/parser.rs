@@ -4,6 +4,7 @@ mod fallback;
 mod list;
 #[cfg(test)]
 mod tests;
+mod tokens;
 
 use std::collections::BTreeMap;
 
@@ -13,9 +14,10 @@ use crate::commands;
 use crate::helpers::HelperInvocation;
 use alias::expand_alias;
 use comment::strip_comment;
-use fallback::needs_posix_fallback;
-use list::split_and_or;
+use fallback::needs_posix_fallback_with;
 pub use list::{Connector, ListItem};
+use list::{Split, split_and_or};
+use tokens::split_assignments;
 
 #[derive(Debug, Clone)]
 pub enum ParsedLine {
@@ -62,28 +64,37 @@ pub fn parse_line(line: &str, aliases: &BTreeMap<String, String>) -> Result<Pars
         return Ok(ParsedLine::Background(background.to_string()));
     }
 
-    if let Some(segments) = split_and_or(stripped) {
-        let mut items = Vec::with_capacity(segments.len());
-        for (connector, segment) in segments {
-            items.push(ListItem {
-                connector,
-                line: parse_segment(segment, aliases)?,
-            });
+    match split_and_or(stripped) {
+        Split::List(segments) => {
+            let mut items = Vec::with_capacity(segments.len());
+            for (connector, segment) in segments {
+                items.push(ListItem {
+                    connector,
+                    // Splitting only happens on a line with no
+                    // unquoted POSIX keyword, so no segment has one
+                    // either and the fallback check can skip its own
+                    // keyword scan.
+                    line: parse_segment(segment, aliases, Some(false))?,
+                });
+            }
+            Ok(ParsedLine::List(items))
         }
-        return Ok(ParsedLine::List(items));
+        Split::Whole { keyword } => parse_segment(stripped, aliases, keyword),
     }
-
-    parse_segment(stripped, aliases)
 }
 
 /// Parses one element of an and-or list: a pipeline `ush` runs
 /// itself, or a chunk that still needs `/bin/sh`.
-fn parse_segment(stripped: &str, aliases: &BTreeMap<String, String>) -> Result<ParsedLine> {
+fn parse_segment(
+    stripped: &str,
+    aliases: &BTreeMap<String, String>,
+    keyword: Option<bool>,
+) -> Result<ParsedLine> {
     if stripped.is_empty() {
         return Ok(ParsedLine::Empty);
     }
 
-    if needs_posix_fallback(stripped) {
+    if needs_posix_fallback_with(stripped, keyword) {
         return Ok(ParsedLine::Fallback(stripped.to_string()));
     }
 
@@ -132,33 +143,6 @@ fn parse_segment(stripped: &str, aliases: &BTreeMap<String, String>) -> Result<P
     }))
 }
 
-fn split_assignments(tokens: Vec<String>) -> (Vec<(String, String)>, Vec<String>) {
-    let mut assignments = Vec::new();
-    let mut rest = Vec::new();
-    let mut assigning = true;
-
-    for token in tokens {
-        if assigning && is_assignment(&token) {
-            if let Some((name, value)) = token.split_once('=') {
-                assignments.push((name.to_string(), value.to_string()));
-            }
-            continue;
-        }
-
-        assigning = false;
-        rest.push(token);
-    }
-
-    (assignments, rest)
-}
-
-fn is_assignment(token: &str) -> bool {
-    let Some((name, _)) = token.split_once('=') else {
-        return false;
-    };
-    is_identifier(name)
-}
-
 fn split_unquoted(source: &str, separator: char) -> Result<Vec<&str>> {
     let mut result = Vec::new();
     let mut start = 0usize;
@@ -185,17 +169,6 @@ fn split_unquoted(source: &str, separator: char) -> Result<Vec<&str>> {
 
     result.push(source[start..].trim());
     Ok(result)
-}
-
-fn is_identifier(source: &str) -> bool {
-    let mut chars = source.chars();
-    let Some(first) = chars.next() else {
-        return false;
-    };
-    if !(first == '_' || first.is_ascii_alphabetic()) {
-        return false;
-    }
-    chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
 }
 
 fn split_background_job(line: &str) -> Option<&str> {

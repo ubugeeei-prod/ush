@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::{Result, bail};
 
-use super::is_assignment;
+use super::tokens::is_assignment;
 
 /// Upper bound on alias chains such as `a -> b -> c`. Self- and
 /// mutually recursive chains stop earlier, through `expanded`.

@@ -1,6 +1,6 @@
-use crate::parser::{
-    is_assignment, is_identifier, split_assignments, split_unquoted, strip_comment,
-};
+use crate::parser::comment::strip_comment;
+use crate::parser::split_unquoted;
+use crate::parser::tokens::{is_assignment, is_identifier, split_assignments};
 
 fn owned(values: &[&str]) -> Vec<String> {
     values.iter().map(|value| (*value).to_string()).collect()
