@@ -26,7 +26,10 @@ pub fn format_source(source: &str) -> String {
         out.push_str(&"  ".repeat(indent));
         out.push_str(&normalize_line(line));
         out.push('\n');
-        indent += brace_delta(line);
+        // The leading `}` was already paid for by `dedent`; counting
+        // it again would cancel the brace that reopens on the same
+        // line, and `} with log { (m) =>` would indent nothing.
+        indent += brace_delta(line.strip_prefix('}').unwrap_or(line));
         last_blank = false;
     }
 
@@ -45,7 +48,13 @@ fn triple_quote_toggles(line: &str) -> usize {
 
 fn normalize_line(line: &str) -> String {
     if let Some((left, right)) = line.split_once("=>") {
-        return format!("{} => {}", left.trim(), right.trim());
+        let right = right.trim();
+        if right.is_empty() {
+            // A handler arm opens its body on the next line, so the
+            // arrow ends the line rather than separating two halves.
+            return format!("{} =>", left.trim());
+        }
+        return format!("{} => {}", left.trim(), right);
     }
     if let Some((left, right)) = assignment_parts(line) {
         return format!("{left} = {right}");

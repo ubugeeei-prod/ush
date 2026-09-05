@@ -68,9 +68,9 @@ The goal is that common automation tasks stop falling back to ad-hoc shell pipel
 `ush` should feel comfortable for scripting, but not sloppy.
 Errors, async boundaries, external command boundaries, and path resolution context should stay explicit enough to reason about.
 
-That is why failure and side effects both show up in a signature:
-`Problem!String` says what can go wrong, and `#[effects(fs, net)]`
-says what is touched on the way. Both are inferred, so neither is
+That is why failure and effects both show up in a signature:
+`Problem!String` says what can go wrong, and `/ { fs, net }` says what
+the function needs from its caller. Both are inferred, so neither is
 ceremony you have to write before your script runs — see
 [`typed-errors.md`](./typed-errors.md) and [`effects.md`](./effects.md).
 
@@ -131,9 +131,9 @@ The big missing pieces for this direction are:
 4. Structured values that flow naturally through stdlib APIs
 5. Stronger async/concurrency semantics
 6. A stdlib broad enough to replace many shell helper scripts directly
-7. Effect polymorphism on top of the effect rows described in
+7. Effect polymorphism on top of the Effekt-style rows described in
    [`effects.md`](./effects.md), so a function can be generic over what
-   its callback touches
+   a block parameter needs — the piece of Effekt `ush` does not have
 
 ## Non-Goals
 

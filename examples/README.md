@@ -29,7 +29,7 @@ and adding `;` keeps that expression as a statement instead.
 - `std_modules.ush`: `std::env`, `from_cwd` / `from_source` path refs, plus method-style `path.resolve()`, `path.exists()`, `path.read_text()`, `std::fs`, `std::command`, and `std::string`
 - `http_regex.ush`: `std::http::{get, download}` plus `std::regex::{is_match, find, capture, replace}` and String regex methods
 - `control_flow.ush`: `if` tail values, `for in`, ranges, `while`, `loop`, and `if let ... && ...`
-- `effects.ush`: inferred effect rows, `#[effects(...)]` declarations, and `#[pure]`
+- `effects.ush`: Effekt-style effect rows (`-> T / { … }`), `effect` declarations, `do`, and `try … with` handlers
 
 ## ADT and Pattern Matching
 

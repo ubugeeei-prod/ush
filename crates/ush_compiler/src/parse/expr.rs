@@ -18,6 +18,15 @@ use super::{
 };
 
 pub(super) fn parse_expr(source: &str) -> Result<Expr> {
+    // `let answer = do ask("name?")` — performing an effect in value
+    // position. The operation is a generated shell function, so the
+    // rest of the pipeline sees an ordinary call.
+    if let Some(rest) = source.trim().strip_prefix("do ") {
+        return Ok(Expr::Call(super::signature::parse_call(
+            rest.trim(),
+            false,
+        )?));
+    }
     if let Some((start, end)) = split_range(source) {
         return Ok(Expr::Range {
             start: Box::new(parse_atom(start)?),

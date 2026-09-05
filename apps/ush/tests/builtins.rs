@@ -44,12 +44,15 @@ fn run_with_stdin_in_dir(args: &[&str], stdin: &str, dir: Option<&Path>) -> std:
         .stderr(Stdio::piped())
         .spawn()
         .expect("spawn ush");
-    child
+    // A broken pipe here means the child decided it had no question
+    // to ask and exited first — which is exactly what the `rm` guard
+    // does when stdin is not a terminal. That is an answer, not a
+    // test failure.
+    let _ = child
         .stdin
         .as_mut()
         .expect("stdin")
-        .write_all(stdin.as_bytes())
-        .expect("write stdin");
+        .write_all(stdin.as_bytes());
     child.wait_with_output().expect("wait ush")
 }
 

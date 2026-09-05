@@ -1,33 +1,47 @@
-# Effects are inferred for every function whether or not they are
-# declared. Run `ush effects examples/effects.ush` to see the rows.
+# Effects, modelled on Effekt.
 #
-# An `#[effects(...)]` row turns the inference into a check: the
-# function is refused if its body grows an effect the row does not
-# cover. `#[pure]` says a function may touch nothing at all.
+# A function's effect row — the `/ { … }` after its return type — is
+# what its body still needs from its caller. Run
+# `ush effects examples/effects.ush` to see the row of every
+# function, whether or not it is written down.
 
 use std::env
 use std::string
 
-#[pure]
-fn slug(name: String) -> String {
+# `effect` declares an operation. Performing it with `do` is a call
+# the enclosing computation cannot answer itself, so it shows up in
+# the row until a handler takes it.
+effect audit(entry: String) -> ()
+
+effect ask(question: String) -> String
+
+# `/ {}` is the empty row: this function may touch nothing at all.
+fn slug(name: String) -> String / {} {
   std::string::replace(name, " ", "-")
 }
 
-#[effects(env)]
-fn greeting_target() -> String {
+# Built-in effects describe what the generated shell does. They are
+# inferred rather than performed, and no handler can take them back.
+fn default_target() -> String / { env } {
   std::env::get_or("USER", "world")
 }
 
-#[effects(exec)]
-fn stamp() -> unknown!() {
-  $ date '+%Y-%m-%d'
+# A row mixes both kinds. `audit` is discharged by the handler below;
+# `io` and `env` keep propagating outward.
+fn deploy() -> () / { io, env, ask, audit } {
+  let target = do ask("deploy to?")
+  do audit("deploying to " + target)
+  print "deployed " + slug(target) + " as " + default_target()
 }
 
-# No row here: `report` is inferred as `io, env, exec` from what it
-# calls. Declaring a row is opt-in, not a requirement.
-fn report() -> unknown!() {
-  print "hello " + slug(greeting_target())
-  stamp()?
+# `try … with` answers an effect for the block it wraps. The handler
+# runs and its value is what `do` evaluates to, so the body carries
+# on where it left off — an `ask` handler answers with a value, an
+# `audit` handler returns nothing and just records.
+try {
+  deploy()
+} with audit { (entry) =>
+  print "[audit] " + entry
+} with ask { (question) =>
+  "staging"
 }
-
-report()?

@@ -177,9 +177,6 @@ fn ensure_function_attrs(def: &FunctionDef) -> Result<()> {
             ("alias", Some(Expr::String(_))) => {}
             ("alias", Some(_)) => bail!("function attribute `alias` expects a string literal"),
             ("alias", None) => bail!("function attribute `alias` requires a string literal"),
-            // The effect row is validated by the effects pass, which
-            // has the inferred set to compare it against.
-            ("effects" | "pure", _) => {}
             (other, _) => bail!("unsupported function attribute on `{}`: {other}", def.name),
         }
     }

@@ -7,7 +7,7 @@ use super::{
     },
     SourceLine, attr, control, declaration,
     expr::parse_expr,
-    signature,
+    handle, signature,
     statement_support::{
         is_tail_position, parse_alias, parse_shell_escape, parse_shell_statement,
         parse_statement_expr, trim_statement_terminator,
@@ -37,7 +37,10 @@ pub(super) fn parse_block(
             *cursor += 1;
             continue;
         }
-        if trimmed == "}" {
+        // `} with <effect> {` closes this block and opens a handler
+        // arm, so the block ends here and `parse_handle` reads the
+        // rest of the line.
+        if trimmed == "}" || trimmed.starts_with("} with ") {
             if !attrs.is_empty() {
                 bail!("line {line_no}: dangling attributes before closing brace");
             }
@@ -107,6 +110,23 @@ fn parse_statement(
         return Ok(Statement::new(
             line_no,
             control::parse_for(trimmed, lines, cursor)?,
+        ));
+    }
+    if trimmed == "try {" {
+        return Ok(Statement::new(
+            line_no,
+            handle::parse_handle(lines, cursor)?,
+        ));
+    }
+    if let Some(rest) = trimmed.strip_prefix("do ") {
+        // `do log("hi")` lowers to a plain call: the effect
+        // declaration generates a shell function of that name which
+        // dispatches to whichever handler is installed. `do` is
+        // required at the call site so performing an effect is
+        // visible in the source, the way it is in Effekt.
+        return Ok(Statement::new(
+            line_no,
+            StatementKind::Call(signature::parse_call(rest.trim(), false)?),
         ));
     }
     if trimmed == "loop {" {
@@ -194,6 +214,7 @@ fn is_block_statement(statement: &Statement) -> bool {
             | StatementKind::While { .. }
             | StatementKind::For { .. }
             | StatementKind::Loop { .. }
+            | StatementKind::Handle { .. }
             | StatementKind::Let {
                 expr: Expr::AsyncBlock(_),
                 ..

@@ -7,9 +7,9 @@ use alloc::boxed::Box;
 use crate::types::{AstString as String, HeapVec as Vec};
 pub(crate) use control::{Condition, IfBranch};
 pub(crate) use items::{
-    Attribute, Call, CallArg, EnumDef, ExprFields, FunctionDef, FunctionParam, MethodCall,
-    NamedExpr, NamedFieldType, NamedPattern, PatternFields, TraitDef, TraitImpl, UseItem,
-    VariantDef, VariantExpr, VariantFields, VariantPattern,
+    Attribute, Call, CallArg, EffectDef, EffectHandler, EnumDef, ExprFields, FunctionDef,
+    FunctionParam, MethodCall, NamedExpr, NamedFieldType, NamedPattern, PatternFields, TraitDef,
+    TraitImpl, UseItem, VariantDef, VariantExpr, VariantFields, VariantPattern,
 };
 pub(crate) use ty::{CompareOp, Type};
 
@@ -32,6 +32,12 @@ pub(crate) enum StatementKind {
     Trait(TraitDef),
     Impl(TraitImpl),
     Function(FunctionDef),
+    Effect(EffectDef),
+    /// `try { … } with log { (m) => … }`
+    Handle {
+        body: Vec<Statement>,
+        handlers: Vec<EffectHandler>,
+    },
     Alias {
         name: String,
         value: Expr,

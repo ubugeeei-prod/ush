@@ -1,8 +1,22 @@
-//! The effect kinds and the bitset that holds them.
+//! Effects and effect rows.
+//!
+//! An effect is a capability a computation needs from its caller.
+//! Two kinds exist, and the difference is what can discharge them:
+//!
+//! - **Built-in** effects (`io`, `fs`, `env`, `net`, `exec`, `task`)
+//!   describe what the generated shell actually does. They are
+//!   inferred from the stdlib and propagate outward forever — no
+//!   handler can take back the fact that a program wrote a file.
+//! - **User** effects are declared with `effect`, performed with
+//!   `do`, and discharged by a `try … with` handler, the way an
+//!   effect works in Effekt.
 
 use core::fmt;
 
-/// What a function reaches for beyond its own arguments.
+use crate::types::{AstString, HeapVec as Vec};
+
+/// A built-in effect: something the generated shell does to the
+/// world, inferred rather than declared.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Effect {
     /// Terminal output and input: `print`, and the interactive
@@ -17,7 +31,7 @@ pub enum Effect {
     Net,
     /// Other processes: `$ cmd`, `shell`, and `std::command`.
     Exec,
-    /// Concurrency: `spawn`, `.await`, and `async` blocks.
+    /// Concurrency: `async`, `spawn`, `.await`, and `async` blocks.
     Task,
 }
 
@@ -57,49 +71,119 @@ impl fmt::Display for Effect {
     }
 }
 
-/// A set of [`Effect`]s, held as a bitset.
+/// An effect row: everything a computation still needs from its
+/// caller.
 ///
-/// The inference walk unions these once per expression node, so the
-/// representation is one byte and every operation is a mask.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct EffectSet(u8);
+/// The six built-ins live in a bitset because the inference walk
+/// unions rows once per expression node; user effects are rare
+/// enough to keep in a sorted list beside it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct EffectSet {
+    builtin: u8,
+    user: Vec<AstString>,
+}
 
 impl EffectSet {
-    pub const fn empty() -> Self {
-        Self(0)
+    pub fn empty() -> Self {
+        Self::default()
     }
 
-    pub const fn of(effect: Effect) -> Self {
-        Self(effect.bit())
+    pub fn of(effect: Effect) -> Self {
+        Self {
+            builtin: effect.bit(),
+            user: Vec::new(),
+        }
+    }
+
+    pub fn of_user(name: impl Into<AstString>) -> Self {
+        Self {
+            builtin: 0,
+            user: alloc::vec![name.into()],
+        }
     }
 
     pub fn insert(&mut self, effect: Effect) {
-        self.0 |= effect.bit();
+        self.builtin |= effect.bit();
     }
 
-    pub const fn union(self, other: Self) -> Self {
-        Self(self.0 | other.0)
+    pub fn insert_user(&mut self, name: impl Into<AstString>) {
+        let name = name.into();
+        if let Err(index) = self.user.binary_search(&name) {
+            self.user.insert(index, name);
+        }
     }
 
-    pub fn merge(&mut self, other: Self) {
-        self.0 |= other.0;
+    pub fn union(mut self, other: &Self) -> Self {
+        self.merge(other);
+        self
     }
 
-    /// The effects in `self` that `other` does not cover.
-    pub const fn difference(self, other: Self) -> Self {
-        Self(self.0 & !other.0)
+    pub fn merge(&mut self, other: &Self) {
+        self.builtin |= other.builtin;
+        for name in &other.user {
+            self.insert_user(name.clone());
+        }
     }
 
-    pub const fn contains(self, effect: Effect) -> bool {
-        self.0 & effect.bit() != 0
+    /// The effects in `self` that `other` does not cover — what is
+    /// still unhandled after `other` has been discharged.
+    pub fn difference(&self, other: &Self) -> Self {
+        Self {
+            builtin: self.builtin & !other.builtin,
+            user: self
+                .user
+                .iter()
+                .filter(|name| !other.user.contains(name))
+                .cloned()
+                .collect(),
+        }
     }
 
-    pub const fn is_empty(self) -> bool {
-        self.0 == 0
+    pub fn contains(&self, effect: Effect) -> bool {
+        self.builtin & effect.bit() != 0
     }
 
-    pub fn iter(self) -> impl Iterator<Item = Effect> {
-        Effect::ALL.into_iter().filter(move |e| self.contains(*e))
+    pub fn contains_user(&self, name: &str) -> bool {
+        self.user.iter().any(|item| item == name)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.builtin == 0 && self.user.is_empty()
+    }
+
+    pub fn builtins(&self) -> impl Iterator<Item = Effect> + '_ {
+        Effect::ALL
+            .into_iter()
+            .filter(move |effect| self.contains(*effect))
+    }
+
+    pub fn user_effects(&self) -> impl Iterator<Item = &AstString> {
+        self.user.iter()
+    }
+
+    /// The row as it is written in a signature: `{ io, fs }`, or
+    /// `{}` for a computation that needs nothing.
+    pub fn render_row(&self) -> crate::types::OutputString {
+        let mut out = crate::types::OutputString::from("{");
+        let mut first = true;
+        for name in self.names() {
+            out.push_str(if first { " " } else { ", " });
+            out.push_str(&name);
+            first = false;
+        }
+        out.push_str(if first { "}" } else { " }" });
+        out
+    }
+
+    fn names(&self) -> Vec<crate::types::OutputString> {
+        let mut names = Vec::new();
+        for effect in self.builtins() {
+            names.push(crate::types::OutputString::from(effect.name()));
+        }
+        for name in &self.user {
+            names.push(crate::types::OutputString::from(name.as_str()));
+        }
+        names
     }
 }
 
@@ -109,11 +193,11 @@ impl fmt::Display for EffectSet {
             return f.write_str("pure");
         }
         let mut first = true;
-        for effect in self.iter() {
+        for name in self.names() {
             if !first {
                 f.write_str(", ")?;
             }
-            f.write_str(effect.name())?;
+            f.write_str(&name)?;
             first = false;
         }
         Ok(())
