@@ -80,16 +80,50 @@ runtime failures print a sourcemap report to `stderr`.
 Example:
 
 ```text
-ush runtime map: script.ush:10
+/bin/sh: line 490: definitely_not_a_real_command: command not found
+
+ush runtime map: script.ush:3 (exit 127)
+  source : $ definitely_not_a_real_command
   section: user-code
-  shell  : G0456 | printf '%s\n' "$(printf '%s' "${greeting}" '!')"
-  source : print greeting + "!"
-  mapped : G0456
+  shell  : line 490 | G0451 | definitely_not_a_real_command
+  mapped : G0451
+  explain: ush explain script.ush 490
 ```
+
+The `line 490` in the report is the same number `/bin/sh` printed: the
+instrumentation knows how tall its own header is, so a shell diagnostic can be
+matched to a sourcemap entry without counting lines by hand. `G0451` is the
+sourcemap id for the same line, the one that appears in the JSON above and in
+the listings below.
 
 For source lines that lower into multiple shell lines, `mapped` shows the whole
 generated group, not just the failing line. That makes control-flow lowering
 much easier to inspect.
+
+## `ush explain`
+
+`ush explain` is the other direction: hand it a line number out of a `/bin/sh`
+diagnostic (or a `G####` id) and it prints the generated line, the `.ush` line
+behind it, and the surrounding source.
+
+```bash
+ush explain script.ush 490
+```
+
+```text
+script.ush: shell line 490 | G0451 | user-code
+  shell  : definitely_not_a_real_command
+  source : script.ush:3
+        1 | let greeting = "hello"
+        2 | print greeting
+  ->    3 | $ definitely_not_a_real_command
+        4 | print "after"
+```
+
+When one `.ush` line lowered into several shell lines, the whole group is
+listed with the failing one marked. A number that lands inside the runtime
+scaffolding `ush` adds ahead of the program says so rather than pointing at
+something misleading.
 
 The JSON sourcemap and mapped listings still include `runtime-support` and
 `doc-support` sections, so tooling can inspect generated support code even when

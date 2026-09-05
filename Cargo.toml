@@ -12,7 +12,7 @@ default-members = ["apps/ush"]
 resolver = "2"
 
 [workspace.package]
-version = "0.9.0"
+version = "0.10.0"
 edition = "2024"
 # Bumped to 1.89: criterion 0.8.2 needs 1.86, home 0.5.12 needs 1.88,
 # and rustyline (vendored, v18.0.0) uses std::fs::File::lock which
