@@ -9,7 +9,8 @@ pub(super) fn needs_posix_fallback(line: &str) -> bool {
     needs_posix_fallback_with(line, None)
 }
 
-/// As [`needs_posix_fallback`], with the keyword scan already done.
+/// Reports whether `line` has to be handed to `/bin/sh`, with the
+/// keyword scan already done.
 ///
 /// The and-or splitter has to know whether the line contains a POSIX
 /// keyword before it can decide to split, and that answer is equally
