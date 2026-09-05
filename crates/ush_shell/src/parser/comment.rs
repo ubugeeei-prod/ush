@@ -11,18 +11,17 @@ use std::borrow::Cow;
 /// rest of the input at the first `#` would silently drop every
 /// command after a commented one.
 pub(super) fn strip_comment(source: &str) -> Cow<'_, str> {
-    // One line in, one comment out: every interactive line, and the
-    // reason this stays a single scan over a borrowed slice.
-    if memchr::memchr(b'\n', source.as_bytes()).is_none() {
-        return match comment_start(source, 0) {
-            Some(start) => Cow::Borrowed(&source[..start]),
-            None => Cow::Borrowed(source),
-        };
-    }
-
+    // Most lines have no comment at all, and they leave here after
+    // the same single scan the shell always did.
     let Some(first) = comment_start(source, 0) else {
         return Cow::Borrowed(source);
     };
+
+    // A comment with no newline after it takes the whole rest of the
+    // input with it, so the answer is still a slice.
+    if memchr::memchr(b'\n', &source.as_bytes()[first..]).is_none() {
+        return Cow::Borrowed(&source[..first]);
+    }
 
     let mut out = String::with_capacity(source.len());
     let mut cursor = 0usize;
