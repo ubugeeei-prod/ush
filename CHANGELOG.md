@@ -18,6 +18,11 @@ project adheres to [Semantic Versioning][semver].
   `DO NOT EDIT MANUALLY` warning and regeneration command, and keeps
   source-relative paths working without embedding a build-machine path.
 
+### Changed
+
+- Replaced the unmaintained `chrono` dependency with `time` for local file
+  timestamps, resolving RUSTSEC-2026-0543 without suppressing the advisory.
+
 ## [0.10.0] — 2026-09-06
 
 ### Added
