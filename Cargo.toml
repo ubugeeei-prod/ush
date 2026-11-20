@@ -29,7 +29,6 @@ categories = ["command-line-utilities", "command-line-interface"]
 [workspace.dependencies]
 anyhow = "1.0.104"
 bumpalo = { version = "3.19.0", default-features = false, features = ["collections"] }
-chrono = "0.4.44"
 clap = { version = "4.6.1", features = ["derive", "env"] }
 comfy-table = "7.2.2"
 compact_str = { version = "0.9.0", default-features = false }
@@ -50,6 +49,7 @@ quick-xml = "0.42.0"
 shell-words = "1.1.1"
 smallvec = { version = "1.15.1", default-features = false }
 tempfile = "3.23.0"
+time = { version = "0.3.55", default-features = false, features = ["std", "formatting", "local-offset", "macros"] }
 toml = "1.1.2"
 which = "8.0.2"
 

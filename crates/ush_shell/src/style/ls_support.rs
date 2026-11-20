@@ -4,7 +4,7 @@ mod tests;
 use std::{fmt::Write as _, fs, os::unix::fs::PermissionsExt, path::Path};
 
 use anyhow::Result;
-use chrono::{DateTime, Local};
+use time::{OffsetDateTime, UtcOffset, macros::format_description};
 
 use super::common::{
     BLUE_BOLD, BOLD, CYAN_BOLD, GREEN_BOLD, MAGENTA_BOLD, badge, dim, human_bytes, paint, pluralize,
@@ -98,10 +98,13 @@ pub(super) fn describe_ls_entry(
     let modified = metadata
         .modified()
         .ok()
-        .map(|time| {
-            DateTime::<Local>::from(time)
-                .format("%Y-%m-%d %H:%M")
-                .to_string()
+        .and_then(|time| {
+            let datetime = OffsetDateTime::from(time);
+            let offset = UtcOffset::local_offset_at(datetime).ok()?;
+            datetime
+                .to_offset(offset)
+                .format(format_description!("[year]-[month]-[day] [hour]:[minute]"))
+                .ok()
         })
         .unwrap_or_else(|| "-".to_string());
     let (kind, display_name) = if metadata.file_type().is_symlink() {

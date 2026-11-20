@@ -97,7 +97,7 @@ jobs:
           - os: macos-15-intel
             target: x86_64-apple-darwin
             asset_name: ush-x86_64-apple-darwin.tar.gz
-          - os: macos-14
+          - os: macos-15
             target: aarch64-apple-darwin
             asset_name: ush-aarch64-apple-darwin.tar.gz
 
