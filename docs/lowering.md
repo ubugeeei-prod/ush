@@ -25,6 +25,17 @@ That scaffold is used for:
 - task tracking for `async` / `await`
 - cleanup of background jobs and temp files at the end of the script
 
+For a generated artifact that will be committed, use adjacent source and
+output files:
+
+```sh
+ush compile tools/check.ush --checked-in -o tools/check.sh
+```
+
+This mode adds source and regeneration comments, avoids machine-specific
+absolute paths, and resolves `std::path::from_source` from the generated
+script's directory at runtime.
+
 If the source has doc comments or a `bin(...)` entrypoint, the compiler also emits:
 
 - `__ush_print_help`

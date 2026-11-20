@@ -132,6 +132,11 @@ pub enum Action {
         /// Also emit a sourcemap to FILE.
         #[arg(long = "sourcemap", value_name = "FILE")]
         sourcemap: Option<PathBuf>,
+        /// Emit a deterministic shell artifact intended to be checked in.
+        ///
+        /// Requires an adjacent output file and adds regeneration instructions.
+        #[arg(long, requires = "output")]
+        checked_in: bool,
     },
     /// Format a `.ush` source file in-place (or print the result).
     Format {
