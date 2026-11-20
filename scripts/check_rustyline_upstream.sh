@@ -20,6 +20,10 @@ if [ -z "$pinned_tag" ]; then
 fi
 pinned_version="${pinned_tag#v}"
 
+reviewed_tag="$(awk -F': *' '/^reviewed_latest:/ { print $2; exit }' "$UPSTREAM_FILE")"
+reviewed_version="${reviewed_tag#v}"
+review_reason="$(awk -F': *' '/^review_reason:/ { sub(/^[^:]*: */, ""); print; exit }' "$UPSTREAM_FILE")"
+
 vendored_version="$(awk -F'"' '/^version =/ { print $2; exit }' vendor/rustyline/Cargo.toml)"
 if [ -z "$vendored_version" ]; then
   echo "check_rustyline_upstream: could not read version from vendor/rustyline/Cargo.toml" >&2
@@ -36,8 +40,22 @@ MSG
   exit 1
 fi
 
-latest_version="$(curl -fsSL https://crates.io/api/v1/crates/rustyline \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["crate"]["max_stable_version"])')"
+# crates.io rejects requests without a descriptive User-Agent with a
+# bare 403, so send one. Fetch and parse are separate steps: piping
+# curl straight into python turns a network failure into an opaque
+# JSONDecodeError traceback instead of a readable message.
+crates_json="$(curl -fsSL \
+  -A "ush-ci check_rustyline_upstream (https://github.com/ubugeeei-prod/ush)" \
+  https://crates.io/api/v1/crates/rustyline)" || {
+  echo "check_rustyline_upstream: failed to query crates.io for rustyline" >&2
+  exit 1
+}
+
+latest_version="$(printf '%s' "$crates_json" \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["crate"]["max_stable_version"])')" || {
+  echo "check_rustyline_upstream: could not parse crates.io response" >&2
+  exit 1
+}
 
 if [ -z "$latest_version" ]; then
   echo "check_rustyline_upstream: could not determine latest rustyline version" >&2
@@ -48,6 +66,12 @@ echo "pinned: $pinned_version"
 echo "latest: $latest_version"
 
 if [ "$pinned_version" != "$latest_version" ]; then
+  if [ "$reviewed_version" = "$latest_version" ] && [ -n "$review_reason" ]; then
+    echo "latest upstream release reviewed: $reviewed_tag"
+    echo "review outcome: $review_reason"
+    exit 0
+  fi
+
   cat >&2 <<MSG
 check_rustyline_upstream: vendored rustyline is behind upstream.
   Pinned: $pinned_version
@@ -57,7 +81,8 @@ Review https://github.com/kkawakam/rustyline/releases/tag/v$latest_version
 for security advisories or behaviour changes, then either:
   * rebase the vendored copy onto the new tag and update
     vendor/rustyline/UPSTREAM, or
-  * document an explicit reason for staying on the old tag.
+  * record reviewed_latest and review_reason in
+    vendor/rustyline/UPSTREAM.
 MSG
   exit 1
 fi

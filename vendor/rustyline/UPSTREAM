@@ -1,6 +1,8 @@
 url: https://github.com/kkawakam/rustyline
 crate: rustyline
-tag: v18.0.0
+tag: v18.0.1
+reviewed_latest: v19.0.0
+review_reason: v19 rewrites the same completion and input paths as our vendor patches; defer the rebase until interactive behaviour and latency can be qualified together.
 notes: |
   Vendored to allow custom key bindings and to pin the readline
   surface against upstream churn. When updating, walk the diff between
