@@ -20,6 +20,10 @@ if [ -z "$pinned_tag" ]; then
 fi
 pinned_version="${pinned_tag#v}"
 
+reviewed_tag="$(awk -F': *' '/^reviewed_latest:/ { print $2; exit }' "$UPSTREAM_FILE")"
+reviewed_version="${reviewed_tag#v}"
+review_reason="$(awk -F': *' '/^review_reason:/ { sub(/^[^:]*: */, ""); print; exit }' "$UPSTREAM_FILE")"
+
 vendored_version="$(awk -F'"' '/^version =/ { print $2; exit }' vendor/rustyline/Cargo.toml)"
 if [ -z "$vendored_version" ]; then
   echo "check_rustyline_upstream: could not read version from vendor/rustyline/Cargo.toml" >&2
@@ -62,6 +66,12 @@ echo "pinned: $pinned_version"
 echo "latest: $latest_version"
 
 if [ "$pinned_version" != "$latest_version" ]; then
+  if [ "$reviewed_version" = "$latest_version" ] && [ -n "$review_reason" ]; then
+    echo "latest upstream release reviewed: $reviewed_tag"
+    echo "review outcome: $review_reason"
+    exit 0
+  fi
+
   cat >&2 <<MSG
 check_rustyline_upstream: vendored rustyline is behind upstream.
   Pinned: $pinned_version
@@ -71,7 +81,8 @@ Review https://github.com/kkawakam/rustyline/releases/tag/v$latest_version
 for security advisories or behaviour changes, then either:
   * rebase the vendored copy onto the new tag and update
     vendor/rustyline/UPSTREAM, or
-  * document an explicit reason for staying on the old tag.
+  * record reviewed_latest and review_reason in
+    vendor/rustyline/UPSTREAM.
 MSG
   exit 1
 fi
