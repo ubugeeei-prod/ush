@@ -1,0 +1,101 @@
+use std::{fs, path::Path, process::Command};
+
+use tempfile::tempdir;
+
+fn ush() -> Command {
+    Command::new(env!("CARGO_BIN_EXE_ush"))
+}
+
+fn compile(source: &Path, output: &Path) -> std::process::Output {
+    ush()
+        .args([
+            "compile",
+            source.to_str().unwrap(),
+            "--checked-in",
+            "-o",
+            output.to_str().unwrap(),
+        ])
+        .output()
+        .expect("compile checked-in script")
+}
+
+#[test]
+fn output_is_deterministic_and_documents_regeneration() {
+    let first = tempdir().expect("first tempdir");
+    let second = tempdir().expect("second tempdir");
+    let source = "let greeting = \"hello\"\nprint greeting\n";
+
+    for directory in [first.path(), second.path()] {
+        fs::write(directory.join("greet.ush"), source).expect("write source");
+        let result = compile(&directory.join("greet.ush"), &directory.join("greet.sh"));
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    }
+
+    let first_shell = fs::read_to_string(first.path().join("greet.sh")).expect("read output");
+    let second_shell = fs::read_to_string(second.path().join("greet.sh")).expect("read output");
+
+    assert_eq!(first_shell, second_shell);
+    assert!(first_shell.starts_with(
+        "#!/bin/sh\n# Generated from 'greet.ush' by ush.\n# DO NOT EDIT MANUALLY.\n# Regenerate with: ush compile 'greet.ush' --checked-in -o 'greet.sh'\n"
+    ));
+    assert!(!first_shell.contains(first.path().to_str().unwrap()));
+    assert!(!first_shell.contains(second.path().to_str().unwrap()));
+}
+
+#[test]
+fn source_relative_paths_follow_the_generated_script() {
+    let directory = tempdir().expect("script tempdir");
+    let other_directory = tempdir().expect("working tempdir");
+    let source_path = directory.path().join("locate.ush");
+    let output_path = directory.path().join("locate.sh");
+    fs::write(
+        &source_path,
+        "use std::path::{from_source}\nlet payload = from_source \"payload.txt\"\nprint payload.resolve()\n",
+    )
+    .expect("write source");
+
+    let result = compile(&source_path, &output_path);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+
+    let output = Command::new("sh")
+        .arg(&output_path)
+        .current_dir(other_directory.path())
+        .output()
+        .expect("run generated shell");
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8_lossy(&output.stdout),
+        format!(
+            "{}/payload.txt\n",
+            fs::canonicalize(directory.path()).unwrap().display()
+        )
+    );
+}
+
+#[test]
+fn source_and_output_must_be_adjacent() {
+    let source_directory = tempdir().expect("source tempdir");
+    let output_directory = tempdir().expect("output tempdir");
+    let source = source_directory.path().join("script.ush");
+    fs::write(&source, "print \"hello\"\n").expect("write source");
+
+    let output = compile(&source, &output_directory.path().join("script.sh"));
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("checked-in source and output must be in the same directory")
+    );
+}

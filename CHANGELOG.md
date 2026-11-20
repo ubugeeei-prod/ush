@@ -10,6 +10,14 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- `ush compile script.ush --checked-in -o script.sh` emits a deterministic,
+  relocatable POSIX shell artifact for repositories that commit generated
+  scripts. The output identifies its `.ush` source, carries a
+  `DO NOT EDIT MANUALLY` warning and regeneration command, and keeps
+  source-relative paths working without embedding a build-machine path.
+
 ## [0.10.0] — 2026-09-06
 
 ### Added

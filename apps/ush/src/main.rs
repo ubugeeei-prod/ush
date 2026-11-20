@@ -41,8 +41,9 @@ fn main() -> Result<()> {
                 input,
                 output,
                 sourcemap,
+                checked_in,
             } => {
-                compile_action(input, output.as_deref(), sourcemap.as_deref())?;
+                compile_action(input, output.as_deref(), sourcemap.as_deref(), *checked_in)?;
                 return Ok(());
             }
             Action::Format {
@@ -99,8 +100,20 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn compile_action(input: &Path, output: Option<&Path>, sourcemap: Option<&Path>) -> Result<()> {
-    let compiled = UshCompiler.compile_file_with_sourcemap(input)?;
+fn compile_action(
+    input: &Path,
+    output: Option<&Path>,
+    sourcemap: Option<&Path>,
+    checked_in: bool,
+) -> Result<()> {
+    let compiled = if checked_in {
+        UshCompiler.compile_checked_in_file_with_sourcemap(
+            input,
+            output.expect("clap requires output with --checked-in"),
+        )?
+    } else {
+        UshCompiler.compile_file_with_sourcemap(input)?
+    };
     if let Some(output) = output {
         std::fs::write(output, &compiled.shell)
             .with_context(|| format!("failed to write {}", output.display()))?;

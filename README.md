@@ -367,6 +367,17 @@ Legacy `~/.config/ubsh` config files and `UBSHELL_*` env vars are still accepted
 
 `.ush` files are compiled to `sh`; execution still happens in `/bin/sh`.
 
+Repositories can commit generated shell without requiring contributors to
+install `ush` just to run a script:
+
+```bash
+ush compile tools/check.ush --checked-in -o tools/check.sh
+```
+
+The source and output stay adjacent. This mode produces a deterministic,
+relocatable artifact with a `DO NOT EDIT MANUALLY` header and the exact
+regeneration command; run the committed `.sh` with any POSIX shell.
+
 Small example:
 
 ```text

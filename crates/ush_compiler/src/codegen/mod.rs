@@ -21,6 +21,7 @@ mod runtime_expr;
 mod runtime_member;
 mod runtime_support;
 mod shared;
+mod source_context;
 mod statement;
 mod statement_control;
 mod stdlib;
@@ -37,7 +38,7 @@ use super::{
 use crate::ScriptDocs;
 use crate::sourcemap::{CompiledScript, OutputBuffer, SourceMapSection};
 use crate::traits::{TraitImplRegistry, TraitRegistry, register_trait, register_trait_impl};
-use crate::util::shell_quote;
+pub(crate) use source_context::SourceContext;
 
 pub(crate) use functions::FunctionRegistry;
 pub(crate) use primitive::{compile_primitive_expr, infer};
@@ -49,8 +50,7 @@ pub(crate) fn compile_program(
     docs: &ScriptDocs,
     source: &str,
     script_name: Option<&str>,
-    source_dir: Option<&str>,
-    source_path: Option<&str>,
+    source_context: SourceContext<'_>,
 ) -> Result<CompiledScript> {
     let mut env = Env::default();
     let mut functions = functions::FunctionRegistry::default();
@@ -59,15 +59,7 @@ pub(crate) fn compile_program(
     let mut trait_impls = TraitImplRegistry::default();
     let mut state = CodegenState::default();
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport);
-    out.push_str(
-        "#!/bin/sh\nset -eu\n\n__ush_jobs=''\n__ush_task_seq='0'\n__ush_task_files=''\n__ush_tmp_seq='0'\n\n",
-    );
-    out.push_str("__ush_source_dir=");
-    out.push_str(&shell_quote(source_dir.unwrap_or("")));
-    out.push('\n');
-    out.push_str("__ush_source_path=");
-    out.push_str(&shell_quote(source_path.unwrap_or("")));
-    out.push_str("\n\n");
+    source_context::emit(&mut out, source_context);
     stdlib::register_builtins(&mut functions)?;
 
     for statement in program {
