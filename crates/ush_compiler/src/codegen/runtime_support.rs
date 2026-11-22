@@ -1,5 +1,4 @@
 use alloc::boxed::Box;
-
 use anyhow::Result;
 
 use super::{
@@ -33,6 +32,21 @@ pub(super) fn hoist_expr(
     out: &mut OutputBuffer,
 ) -> Result<Expr> {
     Ok(match expr {
+        Expr::ShellCapture(command) => {
+            let temp = state.temp_var("stdout");
+            out.push_str(&format!("{temp}=\"$(\n"));
+            out.push_shell_source(command);
+            out.push_str(")\"");
+            super::io::push_failure_guard(out, inside_function);
+            env.insert(
+                temp.clone(),
+                Binding {
+                    ty: crate::ast::Type::String,
+                    storage: Storage::Primitive(temp.clone()),
+                },
+            );
+            Expr::Var(temp)
+        }
         Expr::Add(parts) => Expr::Add(
             parts
                 .iter()
@@ -149,6 +163,22 @@ pub(super) fn hoist_call(
 ) -> Result<Call> {
     let mut prepared = call.clone();
     for arg in &mut prepared.args {
+        if super::infer(&arg.expr, env, functions, impls, enums)?.is_structured() {
+            let binding = crate::matching::materialize_expr(
+                &arg.expr,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                inside_function,
+                out,
+            )?;
+            let temp = state.temp_var("argument");
+            env.insert(temp.clone(), binding);
+            arg.expr = Expr::Var(temp);
+            continue;
+        }
         arg.expr = hoist_expr(
             &arg.expr,
             env,
@@ -193,8 +223,9 @@ fn hoist_call_capture(
 
     let temp = state.temp_var("value");
     out.push_str(&temp);
-    out.push_str("=\"$(__ush_capture_return='1' ");
+    out.push_str("=\"$(__ush_return_path='' __ush_capture_return='1' ");
     out.push_str(&rendered);
+    out.push_str(super::call_support::capture_fds(&prepared.name));
     out.push_str(")\"");
     if let FailureMode::Propagate { inside_function } = mode {
         out.push_str(" || ");

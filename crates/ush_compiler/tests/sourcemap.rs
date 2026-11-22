@@ -72,7 +72,7 @@ fn sourcemap_render_listing_matches_snapshot() {
 
     let listing = compact_sourcemap_snapshot(&compiled);
 
-    assert_eq!(listing, include_str!("fixtures/sourcemap_listing.txt"));
+    assert_snapshot("sourcemap_listing.txt", &listing);
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn sourcemap_summary_and_source_index_group_related_lines() {
         .expect("user-code section");
 
     assert!(condition_lines.len() >= 3);
-    assert_eq!(print_lines.len(), 1);
+    assert_eq!(print_lines.len(), 2);
     assert_eq!(summary.source_line_count, 2);
     assert_eq!(
         source_index
@@ -123,10 +123,7 @@ fn sourcemap_render_mapped_listing_matches_snapshot() {
 
     let listing = compiled.sourcemap.render_mapped_listing();
 
-    assert_eq!(
-        listing,
-        include_str!("fixtures/sourcemap_mapped_listing.txt")
-    );
+    assert_snapshot("sourcemap_mapped_listing.txt", &listing);
 }
 
 fn compact_sourcemap_snapshot(compiled: &CompiledScript) -> String {
@@ -187,4 +184,14 @@ fn compact_sourcemap_snapshot(compiled: &CompiledScript) -> String {
     let _ = writeln!(out, "mapped listing:");
     out.push_str(&compiled.sourcemap.render_mapped_listing());
     out
+}
+
+fn assert_snapshot(name: &str, listing: &str) {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(name);
+    if std::env::var_os("UPDATE_SNAPSHOTS").is_some() {
+        std::fs::write(&path, listing).unwrap();
+    }
+    assert_eq!(listing, std::fs::read_to_string(path).unwrap());
 }

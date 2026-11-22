@@ -22,6 +22,9 @@ pub enum Effect {
     /// Terminal output and input: `print`, and the interactive
     /// builtins.
     Io,
+    Stdin,
+    Stdout,
+    Stderr,
     /// The filesystem: `std::fs`, and the `std::path` helpers that
     /// look at what is actually on disk.
     Fs,
@@ -36,8 +39,11 @@ pub enum Effect {
 }
 
 impl Effect {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 9] = [
         Self::Io,
+        Self::Stdin,
+        Self::Stdout,
+        Self::Stderr,
         Self::Fs,
         Self::Env,
         Self::Net,
@@ -48,6 +54,9 @@ impl Effect {
     pub fn name(self) -> &'static str {
         match self {
             Self::Io => "io",
+            Self::Stdin => "stdin",
+            Self::Stdout => "stdout",
+            Self::Stderr => "stderr",
             Self::Fs => "fs",
             Self::Env => "env",
             Self::Net => "net",
@@ -60,8 +69,11 @@ impl Effect {
         Self::ALL.into_iter().find(|effect| effect.name() == name)
     }
 
-    const fn bit(self) -> u8 {
-        1 << (self as u8)
+    const fn bit(self) -> u16 {
+        match self {
+            Self::Io => Self::Stdin.bit() | Self::Stdout.bit() | Self::Stderr.bit(),
+            _ => 1 << (self as u8),
+        }
     }
 }
 
@@ -79,7 +91,7 @@ impl fmt::Display for Effect {
 /// enough to keep in a sorted list beside it.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct EffectSet {
-    builtin: u8,
+    builtin: u16,
     user: Vec<AstString>,
 }
 
@@ -140,7 +152,7 @@ impl EffectSet {
     }
 
     pub fn contains(&self, effect: Effect) -> bool {
-        self.builtin & effect.bit() != 0
+        self.builtin & effect.bit() == effect.bit()
     }
 
     pub fn contains_user(&self, name: &str) -> bool {
@@ -154,7 +166,7 @@ impl EffectSet {
     pub fn builtins(&self) -> impl Iterator<Item = Effect> + '_ {
         Effect::ALL
             .into_iter()
-            .filter(move |effect| self.contains(*effect))
+            .filter(move |effect| *effect != Effect::Io && self.contains(*effect))
     }
 
     pub fn user_effects(&self) -> impl Iterator<Item = &AstString> {
@@ -164,15 +176,10 @@ impl EffectSet {
     /// The row as it is written in a signature: `{ io, fs }`, or
     /// `{}` for a computation that needs nothing.
     pub fn render_row(&self) -> crate::types::OutputString {
-        let mut out = crate::types::OutputString::from("{");
-        let mut first = true;
-        for name in self.names() {
-            out.push_str(if first { " " } else { ", " });
-            out.push_str(&name);
-            first = false;
+        if self.is_empty() {
+            return "()".into();
         }
-        out.push_str(if first { "}" } else { " }" });
-        out
+        self.names().join(", ")
     }
 
     fn names(&self) -> Vec<crate::types::OutputString> {

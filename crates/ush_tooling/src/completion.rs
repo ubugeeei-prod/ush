@@ -49,6 +49,17 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("loop", "infinite loop"),
     ("match", "pattern match"),
     ("print", "print a value"),
+    (
+        "fail",
+        "Return a typed error or an exit status and message.",
+    ),
+    (
+        "using",
+        "Bring the typed shell commands in $bin:: into scope.",
+    ),
+    ("unit", "Declare a measurement unit for integer values."),
+    ("where", "Require an integer predicate at the call site."),
+    ("const", "Infer an integer index from the argument type."),
     ("raise", "raise a typed error"),
     ("return", "return from a function"),
     ("shell", "execute a shell command"),
@@ -73,6 +84,20 @@ pub fn completions(source: &str) -> Vec<CompletionItem> {
         })
         .collect();
 
+    let imported = source.lines().any(|line| line.trim() == "using $bin::");
+    if imported || source.contains("$bin::") {
+        for word in ush_compiler::command_names() {
+            out.push(CompletionItem {
+                label: if imported {
+                    word.to_owned()
+                } else {
+                    format!("$bin::{word}")
+                },
+                kind: CompletionKind::Function,
+                detail: "Typed shell command".into(),
+            });
+        }
+    }
     let tokens = semantic_tokens(source);
     let lines: Vec<&str> = source.lines().collect();
     let mut seen: Vec<String> = Vec::new();

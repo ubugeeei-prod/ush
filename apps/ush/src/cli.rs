@@ -5,6 +5,13 @@ use clap::{Parser, Subcommand};
 #[derive(Debug, Parser)]
 #[command(name = "ush", version, about = "ush (ubugeeei shell)")]
 pub struct Cli {
+    /// Shell interpreter for compilation or execution.
+    #[arg(
+        long = "shell-target",
+        default_value = "sh",
+        value_name = "sh|bash|zsh|ash"
+    )]
+    pub target: ush_compiler::ShellTarget,
     /// Force the stylish (human-formatted) output renderer.
     #[arg(short = 's', long = "stylish")]
     pub stylish: bool,
@@ -125,6 +132,9 @@ impl Cli {
 pub enum Action {
     /// Lower a `.ush` source file to POSIX `sh`.
     Compile {
+        /// Interpreter for the generated executable.
+        #[arg(long, default_value = "sh", value_name = "sh|bash|zsh|ash")]
+        target: ush_compiler::ShellTarget,
         input: PathBuf,
         /// Write generated `sh` to FILE instead of stdout.
         #[arg(short, long, value_name = "FILE")]

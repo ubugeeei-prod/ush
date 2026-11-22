@@ -19,9 +19,6 @@ fn normalize_path(text: &str, path: &std::path::Path, marker: &str) -> String {
 
     text.lines()
         .map(|line| {
-            if line.starts_with("  stderr: ush runtime map: ") {
-                return format!("  stderr: ush runtime map: {marker}:1");
-            }
             let mut line = line.to_string();
             for target in &targets {
                 line = line.replace(target, marker);

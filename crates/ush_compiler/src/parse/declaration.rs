@@ -23,6 +23,9 @@ pub(super) fn parse_declaration(
     attrs: &[Attribute],
     _tail_position: bool,
 ) -> Result<Option<StatementKind>> {
+    if let Some(name) = trimmed.strip_prefix("unit ") {
+        return Ok(Some(StatementKind::UnitDef(parse_name(name)?)));
+    }
     if let Some(rest) = trimmed.strip_prefix("type ") {
         return Ok(Some(parse_type_def(rest, lines, cursor)?));
     }
@@ -34,6 +37,12 @@ pub(super) fn parse_declaration(
     }
     if let Some(rest) = trimmed.strip_prefix("impl ") {
         return Ok(Some(impls::parse_impl(rest, lines, cursor)?));
+    }
+    if trimmed == "using $bin::" {
+        return Ok(Some(StatementKind::Use(vec![crate::ast::UseItem {
+            path: "$bin::".into(),
+            alias: "*".into(),
+        }])));
     }
     if let Some(rest) = trimmed.strip_prefix("use ") {
         return Ok(Some(use_decl::parse_use(rest)?));
@@ -162,18 +171,43 @@ fn parse_function(
         .strip_suffix('{')
         .ok_or_else(|| anyhow!("expected `{{` after function signature"))?
         .trim();
-    let (name, params, return_type, declared_errors, declared_effects) =
-        signature::parse_function_header(head)?;
+    let (name, args, tail) = signature::split_paren_form(head)
+        .ok_or_else(|| anyhow!("functions must use `fn name(args)`"))?;
+    let extended = crate::contracts::header(head, name, args, tail)?;
+    let simple = extended.as_ref().map_or(head, |(text, _)| text.as_str());
+    let (name, params, return_type, declared_effects) = signature::parse_function_header(simple)?;
+    let mut scheme = extended.map(|(_, scheme)| Box::new(scheme));
     *cursor += 1;
     let body = super::statement::parse_block(lines, cursor, false, return_type.is_some())?;
     let _ = finish_block(lines, cursor, "function body")?;
+    if scheme.is_none()
+        && tail.is_empty()
+        && body.iter().any(|s| {
+            matches!(
+                s.kind,
+                StatementKind::Return(_)
+                    | StatementKind::Expr(_)
+                    | StatementKind::If {
+                        returns_value: true,
+                        ..
+                    }
+                    | StatementKind::Match {
+                        returns_value: true,
+                        ..
+                    }
+            )
+        })
+    {
+        scheme = Some(Box::new(crate::contracts::Scheme::inferred_result(&params)));
+    }
     Ok(StatementKind::Function(FunctionDef {
+        scheme,
         attrs: attrs.to_vec(),
         name,
         receiver: None,
         params,
         return_type,
-        declared_errors,
+        declared_errors: None,
         declared_effects,
         body,
     }))

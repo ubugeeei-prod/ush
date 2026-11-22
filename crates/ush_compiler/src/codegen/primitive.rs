@@ -24,7 +24,8 @@ pub(crate) fn infer(
     enums: &EnumRegistry,
 ) -> Result<Type> {
     match expr {
-        Expr::String(_) => Ok(Type::String),
+        Expr::ShellCapture(_) | Expr::String(_) => Ok(Type::String),
+        Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
         Expr::Int(_) => Ok(Type::Int),
         Expr::Bool(_) => Ok(Type::Bool),
         Expr::Unit => Ok(Type::Unit),

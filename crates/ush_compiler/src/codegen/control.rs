@@ -213,24 +213,24 @@ fn compile_list_for(
     ctx: &mut ControlContext<'_>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
-    match item_ty {
-        Type::String | Type::Int | Type::Bool | Type::Unit => {}
-        _ => bail!("for-in over lists of structured values is not implemented yet"),
-    }
     let index = ctx.state.temp_var("for_list_index");
     let value = ctx.state.temp_var("for_value");
     out.push_str(&format!(
         "{index}=0\nwhile [ \"${{{index}}}\" -lt \"${{{prefix}__len}}\" ]; do\n"
     ));
-    out.push_str(&format!(
-        "  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n"
-    ));
+    if item_ty.is_structured() {
+        let source = format!("{prefix}__${{{index}}}");
+        let mut element = OutputBuffer::default();
+        super::wire::copy(item_ty, &source, name, ctx.state, &mut element);
+        push_output(out, &element, 2);
+    } else {
+        out.push_str(&format!(
+            "  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n  {name}=\"${{{value}}}\"\n"
+        ));
+    }
     let mut body_env = bind_loop_var(name, item_ty, env);
-    // Same as the range lowering: advance before the body so
-    // `continue` still makes progress.
-    out.push_str(&format!(
-        "  {name}=\"${{{value}}}\"\n  {index}=$(({index} + 1))\n"
-    ));
+    // Advance before the body so continue makes progress.
+    out.push_str(&format!("  {index}=$(({index} + 1))\n"));
     push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 2);
     out.push_str("done\n");
     Ok(())

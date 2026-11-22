@@ -117,3 +117,18 @@ fn advance_triple(source: &str, index: usize, state: &mut ScanState) -> usize {
             .expect("scanner index must be in bounds")
             .len_utf8()
 }
+
+pub fn opens_shell_capture(line: &str) -> bool {
+    let head = line.trim_end().strip_suffix("$(");
+    head.is_some_and(|head| {
+        !head.trim_start().starts_with(['#', '$'])
+            && (head.trim().is_empty()
+                || head.ends_with(char::is_whitespace)
+                || head.ends_with('='))
+    })
+}
+
+pub fn closes_shell_capture(line: &str, indent: &str) -> bool {
+    line.strip_prefix(indent)
+        .is_some_and(|rest| matches!(rest.trim_end(), ")" | ")?" | ");" | ")?;"))
+}

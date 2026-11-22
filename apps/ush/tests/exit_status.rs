@@ -67,8 +67,8 @@ enum Problem {
   MissingConfig,
 }
 
-fn load() -> Problem!String {
-  raise Problem::MissingConfig
+fn load() -> String / Problem, stderr {
+  fail Problem::MissingConfig
 }
 
 load()?

@@ -99,7 +99,7 @@ pub(super) fn parse_variant_pattern(source: &str) -> Result<Option<VariantPatter
 
 fn split_variant_path(source: &str) -> Option<(String, String)> {
     let (enum_name, variant_name) = split_path(source)?;
-    (!variant_name.contains("::")).then_some((enum_name, variant_name))
+    (is_identifier(&enum_name) && is_identifier(&variant_name)).then_some((enum_name, variant_name))
 }
 
 fn parse_named_expr_list(source: &str) -> Result<Vec<NamedExpr>> {

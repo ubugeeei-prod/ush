@@ -3,7 +3,6 @@ use anyhow::{Result, anyhow, bail};
 use super::{
     super::{
         ast::{Attribute, Call, CallArg, Expr, FunctionParam},
-        errors::ErrorSet,
         util::{split_once_top_level, split_top_level, split_top_level_whitespace},
     },
     expr::parse_expr,
@@ -18,19 +17,17 @@ type ParsedFunctionHeader = (
     String,
     Vec<FunctionParam>,
     Option<super::super::ast::Type>,
-    Option<ErrorSet>,
     Option<Vec<String>>,
 );
 
 pub(super) fn parse_function_header(header: &str) -> Result<ParsedFunctionHeader> {
     let (name, inner, tail) =
         split_paren_form(header).ok_or_else(|| anyhow!("functions must use `fn name(args)`"))?;
-    let (return_type, declared_errors, declared_effects) = parse_function_return(tail)?;
+    let (return_type, declared_effects) = parse_function_return(tail)?;
     Ok((
         parse_identifier(name)?,
         parse_params(inner)?,
         return_type,
-        declared_errors,
         declared_effects,
     ))
 }

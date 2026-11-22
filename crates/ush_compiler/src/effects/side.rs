@@ -8,7 +8,7 @@
 //! ```text
 //! effect log(message: String) -> ()
 //!
-//! fn greet(name: String) -> String / { log } {
+//! fn greet(name: String) -> String / log {
 //!   do log("greeting " + name)
 //!   "hello " + name
 //! }
@@ -16,7 +16,7 @@
 //! fn main() -> () {
 //!   try {
 //!     print greet("ubu")
-//!   } with log { (message) =>
+//!   } with log(message) {
 //!     print "[log] " + message
 //!   }
 //! }
@@ -35,7 +35,11 @@
 //!
 //! [Effekt]: https://effekt-lang.org
 
+mod declarations;
 mod infer;
+use declarations::{
+    collect_declarations, function_defs, function_key, resolve_row, validate_declaration,
+};
 mod kinds;
 mod table;
 
@@ -45,7 +49,7 @@ mod tests;
 use anyhow::{Result, bail};
 
 use crate::{
-    ast::{EffectDef, FunctionDef, Statement, StatementKind},
+    ast::Statement,
     types::{AstString as String, HeapVec as Vec, Map as HashMap, Set as HashSet},
 };
 
@@ -81,7 +85,7 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
     let declarations = collect_declarations(program)?;
     let mut registry = FunctionEffectRegistry::default();
     for def in function_defs(program) {
-        registry.insert(def.name.clone(), EffectSet::empty());
+        registry.insert(function_key(def), EffectSet::empty());
     }
 
     for _ in 0..=registry.len() {
@@ -94,8 +98,15 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
                     declarations: &declarations,
                 },
             );
-            if registry.get(&def.name) != Some(&inferred) {
-                registry.insert(def.name.clone(), inferred);
+            if def.receiver.is_some() {
+                registry
+                    .entry(format!(".{}", def.name).into())
+                    .or_default()
+                    .merge(&inferred);
+            }
+            let key = function_key(def);
+            if registry.get(&key) != Some(&inferred) {
+                registry.insert(key, inferred);
                 changed = true;
             }
         }
@@ -105,7 +116,10 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
     }
 
     for def in function_defs(program) {
-        let inferred = registry.get(&def.name).cloned().unwrap_or_default();
+        let inferred = registry
+            .get(&function_key(def))
+            .cloned()
+            .unwrap_or_default();
         validate_declaration(def, &inferred, &declarations)?;
     }
 
@@ -122,7 +136,7 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
     if let Some(name) = top_level.user_effects().next() {
         bail!(
             "effect `{name}` is performed but never handled; wrap the call in \
-             `try {{ … }} with {name} {{ … }}`"
+             `try {{ … }} with {name}(…) {{ … }}`"
         );
     }
 
@@ -138,10 +152,10 @@ pub(crate) fn describe_function_effects(program: &[Statement]) -> Result<Vec<Fun
     let mut reports = Vec::new();
     for def in function_defs(program) {
         reports.push(FunctionEffects {
-            name: def.name.as_str().into(),
+            name: function_key(def).as_str().into(),
             inferred: analysis
                 .functions
-                .get(&def.name)
+                .get(&function_key(def))
                 .cloned()
                 .unwrap_or_default(),
             declared: resolve_row(def, &analysis.declarations)?,
@@ -161,88 +175,4 @@ pub(crate) fn top_level_effects(program: &[Statement]) -> Result<EffectSet> {
             declarations: &analysis.declarations,
         },
     ))
-}
-
-fn collect_declarations(program: &[Statement]) -> Result<EffectDeclarations> {
-    let mut declarations = EffectDeclarations::with_hasher(Default::default());
-    for def in effect_defs(program) {
-        if Effect::parse(&def.name).is_some() {
-            bail!(
-                "`{}` is a built-in effect and cannot be declared; built-ins are inferred, \
-                 not performed",
-                def.name
-            );
-        }
-        if !declarations.insert(def.name.clone()) {
-            bail!("duplicate effect declaration: {}", def.name);
-        }
-    }
-    Ok(declarations)
-}
-
-fn function_defs(program: &[Statement]) -> impl Iterator<Item = &FunctionDef> {
-    program.iter().flat_map(|statement| match &statement.kind {
-        StatementKind::Function(def) => core::slice::from_ref(def),
-        StatementKind::Impl(item) => item.methods.as_slice(),
-        _ => &[] as &[FunctionDef],
-    })
-}
-
-fn effect_defs(program: &[Statement]) -> impl Iterator<Item = &EffectDef> {
-    program
-        .iter()
-        .filter_map(|statement| match &statement.kind {
-            StatementKind::Effect(def) => Some(def),
-            _ => None,
-        })
-}
-
-fn validate_declaration(
-    def: &FunctionDef,
-    inferred: &EffectSet,
-    declarations: &EffectDeclarations,
-) -> Result<()> {
-    let Some(declared) = resolve_row(def, declarations)? else {
-        return Ok(());
-    };
-    let missing = inferred.difference(&declared);
-    if missing.is_empty() {
-        return Ok(());
-    }
-    bail!(
-        "function `{}` needs `{missing}` but its effect row is `{}`; widen it to `/ {}` \
-         or handle the effect inside",
-        def.name,
-        declared.render_row(),
-        inferred.render_row()
-    )
-}
-
-/// Turns the names written in a row into an [`EffectSet`].
-fn resolve_row(def: &FunctionDef, declarations: &EffectDeclarations) -> Result<Option<EffectSet>> {
-    let Some(names) = &def.declared_effects else {
-        return Ok(None);
-    };
-    let mut set = EffectSet::empty();
-    for name in names {
-        if let Some(effect) = Effect::parse(name) {
-            set.insert(effect);
-            continue;
-        }
-        if declarations.contains(name) {
-            set.insert_user(name.clone());
-            continue;
-        }
-        bail!(
-            "unknown effect `{name}` in the row of `{}`; declare it with `effect {name}` \
-             or use one of {}",
-            def.name,
-            Effect::ALL
-                .into_iter()
-                .map(Effect::name)
-                .collect::<alloc::vec::Vec<_>>()
-                .join(", ")
-        );
-    }
-    Ok(Some(set))
 }

@@ -2,7 +2,6 @@ mod cli;
 mod effects_report;
 mod explain;
 mod panic_hook;
-mod runtime_diagnostics;
 mod script_docs;
 mod sourcemap_json;
 mod test_runner;
@@ -38,12 +37,19 @@ fn main() -> Result<()> {
     if let Some(action) = &cli.action {
         match action {
             Action::Compile {
+                target,
                 input,
                 output,
                 sourcemap,
                 checked_in,
             } => {
-                compile_action(input, output.as_deref(), sourcemap.as_deref(), *checked_in)?;
+                compile_action(
+                    input,
+                    output.as_deref(),
+                    sourcemap.as_deref(),
+                    *checked_in,
+                    *target,
+                )?;
                 return Ok(());
             }
             Action::Format {
@@ -55,7 +61,9 @@ fn main() -> Result<()> {
             Action::Effects { input, undeclared } => {
                 process::exit(effects_report::report(input, *undeclared)?)
             }
-            Action::Explain { input, lines } => process::exit(explain::explain(input, lines)?),
+            Action::Explain { input, lines } => {
+                process::exit(explain::explain(input, lines, cli.target)?)
+            }
             Action::Test { targets } => {
                 process::exit(test_runner::run(targets, cli.config.as_deref())?)
             }
@@ -77,13 +85,15 @@ fn main() -> Result<()> {
                 if script_docs::handle_script_doc_request(script, &cli.script_args)? {
                     return Ok(());
                 }
-                let compiler = UshCompiler;
-                let compiled = compiler.compile_file_with_sourcemap(script)?;
-                let instrumented =
-                    runtime_diagnostics::instrument_compiled_script(script, &compiled);
+                let compiled = UshCompiler::for_target(cli.target).compile_file(script)?;
                 let mut shell = Shell::new(config, options)?;
                 shell.load_session_startup(&startup)?;
-                shell.run_compiled_script(script, &instrumented.text, &cli.script_args)?
+                shell.run_compiled_script_with(
+                    script,
+                    &compiled,
+                    &cli.script_args,
+                    cli.target.name(),
+                )?
             }
             ScriptMode::Posix => run_posix_script(script, &cli.script_args, &options)?,
         };
@@ -105,23 +115,30 @@ fn compile_action(
     output: Option<&Path>,
     sourcemap: Option<&Path>,
     checked_in: bool,
+    target: ush_compiler::ShellTarget,
 ) -> Result<()> {
-    let compiled = if checked_in {
-        UshCompiler.compile_checked_in_file_with_sourcemap(
-            input,
-            output.expect("clap requires output with --checked-in"),
-        )?
+    let compiler = UshCompiler::for_target(target);
+    let shell = if checked_in || sourcemap.is_some() {
+        let compiled = if checked_in {
+            compiler.compile_checked_in_file_with_sourcemap(
+                input,
+                output.expect("clap requires output with --checked-in"),
+            )?
+        } else {
+            compiler.compile_file_with_sourcemap(input)?
+        };
+        if let Some(map) = sourcemap {
+            write_sourcemap_file(map, input, output, &compiled.sourcemap)?;
+        }
+        compiled.shell
     } else {
-        UshCompiler.compile_file_with_sourcemap(input)?
+        compiler.compile_file(input)?
     };
     if let Some(output) = output {
-        std::fs::write(output, &compiled.shell)
+        std::fs::write(output, shell)
             .with_context(|| format!("failed to write {}", output.display()))?;
     } else {
-        print!("{}", compiled.shell);
-    }
-    if let Some(sourcemap) = sourcemap {
-        write_sourcemap_file(sourcemap, input, output, &compiled.sourcemap)?;
+        print!("{shell}");
     }
     Ok(())
 }

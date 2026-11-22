@@ -35,13 +35,14 @@ pub(crate) fn parse_program(source: &str) -> Result<Vec<Statement>> {
     let arena = Bump::new();
     let lines = collect_source_lines(source, &arena)?;
     let mut cursor = 0usize;
-    let program = statement::parse_block(&lines, &mut cursor, true, false)?;
+    let mut program = statement::parse_block(&lines, &mut cursor, true, false)?;
 
     if cursor < lines.len() {
         let (line_no, line) = &lines[cursor];
         bail!("line {line_no}: unexpected closing brace: {}", line.trim());
     }
 
+    returns::resolve_rows(&mut program)?;
     Ok(program)
 }
 
@@ -54,7 +55,8 @@ fn collect_source_lines<'a>(
     let mut block_start = 0usize;
     let mut in_multiline = false;
 
-    for (index, line) in source.lines().enumerate() {
+    let mut source_lines = source.lines().enumerate();
+    while let Some((index, line)) = source_lines.next() {
         let line_no = index + 1;
         if in_multiline {
             block.push('\n');
@@ -65,6 +67,23 @@ fn collect_source_lines<'a>(
                 block.clear();
                 in_multiline = false;
             }
+            continue;
+        }
+        if super::scan::opens_shell_capture(line) {
+            block.push_str(line);
+            let indent = &line[..line.len() - line.trim_start().len()];
+            loop {
+                let (_, next) = source_lines
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("line {line_no}: unterminated shell capture"))?;
+                block.push('\n');
+                block.push_str(next);
+                if super::scan::closes_shell_capture(next, indent) {
+                    break;
+                }
+            }
+            lines.push((line_no, &*arena.alloc_str(block.as_str())));
+            block.clear();
             continue;
         }
         if triple_quote_toggles(line) % 2 == 1 {

@@ -48,6 +48,7 @@ fn handler_variable(effect: &str) -> NameString {
 /// compiler can treat as any other call target.
 pub(crate) fn effect_dispatcher(def: &EffectDef) -> FunctionDef {
     FunctionDef {
+        scheme: None,
         attrs: Vec::new(),
         name: def.name.clone(),
         receiver: None,
@@ -185,6 +186,7 @@ fn handler_function(
     name.push_str(&state.next_handler_id().to_string());
 
     FunctionDef {
+        scheme: None,
         attrs: Vec::new(),
         name,
         receiver: None,

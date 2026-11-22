@@ -144,14 +144,26 @@ impl Shell {
         script: &str,
         args: &[String],
     ) -> Result<i32> {
-        let mut command = Command::new("/bin/sh");
+        self.run_compiled_script_with(origin, script, args, "/bin/sh")
+    }
+
+    pub fn run_compiled_script_with(
+        &mut self,
+        origin: &Path,
+        script: &str,
+        args: &[String],
+        interpreter: &str,
+    ) -> Result<i32> {
+        let mut file = tempfile::NamedTempFile::new().context("create compiled script")?;
+        file.write_all(script.as_bytes())
+            .context("write compiled script")?;
+        let mut command = Command::new(interpreter);
         command
-            .arg("-s")
-            .arg("--")
+            .arg(file.path())
             .args(args)
             .current_dir(&self.cwd)
             .envs(&self.env)
-            .stdin(Stdio::piped())
+            .stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit());
         signal::prepare_foreground_command(&mut command);
@@ -159,11 +171,6 @@ impl Shell {
         let mut child = command.spawn().with_context(|| {
             format!("failed to launch compiled script for {}", origin.display())
         })?;
-        child
-            .stdin
-            .as_mut()
-            .context("compiled script stdin unavailable")?
-            .write_all(script.as_bytes())?;
         self.last_status = signal::exit_status(child.wait()?);
         Ok(self.last_status)
     }

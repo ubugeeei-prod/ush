@@ -2,6 +2,23 @@
 
 use super::{Effect, EffectSet};
 
+pub(super) fn shell_effects(streams_stdout: bool) -> EffectSet {
+    let mut row: EffectSet = [
+        Effect::Exec,
+        Effect::Fs,
+        Effect::Env,
+        Effect::Net,
+        Effect::Stdin,
+        Effect::Stderr,
+    ]
+    .into_iter()
+    .collect();
+    if streams_stdout {
+        row.insert(Effect::Stdout);
+    }
+    row
+}
+
 /// The stdlib's effect table, keyed by fully qualified name.
 ///
 /// `std::string` and `std::regex` are absent on purpose: they are
@@ -13,7 +30,18 @@ pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
         return match rest {
             _ if rest.starts_with("fs::") => EffectSet::of(Effect::Fs),
             _ if rest.starts_with("http::") => EffectSet::of(Effect::Net),
-            _ if rest.starts_with("command::") => EffectSet::of(Effect::Exec),
+            "command::run" => shell_effects(true),
+            "command::capture" => shell_effects(false),
+            "command::status" | "command::capture_stderr" => [
+                Effect::Exec,
+                Effect::Stdin,
+                Effect::Fs,
+                Effect::Env,
+                Effect::Net,
+            ]
+            .into_iter()
+            .collect(),
+            "command::exists" => EffectSet::of(Effect::Exec),
             _ if rest.starts_with("env::") => EffectSet::of(Effect::Env),
             "path::cwd" | "path::from_cwd" | "path::source_root" | "path::from_source" => {
                 EffectSet::of(Effect::Env)
@@ -35,7 +63,9 @@ pub(super) fn builtin_method_effects(method: &str) -> EffectSet {
         | "resolve" | "sha256" | "tmpfile" | "write_text" | "exists" | "is_dir" | "is_file" => {
             EffectSet::of(Effect::Fs)
         }
-        "capture" | "capture_stderr" | "run" | "status" => EffectSet::of(Effect::Exec),
+        "capture" | "capture_stderr" | "run" | "status" => {
+            builtin_call_effects(&format!("std::command::{method}"))
+        }
         "download" | "get_bytes" => EffectSet::of(Effect::Net),
         _ => EffectSet::empty(),
     }

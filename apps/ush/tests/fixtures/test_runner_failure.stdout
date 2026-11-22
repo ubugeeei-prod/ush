@@ -1,11 +1,6 @@
 fail suite/fail.ush
-  stderr: 
-  stderr: ush runtime map: <FAIL_SCRIPT>:1
-  stderr:   source : shell "false"
-  stderr:   section: user-code
-  stderr:   shell  : line 488 | G0449 | false
-  stderr:   mapped : G0449
-  stderr:   explain: ush explain <FAIL_SCRIPT> 488
+  stderr: <FAIL_SCRIPT>:1: command failed (exit 1)
+  stderr:   shell "false"
 ok   suite/pass.ush
 
 1 passed; 1 failed

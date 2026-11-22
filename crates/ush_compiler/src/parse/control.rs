@@ -34,6 +34,7 @@ pub(super) fn parse_if(
 pub(super) fn parse_let_binding(source: &str) -> Result<StatementKind> {
     let (name, expr) = super::statement_support::split_assignment(source)
         .ok_or_else(|| anyhow!("invalid let binding"))?;
+    super::path::parse_identifier(name)?;
     if let Some(rest) = expr.strip_prefix("async ")
         && !rest.trim_start().starts_with('{')
     {

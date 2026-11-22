@@ -47,6 +47,11 @@ fn collect_imports(
             }
         }
     }
+    if imports.contains_key("*") {
+        for name in locals {
+            imports.insert(name.clone(), name.clone());
+        }
+    }
     Ok(imports)
 }
 
@@ -56,6 +61,7 @@ fn resolve_statement(
 ) {
     match &mut statement.kind {
         StatementKind::Use(_)
+        | StatementKind::UnitDef(_)
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)
         | StatementKind::Await { .. }
@@ -76,6 +82,10 @@ fn resolve_statement(
             for method in &mut item.methods {
                 resolve_function(method, imports);
             }
+        }
+        StatementKind::Fail { status, message } => {
+            resolve_expr(status, imports);
+            resolve_expr(message, imports);
         }
         StatementKind::Function(def) => resolve_function(def, imports),
         StatementKind::Alias { value, .. }
@@ -190,7 +200,13 @@ fn resolve_expr(
                 }
             }
         },
-        Expr::String(_) | Expr::Int(_) | Expr::Bool(_) | Expr::Unit | Expr::Var(_) => {}
+        Expr::ShellCapture(_)
+        | Expr::Quantity(..)
+        | Expr::String(_)
+        | Expr::Int(_)
+        | Expr::Bool(_)
+        | Expr::Unit
+        | Expr::Var(_) => {}
     }
 }
 
@@ -213,10 +229,12 @@ fn resolve_call(
     call: &mut Call,
     imports: &HashMap<crate::types::AstString, crate::types::AstString>,
 ) {
-    if !call.name.contains("::")
-        && let Some(path) = imports.get(&call.name)
-    {
-        call.name = path.clone();
+    if !call.name.contains("::") {
+        if let Some(path) = imports.get(&call.name) {
+            call.name = path.clone();
+        } else if imports.contains_key("*") && crate::commands::contains(&call.name) {
+            call.name = format!("$bin::{}", call.name).into();
+        }
     }
     for arg in &mut call.args {
         resolve_expr(&mut arg.expr, imports);

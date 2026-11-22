@@ -12,14 +12,14 @@ for the block it wraps.
 ```ush
 effect log(message: String) -> ()
 
-fn greet(name: String) -> String / { log } {
+fn greet(name: String) -> String / log {
   do log("greeting " + name)
   "hello " + name
 }
 
 try {
   print greet("ubu")
-} with log { (message) =>
+} with log(message) {
   print "[log] " + message
 }
 ```
@@ -47,10 +47,10 @@ before running it unattended, in CI, or from inside another tool.
 The row is written after the return type, separated by `/`:
 
 ```ush
-fn deploy(target: String) -> String / { exec, net, audit }
+fn deploy(target: String) -> String / exec, net, audit
 ```
 
-`/ {}` is the empty row: this function may need nothing at all.
+`/ ()` is the empty row: this function may need nothing at all.
 Omitting the row entirely means "infer it, don't check it" — nothing
 has to be annotated for the analysis to run.
 
@@ -64,19 +64,24 @@ can stay stable while an implementation stops needing something.
 | --- | --- | --- |
 | Written | inferred, never declared with `effect` | `effect log(msg: String) -> ()` |
 | Performed | by calling the stdlib | `do log("…")` |
-| Discharged | never | `try … with log { … }` |
+| Discharged | never | `try … with log(msg) { … }` |
 
 **Built-in** effects describe what the generated shell actually does,
 so no handler can take them back — nothing un-writes a file:
 
 | Effect | Comes from |
 | --- | --- |
-| `io` | `print` |
+| `stdin` | Reading process input, including inline shell |
+| `stdout` | `print` and commands streaming text |
+| `stderr` | `fail` and external command diagnostics |
+| `io` | Shorthand in a declaration for all three streams |
 | `fs` | `std::fs::*`, the `std::path` helpers that look at disk, `path.read_text()` and friends |
 | `env` | `std::env::*`, `std::path::cwd` / `home` / `from_source` / `prepend_env` |
 | `net` | `std::http::*` |
 | `exec` | `$ command`, `shell`, `std::command::*` |
 | `task` | `async`, `spawn`, `.await`, `async` blocks |
+
+Inline shell is opaque to the checker. It conservatively requires `exec`, `fs`, `env`, `net`, `stdin` and `stderr`. A shell statement also streams `stdout`. A typed `$bin::` call can provide a smaller row. User-method calls with the same name share a conservative upper bound in effect inference.
 
 `std::string` and `std::regex` are pure: they are text
 transformations and add nothing. `std::path` is deliberately split,
@@ -98,9 +103,9 @@ ush effects examples/effects.ush
 
 ```text
 default_target  env  (declared)
-deploy          io, env, ask, audit  (declared)
+deploy          stdout, env, ask, audit  (declared)
 slug            pure  (declared)
-(top level)     io, env
+(top level)     stdout, env
 ```
 
 `(top level)` is the row of the statements outside any function — the
@@ -116,15 +121,15 @@ which is the useful view when annotating an existing script.
 
 ## Handlers
 
-`try { … } with <effect> { (args) => … }` answers an effect for the
+`try { … } with effect(args) { … }` answers an effect for the
 block it wraps. One `try` can carry several arms:
 
 ```ush
 try {
   deploy()
-} with audit { (entry) =>
+} with audit(entry) {
   print "[audit] " + entry
-} with ask { (question) =>
+} with ask(question) {
   "staging"
 }
 ```

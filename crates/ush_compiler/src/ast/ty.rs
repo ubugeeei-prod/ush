@@ -25,6 +25,12 @@ pub(crate) enum CompareOp {
 }
 
 impl Type {
+    pub(crate) fn is_scalar(&self) -> bool {
+        matches!(self, Self::Int | Self::String | Self::Unit | Self::Bool)
+    }
+    pub(crate) fn is_structured(&self) -> bool {
+        matches!(self, Self::Tuple(_) | Self::List(_) | Self::Adt(_))
+    }
     pub(crate) fn render(&self) -> String {
         match self {
             Self::String => "String".into(),

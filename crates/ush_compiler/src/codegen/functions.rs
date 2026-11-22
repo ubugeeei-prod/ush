@@ -91,7 +91,20 @@ pub(crate) fn compile_function(
     let mut env = globals.clone();
     for (index, param) in def.params.iter().enumerate() {
         let storage = param_storage(&def.name, index);
-        push_line(out, &format!("{storage}=\"${}\"", index + 1), 2);
+        if param.ty.is_structured() {
+            super::wire::register(&param.ty, state);
+            let mut unpack = OutputBuffer::default();
+            super::wire::decode(
+                &param.ty,
+                &storage,
+                &format!("\"${{{}}}\"", index + 1),
+                &mut unpack,
+            );
+            push_output(out, &unpack, 2);
+        } else {
+            push_line(out, &format!("{storage}=\"${{{}}}\"", index + 1), 2);
+            push_line(out, &format!("{}=\"${{{storage}}}\"", param.name), 2);
+        }
         env.insert(
             param.name.clone(),
             binding_for_name(&storage, param.ty.clone()),
@@ -109,26 +122,17 @@ pub(crate) fn compile_function(
         state,
         def.return_type.as_ref(),
     )?;
-    if body.is_empty() {
+    if body.as_str().contains("__ush_jobs=") {
+        out.push_str("  (\n    __ush_task_scope\n");
+        push_output(out, &body, 4);
+        out.push_str("  )\n");
+    } else if body.is_empty() {
         push_line(out, ":", 2);
     } else {
         push_output(out, &body, 2);
     }
     out.push_str("}\n\n");
     Ok(())
-}
-
-pub(crate) fn push_wait_footer(out: &mut OutputBuffer) {
-    out.push_str("\nif [ -n \"$__ush_jobs\" ]; then\n");
-    out.push_str("  for __ush_job in $__ush_jobs; do\n");
-    out.push_str("    wait \"$__ush_job\" 2>/dev/null || true\n");
-    out.push_str("  done\n");
-    out.push_str("fi\n");
-    out.push_str("if [ -n \"$__ush_task_files\" ]; then\n");
-    out.push_str("  for __ush_task_file in $__ush_task_files; do\n");
-    out.push_str("    rm -f \"$__ush_task_file\"\n");
-    out.push_str("  done\n");
-    out.push_str("fi\n");
 }
 
 #[allow(clippy::too_many_arguments)]

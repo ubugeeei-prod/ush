@@ -29,10 +29,7 @@ pub(super) fn parse_effect_header(
 ) -> Result<(String, Vec<FunctionParam>, Option<super::super::ast::Type>)> {
     match split_paren_form(header) {
         Some((name, inner, tail)) => {
-            let (return_type, errors, effects) = parse_function_return(tail)?;
-            if errors.is_some() {
-                bail!("an effect operation cannot declare an error set");
-            }
+            let (return_type, effects) = parse_function_return(tail)?;
             if effects.is_some() {
                 bail!("an effect operation cannot declare an effect row");
             }

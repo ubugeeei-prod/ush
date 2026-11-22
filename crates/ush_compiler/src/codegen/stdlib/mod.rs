@@ -15,7 +15,7 @@ use crate::{
     types::HeapVec as Vec,
 };
 
-pub(super) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> {
+pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> {
     for def in env::definitions()
         .into_iter()
         .chain(fs::definitions())
@@ -32,14 +32,36 @@ pub(super) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
     Ok(())
 }
 
-pub(super) fn emit_builtins(out: &mut OutputBuffer) {
-    env::emit(out);
-    fs::emit(out);
-    http::emit(out);
-    path::emit(out);
-    process::emit(out);
-    regex::emit(out);
-    string::emit(out);
+/// Link the transitive closure in library order for reproducible output.
+pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
+    if !body.contains("ush_fn_std__") {
+        return;
+    }
+    let runtime = include_str!("runtime.sh");
+    let definitions: crate::types::Map<_, _> = runtime
+        .split_terminator("\n}\n")
+        .filter_map(|definition| definition.trim_start().split_once("() {\n"))
+        .collect();
+    let mut used = crate::types::Set::default();
+    let mut pending = vec![body];
+    while let Some(text) = pending.pop() {
+        for name in text.split(|c: char| !c.is_ascii_alphanumeric() && c != '_') {
+            if let Some(&body) = definitions.get(name)
+                && used.insert(name)
+            {
+                pending.push(body);
+            }
+        }
+    }
+    for definition in runtime.split_terminator("\n}\n") {
+        let definition = definition.trim_start();
+        if let Some((name, _)) = definition.split_once("() {")
+            && used.contains(name)
+        {
+            out.push_str(definition);
+            out.push_str("\n}\n\n");
+        }
+    }
 }
 
 pub(super) fn runs_in_parent(name: &str) -> bool {
@@ -52,6 +74,7 @@ pub(super) fn builtin(
     return_type: Option<Type>,
 ) -> FunctionDef {
     FunctionDef {
+        scheme: None,
         declared_effects: None,
         attrs: Vec::new(),
         name: name.into(),
@@ -70,14 +93,4 @@ pub(super) fn param(name: &str, ty: Type) -> FunctionParam {
         default: None,
         cli_alias: None,
     }
-}
-
-pub(super) fn emit_fn(out: &mut OutputBuffer, name: &str, body: &str) {
-    out.push_str(&super::shared::shell_function_name(name));
-    out.push_str("() {\n");
-    out.push_str(body);
-    if !body.ends_with('\n') {
-        out.push('\n');
-    }
-    out.push_str("}\n\n");
 }

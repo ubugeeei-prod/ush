@@ -20,7 +20,8 @@ pub(super) fn expr_errors(
 ) -> Result<ErrorSet> {
     let mut errors = ErrorSet::default();
     match expr {
-        Expr::String(_)
+        Expr::Quantity(..)
+        | Expr::String(_)
         | Expr::Int(_)
         | Expr::Bool(_)
         | Expr::Unit
@@ -116,6 +117,7 @@ pub(super) fn expr_errors(
                 function_errors,
             )?);
         }
+        Expr::ShellCapture(_) => errors.insert(ErrorType::Unknown),
         Expr::Try(inner) => {
             errors.extend(&expr_errors(
                 inner,
@@ -189,9 +191,7 @@ pub(super) fn call_errors(
     function_errors: &FunctionErrorRegistry,
 ) -> Result<ErrorSet> {
     let mut errors = call_arg_errors(call, env, functions, impls, enums, function_errors)?;
-    if let Some(raised) = function_errors.get(&call.name) {
-        errors.extend(raised);
-    }
+    errors.extend(&callee_errors(&call.name, function_errors));
     Ok(errors)
 }
 
@@ -238,4 +238,12 @@ pub(super) fn binding_for_type(name: &str, ty: Type) -> Binding {
         Type::Task(_) => Storage::Task(name.into()),
     };
     Binding { ty, storage }
+}
+
+pub(super) fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
+    let mut errors = registry.get(name).cloned().unwrap_or_default();
+    if crate::commands::lookup(name).is_some() {
+        errors.insert(ErrorType::Unknown);
+    }
+    errors
 }

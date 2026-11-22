@@ -219,6 +219,13 @@ jobs:
       - name: Run workspace tests
         run: cargo test --locked --workspace
 
+      - name: Exercise generated artifacts on sh, dash, bash, zsh and BusyBox ash
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y busybox zsh shellcheck
+          sh scripts/test_targets.sh
+
       - name: Test installer flow
         run: sh scripts/test_install.sh
 

@@ -39,9 +39,14 @@ pub(crate) fn compile_call(
         inside_function,
         out,
     )?;
-    if !call.asynchronous && stdlib::runs_in_parent(&call.name) {
+    if !call.asynchronous && (stdlib::runs_in_parent(&call.name) || call.name.starts_with("$bin::"))
+    {
         out.push_str(&rendered);
-        out.push('\n');
+        if inside_function {
+            super::io::push_failure_guard(out, true);
+        } else {
+            out.push('\n');
+        }
         return Ok(());
     }
     out.push_str("( __ush_capture_return='0' __ush_return_path=''; ");
@@ -49,6 +54,8 @@ pub(crate) fn compile_call(
     out.push_str(" )");
     if call.asynchronous {
         out.push_str(" &\n__ush_jobs=\"${__ush_jobs}${__ush_jobs:+ }$!\"\n");
+    } else if inside_function {
+        super::io::push_failure_guard(out, true);
     } else {
         out.push('\n');
     }
@@ -76,7 +83,8 @@ pub(crate) fn compile_try_call(
         inside_function,
         out,
     )?;
-    if !call.asynchronous && stdlib::runs_in_parent(&call.name) {
+    if !call.asynchronous && (stdlib::runs_in_parent(&call.name) || call.name.starts_with("$bin::"))
+    {
         out.push_str(&rendered);
         out.push_str(" || ");
         out.push_str(if inside_function {
@@ -107,6 +115,31 @@ pub(crate) fn rendered_call(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<String> {
+    if let Some(command) = crate::commands::lookup(&call.name) {
+        command.validate(call.args.len())?;
+        let mut words = if command.output == crate::commands::Output::Predicate {
+            String::from("ush_fn_std__test")
+        } else {
+            format!("command {}", command.word)
+        };
+        for arg in &call.args {
+            if arg.label.is_some() {
+                bail!("command arguments are positional");
+            }
+            let ty = infer(&arg.expr, env, functions, impls, enums)?;
+            if !(ty == Type::String || ty == Type::Int) {
+                bail!("command arguments must be String or Int, found {ty:?}");
+            }
+            if command.word == "cd" && ty != Type::String {
+                bail!("cd expects a String path");
+            }
+            words.push(' ');
+            words.push_str(&compile_primitive_expr(
+                &arg.expr, env, functions, impls, enums,
+            )?);
+        }
+        return Ok(words);
+    }
     let def = function_for_call(&call.name, functions)?;
     let args = rendered_args(call, env, functions, impls, enums, def)?;
     let target = shell_function_name(&call.name);
@@ -118,6 +151,9 @@ pub(crate) fn rendered_call(
 }
 
 pub(crate) fn call_return_type(name: &str, functions: &FunctionRegistry) -> Result<Option<Type>> {
+    if let Some(command) = crate::commands::lookup(name) {
+        return Ok(Some(command.ty()));
+    }
     Ok(function_for_call(name, functions)?.return_type.clone())
 }
 
@@ -145,8 +181,9 @@ pub(crate) fn capture_call(
         );
     }
     Ok(format!(
-        "$(__ush_capture_return='1' {})",
-        rendered_call(call, env, functions, impls, enums)?
+        "$(__ush_return_path='' __ush_capture_return='1' {}{})",
+        rendered_call(call, env, functions, impls, enums)?,
+        super::call_support::capture_fds(&call.name)
     ))
 }
 
@@ -163,10 +200,9 @@ pub(crate) fn ensure_signature(def: &FunctionDef) -> Result<()> {
 pub(crate) fn ensure_value_type(ty: &Type) -> Result<()> {
     match ty {
         Type::String | Type::Int | Type::Bool | Type::Unit => Ok(()),
-        Type::Adt(name) => bail!("ADT values are not supported here yet: {name}"),
-        Type::Tuple(_) | Type::List(_) => {
-            bail!("structured list/tuple values are not supported in function signatures yet")
-        }
+        Type::Adt(_) => Ok(()),
+        Type::List(t) => ensure_value_type(t),
+        Type::Tuple(ts) => ts.iter().try_for_each(ensure_value_type),
         Type::Task(_) => bail!("nested task types are not supported"),
     }
 }
@@ -192,6 +228,15 @@ fn rendered_args(
                     param.ty,
                     actual
                 );
+            }
+            if let crate::ast::Expr::Var(name) = arg
+                && let Some(crate::env::Binding {
+                    storage:
+                        crate::env::Storage::Aggregate(prefix) | crate::env::Storage::Adt(prefix),
+                    ..
+                }) = env.get(name)
+            {
+                return Ok(super::wire::encode(&actual, prefix));
             }
             compile_primitive_expr(arg, env, functions, impls, enums)
         })

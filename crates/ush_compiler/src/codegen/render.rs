@@ -107,6 +107,8 @@ fn compile_string_fragment(
     enums: &EnumRegistry,
 ) -> Result<String> {
     match expr {
+        Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
+        Expr::ShellCapture(command) => Ok(format!("\"$(\n{command}\n)\"")),
         Expr::String(value) => Ok(super::super::util::shell_quote(value)),
         Expr::Int(value) => Ok(super::super::util::shell_quote(&value.to_string())),
         Expr::Bool(value) => Ok(super::super::util::shell_quote(if *value {

@@ -13,7 +13,7 @@ The long-term target is a real small language:
 The intended feel sits between Rust, Zig, and Go.
 
 - From Rust: enums, pattern matching, traits, modules, method calls, postfix forms such as `.await` and `?`
-- From Zig: explicit error-aware function signatures, simple data layouts, straightforward control flow, low hidden magic
+- From Effekt: error and capability rows following the return type, with scoped handlers
 - From Go: easy entry, fast read-time comprehension, practical stdlib, boring deployment story
 - From MoonBit: a modern, cohesive small language with ADTs, pattern matching, solid modules, and a serious standard library
 
@@ -69,7 +69,7 @@ The goal is that common automation tasks stop falling back to ad-hoc shell pipel
 Errors, async boundaries, external command boundaries, and path resolution context should stay explicit enough to reason about.
 
 That is why failure and effects both show up in a signature:
-`Problem!String` says what can go wrong, and `/ { fs, net }` says what
+`String / Problem` says what can go wrong, and `/ fs, net` says what
 the function needs from its caller. Both are inferred, so neither is
 ceremony you have to write before your script runs — see
 [`typed-errors.md`](./typed-errors.md) and [`effects.md`](./effects.md).
@@ -95,7 +95,7 @@ type Config {
   repo: String
 }
 
-fn fetch_avatar(config: Config) -> Result!Path {
+fn fetch_avatar(config: Config) -> Path / Result {
   let out = from_source("tmp").join("avatar.png")
   let bytes = http::get_bytes(
     "https://api.github.com/users/${config.owner}"
@@ -150,6 +150,6 @@ The target is:
 
 - MoonBit-level seriousness as a language
 - Rust-level data modeling where it pays off
-- Zig-like explicitness around failure and boundaries
+- explicit error and I/O capabilities at shell boundaries
 - Go-like approachability and deployment
 - shell portability at the bottom

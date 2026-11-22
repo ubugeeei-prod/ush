@@ -93,7 +93,7 @@ fn compile_can_write_sourcemap_json() {
     assert_eq!(map["version"], 2);
     assert_eq!(map["source"], script.display().to_string());
     assert_eq!(map["generated"], compiled.display().to_string());
-    assert_eq!(summary["mapped_line_count"], 2);
+    assert_eq!(summary["mapped_line_count"], 4);
     assert_eq!(summary["source_line_count"], 2);
     assert!(
         summary["generated_line_count"]
@@ -107,7 +107,7 @@ fn compile_can_write_sourcemap_json() {
             .expect("summary sections")
             .iter()
             .any(|section| {
-                section["section"] == "user-code" && section["mapped_line_count"] == 2
+                section["section"] == "user-code" && section["mapped_line_count"] == 4
             })
     );
     assert!(sources.iter().any(|line| {

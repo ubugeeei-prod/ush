@@ -11,9 +11,8 @@ use super::{
     calls::{compile_call, compile_try_call},
     functions::{FunctionRegistry, compile_function},
     io::{compile_raise, compile_shell, push_print},
-    shared::binding_for_name,
     statement_control::compile_control_statement,
-    tasks::{compile_await, compile_expr_statement, compile_return, compile_spawn},
+    tasks::{compile_expr_statement, compile_return, compile_spawn},
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
@@ -34,6 +33,7 @@ pub(crate) fn compile_statement(
     out: &mut OutputBuffer,
 ) -> Result<()> {
     let previous_origin = out.set_origin(Some(statement.line));
+    super::io::track_statement(statement, state, out);
     let result = (|| -> Result<()> {
         if let Some(control) = compile_control_statement(
             &statement.kind,
@@ -52,7 +52,7 @@ pub(crate) fn compile_statement(
             return Ok(());
         }
         match &statement.kind {
-            StatementKind::Use(_) => {}
+            StatementKind::Use(_) | StatementKind::UnitDef(_) => {}
             StatementKind::Enum(_) => {}
             StatementKind::Trait(_) | StatementKind::Impl(_) => {}
             StatementKind::Effect(def) => super::effects_lowering::compile_effect(def, out),
@@ -117,14 +117,7 @@ pub(crate) fn compile_statement(
                 env.insert(name.clone(), binding);
             }
             StatementKind::Await { name, task } => {
-                let binding = compile_await(task, env, out)?;
-                env.insert(name.clone(), binding_for_name(name, binding.ty));
-                if let super::super::env::Storage::Primitive(value) = binding.storage {
-                    out.push_str(name);
-                    out.push('=');
-                    out.push_str(&value);
-                    out.push('\n');
-                }
+                super::tasks::bind_await(name, task, env, out)?;
             }
             StatementKind::Print(expr) => push_print(
                 expr,
@@ -156,6 +149,17 @@ pub(crate) fn compile_statement(
                 state,
                 inside_function,
                 true,
+                out,
+            )?,
+            StatementKind::Fail { status, message } => super::io::compile_fail(
+                status,
+                message,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                inside_function,
                 out,
             )?,
             StatementKind::Raise(expr) => {

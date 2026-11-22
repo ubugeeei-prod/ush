@@ -163,7 +163,16 @@ fn copy_list(
             out.push_str("done\n");
             Ok(())
         }
-        _ => bail!("copying lists of structured values is not implemented yet"),
+        _ => {
+            crate::codegen::wire::copy(
+                &Type::List(alloc::boxed::Box::new(item_ty.clone())),
+                source,
+                target,
+                state,
+                out,
+            );
+            Ok(())
+        }
     }
 }
 

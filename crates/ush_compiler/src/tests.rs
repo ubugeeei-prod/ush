@@ -68,19 +68,13 @@ fn async_await_lowers_to_task_handle_and_result_read() {
         )
         .expect("compile");
 
-    assert!(output.starts_with("#!/bin/sh\nset -eu\n"));
+    assert!(output.starts_with("#!/bin/sh\n# Generated from"));
     assert!(output.contains("ush_fn_worker()"));
-    assert!(output.contains("__ush_task_seq='0'"));
-    assert!(
-        output.contains("__ush_task_0__result=\"${TMPDIR:-/tmp}/__ush_task_0.$$.$__ush_task_seq\"")
-    );
-    assert!(
-        output.contains("( __ush_return_path=\"${__ush_task_0__result}\"; ush_fn_worker 'ok' ) &")
-    );
+    assert!(output.contains("__ush_task_0__result=$__ush_slot/result"));
+    assert!(output.contains("ush_fn_worker 'ok' ) &"));
     assert!(output.contains("result=\"$(cat \"${__ush_task_0__result}\")\""));
-    assert!(output.contains("rm -f \"$__ush_task_file\""));
-    assert!(!output.contains("mktemp"));
-    assert!(output.contains("wait \"$__ush_job\""));
+    assert!(output.contains("umask 077"));
+    assert!(output.contains("wait \"$__ush_pid\""));
 }
 
 #[test]
@@ -98,10 +92,12 @@ fn functional_calls_capture_sync_return_values() {
         )
         .expect("compile");
 
-    assert!(output.contains("__ush_value_0=\"$(__ush_capture_return='1' ush_fn_greet 'ush')\""));
+    assert!(output.contains(
+        "__ush_value_0=\"$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 4>&1 >&3)\""
+    ));
     assert!(output.contains("value=\"${__ush_value_0}\""));
     assert!(
-        output.contains("__ush_value_1=\"$(__ush_capture_return='1' ush_fn_greet \"${value}\")\"")
+        output.contains("__ush_value_1=\"$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet \"${value}\" 4>&1 >&3)\"")
     );
     assert!(output.contains("printf '%s\\n' \"${__ush_value_1}\""));
 }

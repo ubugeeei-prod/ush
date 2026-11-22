@@ -91,6 +91,27 @@ pub(super) fn parse_named_type_list(source: &str) -> Result<Vec<NamedFieldType>>
 
 pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     let trimmed = source.trim();
+    let text = source.trim();
+    if let Some(raw) = text.strip_prefix("$(") {
+        let (raw, propagate) = raw
+            .strip_suffix(")?")
+            .map_or((raw, false), |body| (body, true));
+        let body = if propagate {
+            raw
+        } else {
+            raw.strip_suffix(')')
+                .ok_or_else(|| anyhow!("unterminated shell capture"))?
+        };
+        if body.trim().is_empty() {
+            bail!("empty shell capture");
+        }
+        let capture = Expr::ShellCapture(body.into());
+        return Ok(if propagate {
+            Expr::Try(Box::new(capture))
+        } else {
+            capture
+        });
+    }
     if trimmed.is_empty() {
         bail!("empty expression");
     }
@@ -140,6 +161,12 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     }
     if let Ok(number) = trimmed.parse::<i64>() {
         return Ok(Expr::Int(number));
+    }
+    if let Some(i) = trimmed.find(|c: char| c.is_ascii_alphabetic())
+        && let Ok(n) = trimmed[..i].parse::<i64>()
+        && is_identifier(&trimmed[i..])
+    {
+        return Ok(Expr::Quantity(n, trimmed[i..].into()));
     }
     if let Some(variant) = parse_variant_expr(trimmed)? {
         return Ok(Expr::Variant(variant));

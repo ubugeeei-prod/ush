@@ -28,12 +28,13 @@ impl Statement {
 #[derive(Debug, Clone)]
 pub(crate) enum StatementKind {
     Use(Vec<UseItem>),
+    UnitDef(String),
     Enum(EnumDef),
     Trait(TraitDef),
     Impl(TraitImpl),
     Function(FunctionDef),
     Effect(EffectDef),
-    /// `try { … } with log { (m) => … }`
+    /// `try { … } with log(m) { … }`
     Handle {
         body: Vec<Statement>,
         handlers: Vec<EffectHandler>,
@@ -58,6 +59,10 @@ pub(crate) enum StatementKind {
     Shell(Expr),
     TryShell(Expr),
     Raise(Expr),
+    Fail {
+        status: Expr,
+        message: Expr,
+    },
     Expr(Expr),
     Call(Call),
     TryCall(Call),
@@ -89,6 +94,8 @@ pub(crate) enum StatementKind {
 
 #[derive(Debug, Clone)]
 pub(crate) enum Expr {
+    ShellCapture(String),
+    Quantity(i64, String),
     String(String),
     Int(i64),
     Bool(bool),

@@ -166,7 +166,7 @@ fn block_script(buffer: OutputBuffer, condition: &str) -> String {
 }
 
 fn block_script_with_lines(buffer: OutputBuffer, lines: &[String], condition: &str) -> String {
-    let compiled = buffer.into_compiled(None).shell;
+    let compiled = buffer.into_shell();
     let mut out = String::from("{\n");
     out.push_str(&compiled);
     for line in lines {

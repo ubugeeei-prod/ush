@@ -212,7 +212,7 @@ pub(crate) fn compile_method_capture(
     out.push_str(&temp);
     out.push_str("=\"$(__ush_capture_return='1' __ush_return_path='' ");
     out.push_str(&fn_name);
-    out.push_str(")\"\n");
+    out.push_str(" 4>&1 >&3)\"\n");
     Ok(format!("\"${{{temp}}}\""))
 }
 

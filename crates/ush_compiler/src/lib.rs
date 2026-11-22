@@ -14,7 +14,7 @@
 //!
 //! 1. **Parse** — turns `.ush` text into an AST.
 //! 2. **Resolve imports** — flattens `use` paths.
-//! 3. **Effects pass** — typed-error / `Problem!T` propagation,
+//! 3. **Effects pass** — typed-error / `T / Problem` propagation,
 //!    match exhaustiveness, control-flow validation.
 //! 4. **Codegen** — lowers to POSIX `sh` and emits a [`SourceMap`].
 //!
@@ -29,6 +29,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod ast;
+mod commands;
+mod contracts;
+pub use commands::command_names;
 mod codegen;
 mod docs;
 mod effects;
@@ -40,8 +43,10 @@ mod parse;
 mod scan;
 mod sourcemap;
 mod string_literal;
+mod target;
 mod traits;
 mod types;
+pub use target::ShellTarget;
 mod util;
 
 #[macro_use]
@@ -50,6 +55,7 @@ extern crate alloc;
 use anyhow::Result;
 pub use docs::ScriptDocs;
 pub use effects::{Effect, EffectSet, FunctionEffects};
+pub use scan::{closes_shell_capture, opens_shell_capture};
 pub use sourcemap::{
     CompiledScript, SourceMap, SourceMapLine, SourceMapSection, SourceMapSectionSummary,
     SourceMapSourceLine, SourceMapSummary,
@@ -63,20 +69,35 @@ use std::{fs, path::Path};
 
 #[derive(Debug, Clone, Default)]
 pub struct UshCompiler {
-    _private: (),
+    target: ShellTarget,
 }
 
 #[allow(non_upper_case_globals)]
-pub const UshCompiler: UshCompiler = UshCompiler { _private: () };
+pub const UshCompiler: UshCompiler = UshCompiler {
+    target: ShellTarget::Sh,
+};
 
 impl UshCompiler {
+    pub const fn for_target(target: ShellTarget) -> Self {
+        Self { target }
+    }
+
     #[cfg(feature = "std")]
     pub fn compile_file(&self, path: &Path) -> Result<OutputString> {
-        Ok(self.compile_file_with_sourcemap(path)?.shell)
+        self.compile_file_as(path, |out, _| out.into_shell())
     }
 
     #[cfg(feature = "std")]
     pub fn compile_file_with_sourcemap(&self, path: &Path) -> Result<CompiledScript> {
+        self.compile_file_as(path, |out, source| out.into_compiled(Some(source)))
+    }
+
+    #[cfg(feature = "std")]
+    fn compile_file_as<T>(
+        &self,
+        path: &Path,
+        finish: impl FnOnce(sourcemap::OutputBuffer, &str) -> T,
+    ) -> Result<T> {
         let source = fs::read_to_string(path)
             .with_context(|| format!("failed to read {}", path.display()))?;
         let absolute = fs::canonicalize(path)
@@ -89,8 +110,10 @@ impl UshCompiler {
             codegen::SourceContext::Absolute {
                 directory: source_dir.unwrap_or(""),
                 path: source_path.unwrap_or(""),
+                origin: path.to_str().unwrap_or("<source>"),
             },
         )
+        .map(|out| finish(out, &source))
         .with_context(|| format!("failed to compile {}", path.display()))
     }
 
@@ -125,15 +148,18 @@ impl UshCompiler {
                 output_name,
             },
         )
+        .map(|out| out.into_compiled(Some(&source)))
         .with_context(|| format!("failed to compile {}", path.display()))
     }
 
     pub fn compile_source(&self, source: &str) -> Result<OutputString> {
-        Ok(self.compile_source_with_sourcemap(source)?.shell)
+        self.compile_with_context(source, None, codegen::SourceContext::none())
+            .map(|out| out.into_shell())
     }
 
     pub fn compile_source_with_sourcemap(&self, source: &str) -> Result<CompiledScript> {
         self.compile_with_context(source, None, codegen::SourceContext::none())
+            .map(|out| out.into_compiled(Some(source)))
     }
 
     fn compile_with_context(
@@ -141,10 +167,18 @@ impl UshCompiler {
         source: &str,
         script_name: Option<&str>,
         source_context: codegen::SourceContext<'_>,
-    ) -> Result<CompiledScript> {
-        let program = imports::resolve_program(parse::parse_program(source)?)?;
+    ) -> Result<sourcemap::OutputBuffer> {
+        let program =
+            contracts::elaborate(imports::resolve_program(parse::parse_program(source)?)?)?;
         let docs = ScriptDocs::parse(source);
-        codegen::compile_program(&program, &docs, source, script_name, source_context)
+        codegen::compile_program(
+            &program,
+            &docs,
+            source,
+            script_name,
+            source_context,
+            self.target,
+        )
     }
 
     #[cfg(feature = "std")]

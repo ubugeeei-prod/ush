@@ -8,22 +8,11 @@ intended to stay stable.
 
 ## What Every Script Gets
 
-Every compiled script starts with a small runtime scaffold:
-
-```sh
-#!/bin/sh
-set -eu
-
-__ush_jobs=''
-__ush_task_seq='0'
-__ush_task_files=''
-```
-
-That scaffold is used for:
-
-- strict shell execution with `set -eu`
-- task tracking for `async` / `await`
-- cleanup of background jobs and temp files at the end of the script
+Every artifact starts with a target shebang, a source comment, a
+`DO NOT EDIT MANUALLY` notice, and `set -eu`. Source locations use small
+`__ush_at` calls next to the statements they describe. The compiler emits
+the standard-library helpers that the program reaches. Task bookkeeping is
+included when the program starts a background task.
 
 For a generated artifact that will be committed, use adjacent source and
 output files:
@@ -59,7 +48,7 @@ If the source has doc comments or a `bin(...)` entrypoint, the compiler also emi
 | ADT / `type` value | split shell vars like `user__tag`, `user__name` |
 | `match` | temp bindings plus `if` / `case` |
 | `async f()` / `task.await` | background job, temp file, `wait`, `cat` |
-| `raise Problem::X` | `printf ... >&2` then `return 1` |
+| `fail Problem::X` | `printf ... >&2` then `return 1` |
 | `expr?` | `|| return "$?"` or `|| exit "$?"` |
 | `bin(...)` | CLI parser wrapper around `ush_fn_bin` |
 | `alias ll = "ls -la"` | `alias ll='ls -la'` |
@@ -250,82 +239,17 @@ let result = task.await
 print result
 ```
 
-Compiled `sh`:
+The shell evaluates the arguments, creates a private result slot, and starts
+the function with `&`. A handle keeps the child's PID and result slot. Await
+uses POSIX `wait`, preserves the child's exit status, and reads the result.
+The parent joins unfinished children before removing its private directory.
 
-```sh
-__ush_task_seq=$((__ush_task_seq + 1))
-__ush_task_0__result="${TMPDIR:-/tmp}/__ush_task_0.$$.$__ush_task_seq"
-: > "${__ush_task_0__result}"
-__ush_task_files="${__ush_task_files}${__ush_task_files:+ }${__ush_task_0__result}"
-( __ush_return_path="${__ush_task_0__result}"; ush_fn_double 21 ) &
-__ush_task_0__pid="$!"
-__ush_task_0__awaited='0'
-__ush_jobs="${__ush_jobs}${__ush_jobs:+ }$!"
-if [ "${__ush_task_0__awaited}" = '0' ]; then
-  wait "${__ush_task_0__pid}"
-  __ush_task_0__awaited='1'
-fi
-result="$(cat "${__ush_task_0__result}")"
-```
+## Errors and propagation
 
-`async` launches a background subshell and gives it a temp result file. `.await`
-becomes `wait` plus `cat` from that file.
-
-## Typed Errors, `raise`, and `?`
-
-Source:
-
-```text
-enum Problem {
-  MissingConfig,
-}
-
-fn load_config() -> Problem!String {
-  raise Problem::MissingConfig
-}
-
-fn run() -> Problem!String {
-  let value = load_config()?
-  wrap(value)
-}
-
-run()?
-```
-
-Compiled `sh`:
-
-```sh
-# raises: Problem
-ush_fn_load_config() {
-  printf '%s\n' 'ush raise: Problem' >&2
-  return 1
-}
-
-# raises: Problem
-ush_fn_run() {
-  __ush_value_0="$(__ush_capture_return='1' ush_fn_load_config)" || return "$?"
-  value="${__ush_value_0}"
-  __ush_value_1="$(__ush_capture_return='1' ush_fn_wrap "${value}")"
-  if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${__ush_value_1}" > "$__ush_return_path"
-  elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${__ush_value_1}"
-  fi
-  return 0
-}
-
-ush_fn_run || exit "$?"
-```
-
-The important pieces are:
-
-- inferred error comments are emitted as `# raises: ...`
-- `raise` writes an error message to stderr and returns non-zero
-- `?` inside a function lowers to `|| return "$?"`
-- top-level `?` lowers to `|| exit "$?"`
-
-For external commands, the compiler cannot know the exact error type, so they are
-tracked as `unknown` in the signature and inferred error stream.
+`fail Problem::MissingConfig` reports the source location and variant to
+stderr and returns status 1. `fail(code, message)` reports the supplied
+message and status. A call ending in `?` checks its status before continuing.
+The emitted script contains the source text necessary to locate a failure.
 
 ## `alias`
 
