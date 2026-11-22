@@ -101,6 +101,7 @@ __ush_report() {
 "#);
     if tasks {
         out.push_str(include_str!("task_runtime.sh"));
+        out.push('\n');
     } else {
         out.push_str("trap '__ush_report \"$?\"' 0\n\n");
     }

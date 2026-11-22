@@ -45,14 +45,19 @@ impl Checker {
                     .clone();
                 locals.insert(name.clone(), t);
             }
-            S::Print(e)
-            | S::Shell(e)
-            | S::TryShell(e)
-            | S::Raise(e)
-            | S::Alias { value: e, .. } => {
+            S::Print(e) | S::Shell(e) | S::TryShell(e) | S::Alias { value: e, .. } => {
                 self.expr(e, locals)?;
             }
+            S::Raise(e) => {
+                let ty = self.expr(e, locals)?;
+                if self.symbolic && !self.checking.is_empty() {
+                    self.check_declared_failure(crate::errors::ErrorType::Known(ty.name))?;
+                }
+            }
             S::Fail { status, message } => {
+                if self.symbolic && !self.checking.is_empty() {
+                    self.check_declared_failure(crate::errors::ErrorType::Unknown)?;
+                }
                 Ty::named("Int").check(&self.expr(status, locals)?)?;
                 Ty::named("String").check(&self.expr(message, locals)?)?;
             }
@@ -129,6 +134,15 @@ impl Checker {
             | S::Break
             | S::Continue => {}
         }
+        Ok(())
+    }
+    fn check_declared_failure(&self, error: crate::errors::ErrorType) -> Result<()> {
+        anyhow::ensure!(
+            self.declared_failures
+                .as_ref()
+                .is_some_and(|row| row.iter().any(|e| e == &error)),
+            "failure {error:?} is missing from the function's error row"
+        );
         Ok(())
     }
     fn branch(

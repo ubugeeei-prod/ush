@@ -11,7 +11,7 @@ type Config {
   name: String,
 }
 
-fn load(found: Bool) -> Config / ConfigError, stderr {
+fn load(found: Bool) -> Config / ConfigError, fs {
   if found {
     return Config { name: "production" }
   }
@@ -22,7 +22,7 @@ let config = load(true)?
 print config.name
 ```
 
-Use `?` to pass a nonzero status to the calling function or, at the top level, to the process that launched the script. Awaiting a failed task also preserves its status. A typed `fail` returns status 1. A shell-facing failure can supply a status between 1 and 255 and a message.
+Use `?` to pass a nonzero status to the calling function or, at the top level, to the process that launched the script. Awaiting a failed task also preserves its status. A typed `fail` returns status 1. Its diagnostic is emitted by the runtime and the signature declares the error type. A shell-facing failure can supply a status between 1 and 255 and a message.
 
 ```ush
 fn require_name(name: String) -> () / unknown, stderr {

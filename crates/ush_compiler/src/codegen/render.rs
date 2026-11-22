@@ -204,7 +204,7 @@ fn primitive_var<'a>(binding: &'a Binding, name: &str) -> Result<&'a str> {
         Storage::Primitive(var) => Ok(var.as_str()),
         Storage::Adt(_) => bail!("`{name}` is not a primitive value"),
         Storage::Aggregate(_) => bail!("`{name}` is a structured value"),
-        Storage::Task(_) => bail!("`{name}` is a task handle"),
+        Storage::Task(_, _) => bail!("`{name}` is a task handle"),
     }
 }
 

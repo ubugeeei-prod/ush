@@ -77,6 +77,17 @@ impl Checker {
         }
         if let Some(cmd) = crate::commands::lookup(&call.name) {
             cmd.validate(args.len())?;
+            for (arg, ty) in call.args.iter().zip(args) {
+                ensure!(arg.label.is_none(), "command arguments are positional");
+                if self.symbolic && ty.name.starts_with("__T") {
+                    continue;
+                }
+                ensure!(
+                    ty.name == "String" || (ty.name == "Int" && cmd.word != "cd"),
+                    "invalid argument type for $bin::{}",
+                    cmd.word
+                );
+            }
             return Ok(Ty::from_type(&cmd.ty()));
         }
         if call.name == "format" {
@@ -176,7 +187,12 @@ impl Checker {
                 locals.insert(n.clone(), ty);
             }
         }
+        let parent = core::mem::replace(
+            &mut self.declared_failures,
+            original.declared_errors.clone(),
+        );
         let returns = self.body(&mut def.body, &mut locals)?;
+        self.declared_failures = parent;
         let inferred = result.unwrap_or_else(|| {
             returns
                 .first()
@@ -184,6 +200,12 @@ impl Checker {
                 .unwrap_or_else(|| Ty::named("()"))
                 .widened()
         });
+        ensure!(
+            inferred.name == "()" || super::completes(&def.body, true),
+            "function {} can finish without returning {}",
+            original.name,
+            inferred.describe()
+        );
         for ty in returns {
             inferred.check(&ty)?;
         }

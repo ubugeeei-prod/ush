@@ -65,6 +65,14 @@ fn unused_generic_bodies_and_kinds_are_checked() {
     for (source, expected) in [
         ("fn bad<T>(x: T) -> T {\n  123\n}\n", "expected T"),
         (
+            "fn bad<T>(x: T) -> T {\n  print x\n}\n",
+            "without returning",
+        ),
+        (
+            "enum E {\n  Nope,\n}\nfn bad<T>(x:T) -> T / () {\n  fail E::Nope\n}\n",
+            "error row",
+        ),
+        (
             "fn bad<F<_>, T>(x: F<T,T>) -> T {\n  x\n}\n",
             "kind mismatch",
         ),
@@ -170,4 +178,27 @@ print get()?
         .compile_source(&src.replace("unknown, exec, stderr", "unknown, exec, stdout"))
         .unwrap_err();
     assert!(format!("{error:#}").contains("stderr"), "{error:#}");
+}
+
+#[test]
+fn await_is_an_expression_and_propagates_deferred_failures() {
+    let src = r#"
+fn fail_task() -> Int / unknown, stderr {
+  fail(17,"missing")
+}
+fn finish() -> Int / task, stderr, unknown {
+  let job = async fail_task()
+  job.await + 1
+}
+fn answer() -> Int {
+  42
+}
+let job = async answer()
+print job.await
+print job.await + 1
+"#;
+    assert_eq!(run(src), "42\n43\n");
+    let bad = src.replace("/ task, stderr, unknown", "/ task, stderr");
+    let error = UshCompiler.compile_source(&bad).unwrap_err();
+    assert!(format!("{error:#}").contains("unknown"), "{error:#}");
 }

@@ -6,7 +6,7 @@ use super::{
     super::{
         ast::{Condition, Statement, Type},
         env::{Binding, Env, Storage},
-        matching::{compile_pattern, materialize_expr},
+        matching::{compile_pattern, read_expr},
     },
     compile_runtime_primitive_expr,
     control::ControlContext,
@@ -52,7 +52,7 @@ pub(super) fn compile_condition(
         }
         Condition::Let { pattern, expr } => {
             let mut buffer = OutputBuffer::default();
-            let subject = materialize_expr(
+            let subject = read_expr(
                 expr,
                 env,
                 ctx.functions,
@@ -153,7 +153,7 @@ pub(super) fn tuple_item_binding(prefix: &str, index: usize, ty: &Type) -> Bindi
         Type::String | Type::Int | Type::Bool | Type::Unit => {
             Storage::Primitive(format!("{prefix}__{index}").into())
         }
-        Type::Task(_) => Storage::Task(format!("{prefix}__{index}").into()),
+        Type::Task(_) => Storage::Task(format!("{prefix}__{index}").into(), Default::default()),
     };
     Binding {
         ty: ty.clone(),

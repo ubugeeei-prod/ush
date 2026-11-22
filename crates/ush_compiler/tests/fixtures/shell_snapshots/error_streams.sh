@@ -132,10 +132,15 @@ ush_fn_mixed() {
   {
 false
   } || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
-  __ush_at 20 '$ wrap $ outer ()'
-  {
-wrap $ outer ()
-  } || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  __ush_at 20 'wrap(outer()?)'
+  __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_outer 4>&1 >&3)" || return "$?"
+  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_1}" 4>&1 >&3)"
+  if [ -n "${__ush_return_path:-}" ]; then
+    printf '%s' "${__ush_value_2}" > "$__ush_return_path"
+  elif [ "${__ush_capture_return:-0}" = '1' ]; then
+    printf '%s' "${__ush_value_2}" >&4
+  fi
+  return 0
 }
 
 # raises: Problem
@@ -144,19 +149,19 @@ ush_fn_awaited() {
     __ush_task_scope
     __ush_at 24 'let task = async fail ()'
     __ush_task_slot
-    __ush_task_1__result=$__ush_slot/result
-    : > "${__ush_task_1__result}"
-    ( __ush_task_scope; __ush_return_path="${__ush_task_1__result}"; ush_fn_fail ) &
-    __ush_task_1__pid=$!
-    __ush_task_1__awaited=0
+    __ush_task_3__result=$__ush_slot/result
+    : > "${__ush_task_3__result}"
+    ( __ush_task_scope; __ush_return_path="${__ush_task_3__result}"; ush_fn_fail ) &
+    __ush_task_3__pid=$!
+    __ush_task_3__awaited=0
     __ush_jobs="${__ush_jobs} $!"
     __ush_at 25 'let value = task.await'
-    if [ "${__ush_task_1__awaited}" = '0' ]; then
-      wait "${__ush_task_1__pid}" || exit "$?"
-      __ush_forget_job "${__ush_task_1__pid}"
-      __ush_task_1__awaited='1'
+    if [ "${__ush_task_3__awaited}" = '0' ]; then
+      wait "${__ush_task_3__pid}" || exit "$?"
+      __ush_forget_job "${__ush_task_3__pid}"
+      __ush_task_3__awaited='1'
     fi
-    value="$(cat "${__ush_task_1__result}")"
+    value="$(cat "${__ush_task_3__result}")"
     __ush_at 26 'value'
     if [ -n "${__ush_return_path:-}" ]; then
       printf '%s' "${value}" > "$__ush_return_path"
@@ -168,6 +173,6 @@ ush_fn_awaited() {
 }
 
 __ush_at 29 'print $ wrap $ awaited ()'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)"
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)"
-printf '%s\n' "${__ush_value_3}"
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)"
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_4}" 4>&1 >&3)"
+printf '%s\n' "${__ush_value_5}"

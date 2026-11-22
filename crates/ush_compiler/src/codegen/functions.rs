@@ -56,10 +56,25 @@ pub(crate) fn analyze_globals(
 ) -> Result<Env> {
     let mut env = Env::default();
     for statement in program {
-        if let StatementKind::Let { name, expr } = &statement.kind {
-            let ty = super::infer(expr, &env, functions, impls, enums)?;
-            env.insert(name.clone(), binding_for_name(name, ty));
-        }
+        let (name, ty) = match &statement.kind {
+            StatementKind::Let { name, expr } => {
+                (name, super::infer(expr, &env, functions, impls, enums)?)
+            }
+            StatementKind::Spawn { name, call } => (
+                name,
+                crate::ast::Type::Task(alloc::boxed::Box::new(super::calls::call_expr_type(
+                    call, functions,
+                )?)),
+            ),
+            StatementKind::Await { name, task } => {
+                let Some(crate::ast::Type::Task(ty)) = env.get(task).map(|b| &b.ty) else {
+                    continue;
+                };
+                (name, (**ty).clone())
+            }
+            _ => continue,
+        };
+        env.insert(name.clone(), binding_for_name(name, ty));
     }
     Ok(env)
 }
@@ -76,6 +91,14 @@ pub(crate) fn compile_function(
     out: &mut OutputBuffer,
 ) -> Result<()> {
     ensure_signature(def)?;
+    if def
+        .return_type
+        .as_ref()
+        .is_some_and(|ty| *ty != crate::ast::Type::Unit)
+        && !crate::contracts::completes(&def.body, true)
+    {
+        bail!("function {} can finish without returning a value", def.name);
+    }
     if let Some(errors) = function_errors
         .get(&def.name)
         .filter(|errors| !errors.is_empty())

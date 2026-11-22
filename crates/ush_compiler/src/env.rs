@@ -14,7 +14,7 @@ pub(crate) enum Storage {
     Primitive(String),
     Adt(String),
     Aggregate(String),
-    Task(String),
+    Task(String, crate::errors::ErrorSet),
 }
 
 pub(crate) type Env = HashMap<String, Binding>;

@@ -156,9 +156,7 @@ fn copy_list(
                 &format!("  eval \"{value}=\\\"\\${{{source}__$${index}}}\\\"\"\n")
                     .replace("$$", "$"),
             );
-            out.push_str(
-                &format!("  eval \"{target}__$${index}=\\\"$${value}\\\"\"\n").replace("$$", "$"),
-            );
+            out.push_str(&format!("  eval \"{target}__${{{index}}}=\\${value}\"\n"));
             out.push_str(&format!("  {index}=$(({index} + 1))\n"));
             out.push_str("done\n");
             Ok(())

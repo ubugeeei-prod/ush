@@ -49,4 +49,3 @@ trap '__ush_finish "$?"' 0
 trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
-

@@ -46,7 +46,7 @@ fn binding_for_field(prefix: &str, ty: Type, name: &str) -> Binding {
         }
         Type::Adt(_) => Storage::Adt(format!("{prefix}__{name}").into()),
         Type::Tuple(_) | Type::List(_) => Storage::Aggregate(format!("{prefix}__{name}").into()),
-        Type::Task(_) => Storage::Task(format!("{prefix}__{name}").into()),
+        Type::Task(_) => Storage::Task(format!("{prefix}__{name}").into(), Default::default()),
     };
     Binding { ty, storage }
 }

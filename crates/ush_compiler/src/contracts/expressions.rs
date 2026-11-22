@@ -138,6 +138,9 @@ impl Checker {
             }
             Expr::Field { base, name } => {
                 let ty = self.expr(base, locals)?;
+                if name == "await" && ty.name == "Task" {
+                    return Ok(ty.args[0].clone());
+                }
                 let item = self
                     .enums
                     .get(&ty.name)

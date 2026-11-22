@@ -66,9 +66,7 @@ fn statement_effects(statement: &Statement, ctx: Context<'_>) -> EffectSet {
         | StatementKind::Expr(value)
         | StatementKind::Return(value) => expr_effects(value, ctx),
 
-        StatementKind::Raise(value) => {
-            EffectSet::of(Effect::Stderr).union(&expr_effects(value, ctx))
-        }
+        StatementKind::Raise(value) => expr_effects(value, ctx),
         StatementKind::Fail { status, message } => EffectSet::of(Effect::Stderr)
             .union(&expr_effects(status, ctx))
             .union(&expr_effects(message, ctx)),
@@ -134,6 +132,9 @@ fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
         }
         Expr::Compare { lhs, rhs, .. } => expr_effects(lhs, ctx).union(&expr_effects(rhs, ctx)),
         Expr::Range { start, end } => expr_effects(start, ctx).union(&expr_effects(end, ctx)),
+        Expr::Field { base, name } if name == "await" => {
+            EffectSet::of(Effect::Task).union(&expr_effects(base, ctx))
+        }
         Expr::Try(inner) | Expr::Field { base: inner, .. } => expr_effects(inner, ctx),
         Expr::Call(call) => call_effects(call, ctx, true),
         Expr::MethodCall(call) => method_effects(call, ctx),

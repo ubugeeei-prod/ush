@@ -130,7 +130,7 @@ fn function_error_streams_are_inferred_and_composed() {
 
         fn mixed() -> String / Problem, unknown, exec, fs, env, net, io {
           $ false
-          $ wrap $ leaf ()
+          wrap(leaf()?)
         }
 
         fn awaited() -> String / Problem, stderr, task {

@@ -7,7 +7,7 @@ use super::{
         ast::{Expr, Statement, Type},
         effects::FunctionErrorRegistry,
         env::{CodegenState, EnumRegistry, Env},
-        matching::{compile_pattern, emit_value_to_target, materialize_expr},
+        matching::{compile_pattern, emit_value_to_target, read_expr},
     },
     compile_runtime_primitive_expr,
     functions::FunctionRegistry,
@@ -116,7 +116,7 @@ pub(crate) fn compile_match(
     if arms.is_empty() {
         bail!("match must have at least one arm");
     }
-    let subject = materialize_expr(
+    let subject = read_expr(
         expr,
         env,
         functions,

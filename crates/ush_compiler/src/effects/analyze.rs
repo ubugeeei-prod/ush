@@ -89,7 +89,10 @@ fn statement_errors(
             let ty = infer_async_block_type(body, env, functions, impls, enums)?;
             env.insert(
                 name.clone(),
-                binding_for_type(name, Type::Task(Box::new(ty))),
+                crate::env::Binding {
+                    ty: Type::Task(Box::new(ty)),
+                    storage: crate::env::Storage::Task(name.clone(), deferred.clone()),
+                },
             );
             tasks.insert(name.clone(), deferred);
             Ok(ErrorSet::default())
@@ -104,14 +107,15 @@ fn statement_errors(
             let errors = call_arg_errors(call, env, functions, impls, enums, function_errors)?;
             let ty = crate::codegen::calls::call_return_type(&call.name, functions)?
                 .ok_or_else(|| anyhow!("task requires a return type: {}", call.name))?;
+            let deferred = super::callee_errors(&call.name, function_errors);
             env.insert(
                 name.clone(),
-                binding_for_type(name, Type::Task(Box::new(ty))),
+                crate::env::Binding {
+                    ty: Type::Task(Box::new(ty)),
+                    storage: crate::env::Storage::Task(name.clone(), deferred.clone()),
+                },
             );
-            tasks.insert(
-                name.clone(),
-                super::support::callee_errors(&call.name, function_errors),
-            );
+            tasks.insert(name.clone(), deferred);
             Ok(errors)
         }
         StatementKind::Await { name, task } => {

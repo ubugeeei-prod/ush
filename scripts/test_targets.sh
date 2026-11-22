@@ -16,7 +16,7 @@ for target in sh bash zsh ash; do
   "$ush" compile examples/contracts.ush --target "$target" -o "$tmp/script"
   chmod +x "$tmp/script"
   actual=$("$tmp/script")
-  [ "$actual" = "$(printf '%s\n' 2 20 ready done)" ]
+  [ "$actual" = "$(printf '%s\n' 2 20 ready 'done')" ]
 
   "$ush" compile examples/error_streams.ush --target "$target" -o "$tmp/script"
   code=0

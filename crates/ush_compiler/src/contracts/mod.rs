@@ -3,6 +3,8 @@ mod body;
 mod expressions;
 mod instantiate;
 mod refine;
+mod returns;
+pub(crate) use returns::completes;
 mod signature;
 mod types;
 mod unify;
@@ -32,6 +34,7 @@ struct Checker {
     globals: Locals,
     checking: Set<Name>,
     symbolic: bool,
+    declared_failures: Option<crate::errors::ErrorSet>,
 }
 
 pub(crate) fn elaborate(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
@@ -59,6 +62,7 @@ pub(crate) fn elaborate(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
         globals: Map::default(),
         checking: Set::default(),
         symbolic: true,
+        declared_failures: None,
     };
     crate::codegen::register_builtins(&mut checker.functions)?;
     let mut traits = crate::traits::TraitRegistry::default();

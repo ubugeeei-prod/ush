@@ -27,6 +27,11 @@ pub(crate) fn infer_field_expr(
     enums: &EnumRegistry,
 ) -> Result<Type> {
     let base_ty = infer(base, env, functions, impls, enums)?;
+    if name == "await"
+        && let Type::Task(result) = base_ty
+    {
+        return Ok(*result);
+    }
     let field = struct_field(&base_ty, name, enums)?;
     Ok(field.ty.clone())
 }

@@ -85,56 +85,46 @@ __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_match_0)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_2
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_match_0)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_4
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_2__name}" ':' "${__ush_match_4__age}")" > "$__ush_return_path"
+  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_2__name}" ':' "${__ush_match_4__age}")" >&4
+  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" >&4
 fi
 return 0
 }
-__ush_value_6="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
-printf '%s\n' "${__ush_value_6}"
+__ush_value_4="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
+printf '%s\n' "${__ush_value_4}"
 __ush_at 24 'print format user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_7
-__ush_method_8() {
+__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
+__ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_match_7)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_9
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_match_7)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_11
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_9__name}" ':' "${__ush_match_11__age}")" > "$__ush_return_path"
+  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_9__name}" ':' "${__ush_match_11__age}")" >&4
+  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" >&4
 fi
 return 0
 }
-__ush_value_13="$(__ush_capture_return='1' __ush_return_path='' __ush_method_8 4>&1 >&3)"
-__ush_value_14="${__ush_value_13}"
-printf '%s\n' "${__ush_value_14}"
+__ush_value_9="$(__ush_capture_return='1' __ush_return_path='' __ush_method_6 4>&1 >&3)"
+__ush_value_10="${__ush_value_9}"
+printf '%s\n' "${__ush_value_10}"
 __ush_at 25 'print user.prefixed("id")'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_15
-__ush_prefix_16='id'
-__ush_method_17() {
+__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_11
+__ush_prefix_12='id'
+__ush_method_13() {
 __ush_at 18 'prefix + ":" + self.name'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_match_15)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_18
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_16}" ':' "${__ush_match_18__name}")" > "$__ush_return_path"
+  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_16}" ':' "${__ush_match_18__name}")" >&4
+  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" >&4
 fi
 return 0
 }
-__ush_value_20="$(__ush_capture_return='1' __ush_return_path='' __ush_method_17 4>&1 >&3)"
-__ush_value_21="${__ush_value_20}"
-printf '%s\n' "${__ush_value_21}"
+__ush_value_15="$(__ush_capture_return='1' __ush_return_path='' __ush_method_13 4>&1 >&3)"
+__ush_value_16="${__ush_value_15}"
+printf '%s\n' "${__ush_value_16}"
 __ush_at 26 'print () == ()'
 printf '%s\n' "$(if :; then printf '%s' true; else printf '%s' false; fi)"
 __ush_at 27 'print "ant" < "bee"'

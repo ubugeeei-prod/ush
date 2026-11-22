@@ -17,7 +17,7 @@ fn outer() -> String / Problem, stderr {
 
 fn mixed() -> String / Problem, unknown, exec, fs, env, net, io {
   $ false
-  $ wrap $ outer ()
+  wrap(outer()?)
 }
 
 fn awaited() -> String / Problem, stderr, task {

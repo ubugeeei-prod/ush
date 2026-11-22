@@ -43,40 +43,6 @@ esac
 
 exec 3>&1
 
-__ush_walk_record_6_Option() {
-  "$1" "$2__tag" || return "$?"
-  eval "__ush_tag=\${${2}__tag}"
-  case $__ush_tag in
-    'Option::None')
-      ;;
-    'Option::Some')
-      "$1" "$2__0" || return "$?"
-      ;;
-    *) return 1 ;;
-  esac
-}
-
-ush_fn_std__write_cell() {
-  eval "__ush_cell=\${$1}"
-  printf x
-  printf '%s' "$__ush_cell" | od -A n -v -t x1 | tr -d ' \n'
-  printf ' '
-}
-
-ush_fn_std__read_cell() {
-  case $__ush_cells in x*' '*) ;; *) return 1 ;; esac
-  __ush_hex=${__ush_cells%% *}
-  __ush_cells=${__ush_cells#* }
-  __ush_cell=$(LC_ALL=C awk -v s="${__ush_hex#x}" 'BEGIN {
-    digits = "0123456789abcdef"
-    for (i = 1; i <= length(s); i += 2)
-      printf "%c", (index(digits, substr(s,i,1))-1)*16 + index(digits,substr(s,i+1,1))-1
-    printf "."
-  }') || return "$?"
-  __ush_cell=${__ush_cell%.}
-  eval "$1=\$__ush_cell"
-}
-
 ush_fn_pick() {
   __ush_fn_pick_arg_0="${1}"
   flag="${__ush_fn_pick_arg_0}"
@@ -122,7 +88,7 @@ __ush_match_2__len="${items__len}"
 __ush_copy_index_3=0
 while [ "$__ush_copy_index_3" -lt "${items__len}" ]; do
   eval "__ush_copy_value_4=\"\${items__$__ush_copy_index_3}\""
-  eval "__ush_match_2__$__ush_copy_index_3=\"$__ush_copy_value_4\""
+  eval "__ush_match_2__${__ush_copy_index_3}=\$__ush_copy_value_4"
   __ush_copy_index_3=$((__ush_copy_index_3 + 1))
 done
 __ush_for_list_index_5=0
@@ -170,10 +136,8 @@ maybe__tag='Option::Some'
 maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
-__ush_cells="$(__ush_walk_record_6_Option ush_fn_std__write_cell maybe)"
-__ush_walk_record_6_Option ush_fn_std__read_cell __ush_match_8
-it="${__ush_match_8__0-}"
-[ "${__ush_match_8__tag}" = 'Option::Some' ]
+it="${maybe__0-}"
+[ "${maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then

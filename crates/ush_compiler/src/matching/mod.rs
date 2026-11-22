@@ -1,6 +1,8 @@
 mod emit;
 mod exhaustiveness;
 mod pattern;
+mod read;
+pub(crate) use read::read_expr;
 mod sequence;
 
 pub(crate) use exhaustiveness::check_exhaustive;
@@ -126,6 +128,14 @@ pub(crate) fn emit_value_to_target(
                 inside_function,
                 out,
             );
+        }
+        if let Expr::Field { base, name } = expr
+            && name == "await"
+            && let Expr::Var(task) = &**base
+            && env.get(task).is_some_and(|b| matches!(b.ty, Type::Task(_)))
+        {
+            crate::codegen::bind_await(target, task, &mut env.clone(), out)?;
+            return Ok(());
         }
         if let Expr::Call(call) = expr {
             let command = crate::codegen::rendered_call_runtime(

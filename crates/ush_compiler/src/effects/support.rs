@@ -8,7 +8,7 @@ use crate::{
     errors::{ErrorSet, ErrorType},
 };
 
-use super::FunctionErrorRegistry;
+use super::{FunctionErrorRegistry, callee_errors};
 
 pub(super) fn expr_errors(
     expr: &Expr,
@@ -27,7 +27,16 @@ pub(super) fn expr_errors(
         | Expr::Unit
         | Expr::Var(_)
         | Expr::AsyncBlock(_) => {}
-        Expr::Field { base, .. } => {
+        Expr::Field { base, name } => {
+            if name == "await"
+                && let Expr::Var(n) = &**base
+                && let Some(Binding {
+                    storage: Storage::Task(_, deferred),
+                    ..
+                }) = env.get(n)
+            {
+                errors.extend(deferred);
+            }
             errors.extend(&expr_errors(
                 base,
                 env,
@@ -235,15 +244,7 @@ pub(super) fn binding_for_type(name: &str, ty: Type) -> Binding {
         Type::Adt(_) => Storage::Adt(name.into()),
         Type::Tuple(_) | Type::List(_) => Storage::Aggregate(name.into()),
         Type::String | Type::Int | Type::Bool | Type::Unit => Storage::Primitive(name.into()),
-        Type::Task(_) => Storage::Task(name.into()),
+        Type::Task(_) => Storage::Task(name.into(), Default::default()),
     };
     Binding { ty, storage }
-}
-
-pub(super) fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
-    let mut errors = registry.get(name).cloned().unwrap_or_default();
-    if crate::commands::lookup(name).is_some() {
-        errors.insert(ErrorType::Unknown);
-    }
-    errors
 }

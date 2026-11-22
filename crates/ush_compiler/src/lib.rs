@@ -168,8 +168,11 @@ impl UshCompiler {
         script_name: Option<&str>,
         source_context: codegen::SourceContext<'_>,
     ) -> Result<sourcemap::OutputBuffer> {
-        let program =
-            contracts::elaborate(imports::resolve_program(parse::parse_program(source)?)?)?;
+        let program = imports::resolve_program(parse::parse_program(source)?)?;
+        if script_name == Some("bin.ush") && program.iter().any(|s| matches!(&s.kind, ast::StatementKind::Function(f) if f.name=="bin" && f.scheme.as_ref().is_some_and(|scheme| !scheme.variables.is_empty()))) {
+            anyhow::bail!("bin.ush requires concrete parameter types for its shell entrypoint");
+        }
+        let program = contracts::elaborate(program)?;
         let docs = ScriptDocs::parse(source);
         codegen::compile_program(
             &program,

@@ -67,7 +67,7 @@ pub(super) fn start_task(
     out.push_str("__ush_jobs=\"${__ush_jobs} $!\"\n");
     Binding {
         ty: Type::Task(Box::new(return_type)),
-        storage: Storage::Task(prefix),
+        storage: Storage::Task(prefix, Default::default()),
     }
 }
 
@@ -75,7 +75,7 @@ pub(crate) fn compile_await(task: &str, env: &Env, out: &mut OutputBuffer) -> Re
     let binding = env
         .get(task)
         .ok_or_else(|| anyhow!("unknown task: {task}"))?;
-    let (Type::Task(inner), Storage::Task(prefix)) = (&binding.ty, &binding.storage) else {
+    let (Type::Task(inner), Storage::Task(prefix, _)) = (&binding.ty, &binding.storage) else {
         bail!("await expects a task handle: {task}");
     };
 
@@ -112,9 +112,8 @@ pub(crate) fn compile_return(
     ensure_value_type(declared)?;
 
     let rendered = if actual.is_structured() {
-        let value = crate::matching::materialize_expr(
-            expr, env, functions, impls, enums, state, true, out,
-        )?;
+        let value =
+            crate::matching::read_expr(expr, env, functions, impls, enums, state, true, out)?;
         let (Storage::Aggregate(prefix) | Storage::Adt(prefix)) = value.storage else {
             unreachable!()
         };
@@ -162,7 +161,7 @@ pub(crate) fn compile_expr_statement(
     Ok(())
 }
 
-pub(super) fn bind_await(
+pub(crate) fn bind_await(
     name: &str,
     task: &str,
     env: &mut Env,

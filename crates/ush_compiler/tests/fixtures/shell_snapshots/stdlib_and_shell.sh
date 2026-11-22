@@ -219,8 +219,7 @@ greeting='hello'
 __ush_at 19 '$ printf '"'"'%s\n'"'"' "$greeting"'
 printf '%s\n' "$greeting"
 __ush_at 21 'match greeting {'
-__ush_match_3="${greeting}"
-if [ "${__ush_match_3}" = 'hello' ]; then
+if [ "${greeting}" = 'hello' ]; then
   __ush_at 22 '"hello" => $ printf '"'"'%s\n'"'"' matched'
 printf '%s\n' matched
 elif :; then
@@ -230,36 +229,36 @@ fi
 __ush_at 26 'print page'
 printf '%s\n' "${page}"
 __ush_at 27 'print $ page.starts_with("<div>")'
-__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${page}" '<div>')
-printf '%s\n' "${__ush_value_4}"
+__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${page}" '<div>')
+printf '%s\n' "${__ush_value_3}"
 __ush_at 28 'print $ page.ends_with("</div>")'
-__ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
-printf '%s\n' "${__ush_value_5}"
+__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
+printf '%s\n' "${__ush_value_4}"
 __ush_at 29 'print $ get_or "USH_STD_IMPORT" "fallback"'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')"
-printf '%s\n' "${__ush_value_6}"
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')"
+printf '%s\n' "${__ush_value_5}"
 __ush_at 30 'print $ join "/tmp/" "/ush"'
-__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')"
-printf '%s\n' "${__ush_value_7}"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')"
+printf '%s\n' "${__ush_value_6}"
 __ush_at 31 'print $ replace "hello world" "world" "ush"'
-__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')"
-printf '%s\n' "${__ush_value_8}"
+__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')"
+printf '%s\n' "${__ush_value_7}"
 __ush_at 32 'print $ starts_with "ush" "u"'
-__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')"
-printf '%s\n' "${__ush_value_9}"
+__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')"
+printf '%s\n' "${__ush_value_8}"
 __ush_at 33 'print $ capture "printf '"'"'%s\n'"'"' hello"'
-__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s\n'"'"' hello')"
-printf '%s\n' "${__ush_value_10}"
+__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s\n'"'"' hello')"
+printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
-__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')"
-printf '%s\n' $((__ush_value_11))
+__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')"
+printf '%s\n' $((__ush_value_10))
 __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
-__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)"
-printf '%s\n' "${__ush_value_12}"
+__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)"
+printf '%s\n' "${__ush_value_11}"
 __ush_at 36 'print $ path.read_text()'
-__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
-printf '%s\n' "${__ush_value_13}"
+__ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
+printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
 printf '%s\n' from-shell
 __ush_at 38 'path.remove()'
-__ush_value_14=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")
+__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")

@@ -48,6 +48,7 @@ pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runt
 pub(crate) use shared::binding_for_name;
 pub(crate) use stdlib::register_builtins;
 pub(crate) use task_block::infer_async_block_type;
+pub(crate) use tasks::bind_await;
 
 pub(crate) fn compile_program(
     program: &[Statement],

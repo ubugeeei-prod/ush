@@ -43,39 +43,6 @@ esac
 
 exec 3>&1
 
-__ush_walk_record_4_User() {
-  "$1" "$2__tag" || return "$?"
-  eval "__ush_tag=\${${2}__tag}"
-  case $__ush_tag in
-    'User::User')
-      "$1" "$2__name" || return "$?"
-      "$1" "$2__age" || return "$?"
-      ;;
-    *) return 1 ;;
-  esac
-}
-
-ush_fn_std__write_cell() {
-  eval "__ush_cell=\${$1}"
-  printf x
-  printf '%s' "$__ush_cell" | od -A n -v -t x1 | tr -d ' \n'
-  printf ' '
-}
-
-ush_fn_std__read_cell() {
-  case $__ush_cells in x*' '*) ;; *) return 1 ;; esac
-  __ush_hex=${__ush_cells%% *}
-  __ush_cells=${__ush_cells#* }
-  __ush_cell=$(LC_ALL=C awk -v s="${__ush_hex#x}" 'BEGIN {
-    digits = "0123456789abcdef"
-    for (i = 1; i <= length(s); i += 2)
-      printf "%c", (index(digits, substr(s,i,1))-1)*16 + index(digits,substr(s,i+1,1))-1
-    printf "."
-  }') || return "$?"
-  __ush_cell=${__ush_cell%.}
-  eval "$1=\$__ush_cell"
-}
-
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
   name="${__ush_fn_greet_arg_0}"
@@ -103,11 +70,9 @@ __ush_at 14 'print $ greet name: "mini"'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)"
 printf '%s\n' "${__ush_value_1}"
 __ush_at 15 'match user {'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
-__ush_walk_record_4_User ush_fn_std__read_cell __ush_match_2
-if [ "${__ush_match_2__tag}" = 'User::User' ]; then
-  name="${__ush_match_2__name-}"
-  age="${__ush_match_2__age-}"
+if [ "${user__tag}" = 'User::User' ]; then
+  name="${user__name-}"
+  age="${user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
   printf '%s\n' "$(printf '%s' "${name}" ':' "${age}")"
 elif :; then

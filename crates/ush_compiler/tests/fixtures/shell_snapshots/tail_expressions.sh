@@ -59,8 +59,7 @@ ush_fn_choose() {
   __ush_fn_choose_arg_0="${1}"
   flag="${__ush_fn_choose_arg_0}"
   __ush_at 7 'match flag {'
-  __ush_match_0="${__ush_fn_choose_arg_0}"
-  if [ "${__ush_match_0}" = "true" ]; then
+  if [ "${__ush_fn_choose_arg_0}" = "true" ]; then
     __ush_at 8 'true => "yes",'
     if [ -n "${__ush_return_path:-}" ]; then
       printf '%s' 'yes' > "$__ush_return_path"
@@ -83,15 +82,15 @@ ush_fn_run() {
   __ush_at 14 'trace();'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_trace ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 15 'choose true'
-  __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)"
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${__ush_value_1}" > "$__ush_return_path"
+    printf '%s' "${__ush_value_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${__ush_value_1}" >&4
+    printf '%s' "${__ush_value_0}" >&4
   fi
   return 0
 }
 
 __ush_at 18 'print $ run ()'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)"
-printf '%s\n' "${__ush_value_2}"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)"
+printf '%s\n' "${__ush_value_1}"

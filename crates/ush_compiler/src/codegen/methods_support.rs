@@ -159,7 +159,7 @@ fn copy_named_binding(
             ty: binding.ty,
             storage: Storage::Aggregate(binding_name(binding.storage).into()),
         },
-        Storage::Task(_) => bail!("task handles are not valid method arguments"),
+        Storage::Task(_, _) => bail!("task handles are not valid method arguments"),
     })
 }
 
@@ -168,6 +168,6 @@ fn binding_name(storage: Storage) -> String {
         Storage::Primitive(name)
         | Storage::Adt(name)
         | Storage::Aggregate(name)
-        | Storage::Task(name) => name.into(),
+        | Storage::Task(name, _) => name.into(),
     }
 }

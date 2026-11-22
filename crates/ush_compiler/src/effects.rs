@@ -14,7 +14,7 @@ use crate::{
     ast::{Statement, StatementKind},
     codegen::FunctionRegistry,
     env::{EnumRegistry, Env},
-    errors::ErrorSet,
+    errors::{ErrorSet, ErrorType},
     types::{AstString as String, Map as HashMap},
 };
 use declared_errors::{exposed_errors, validate_function_errors};
@@ -108,4 +108,12 @@ pub(crate) fn analyze_function_errors(
     )?;
 
     Ok(registry)
+}
+
+fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
+    let mut errors = registry.get(name).cloned().unwrap_or_default();
+    if crate::commands::lookup(name).is_some() {
+        errors.insert(ErrorType::Unknown);
+    }
+    errors
 }
