@@ -1,7 +1,11 @@
 url: https://github.com/kkawakam/rustyline
 crate: rustyline
-tag: v18.0.0
+tag: v18.0.1
+reviewed: v19.0.0
 notes: |
+  Version 19.0.0 uses cfg_select! in the Unix backend. This macro requires
+  Rust 1.95, while ush supports 1.89. Track every new 18.x patch and review
+  the next upstream release when it appears.
   Vendored to allow custom key bindings and to pin the readline
   surface against upstream churn. When updating, walk the diff between
   this tag and the new upstream release for behaviour changes that

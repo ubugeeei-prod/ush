@@ -41,6 +41,10 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+- Updated vendored rustyline to 18.0.1, including the completion prompt fix.
+  Upstream monitoring checks both new stable releases and updates to the
+  maintained major through the Cargo registry index. Rustyline 19 uses Rust
+  1.95 syntax while the workspace supports Rust 1.89.
 - Replaced the unmaintained `chrono` dependency with `time` for local file
   timestamps, resolving RUSTSEC-2026-0543 without suppressing the advisory.
 

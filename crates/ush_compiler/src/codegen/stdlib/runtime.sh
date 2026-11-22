@@ -8,23 +8,23 @@ __ush_std_env_validate() {
 }
 
 ush_fn_std__env__get() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   eval "printf '%s' \"\${$1-}\""
 }
 
 ush_fn_std__env__get_or() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   __ush_default=$2
   eval "printf '%s' \"\${$1-\${__ush_default}}\""
 }
 
 ush_fn_std__env__set() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   export "$1=$2"
 }
 
 ush_fn_std__env__unset() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   unset "$1"
 }
 
@@ -299,7 +299,7 @@ ush_fn_std__path__mkdir_p() {
 }
 
 ush_fn_std__path__prepend_env() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   __ush_segment=$(__ush_std_path_resolve "$2")
   __ush_current="$(ush_fn_std__env__get "$1")"
   if [ -n "$__ush_current" ]; then

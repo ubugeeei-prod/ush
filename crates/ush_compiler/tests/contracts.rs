@@ -202,3 +202,19 @@ print job.await + 1
     let error = UshCompiler.compile_source(&bad).unwrap_err();
     assert!(format!("{error:#}").contains("unknown"), "{error:#}");
 }
+
+#[test]
+fn unit_functions_can_end_in_a_conditional_failure() {
+    assert_eq!(
+        run(r#"
+fn require_name(name: String) -> () / unknown, stderr {
+  if name == "" {
+    fail(2, "missing name")
+  }
+}
+require_name("ok")?
+print "ok"
+"#),
+        "ok\n"
+    );
+}

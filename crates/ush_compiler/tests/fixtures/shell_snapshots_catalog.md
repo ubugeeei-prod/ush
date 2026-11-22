@@ -1323,13 +1323,13 @@ __ush_std_env_validate() {
 }
 
 ush_fn_std__env__get_or() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   __ush_default=$2
   eval "printf '%s' \"\${$1-\${__ush_default}}\""
 }
 
 ush_fn_std__env__set() {
-  __ush_std_env_validate "$1"
+  __ush_std_env_validate "$1" || return "$?"
   export "$1=$2"
 }
 
