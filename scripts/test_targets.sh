@@ -9,6 +9,7 @@ PATH=$tmp:$PATH
 export PATH
 
 for target in sh bash zsh ash; do
+  sh scripts/test_task_await.sh "$ush" "$target"
   for source in examples/*.ush; do
     "$ush" compile "$source" --target "$target" -o "$tmp/script"
     "$target" -n "$tmp/script"

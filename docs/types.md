@@ -71,4 +71,4 @@ print result
 
 Inside a capture the selected shell handles quotes, pipes, redirections, here-documents and variable expansion. For multiline captures, put the final `)?` at the indentation of the opening source line. `ush script.ush` inherits standard input. Inline shell code follows the dialect of the chosen interpreter.
 
-Launching a task evaluates the call arguments in the parent and starts a background shell process. Handles can be awaited more than once. The enclosing task scope waits for unfinished children before cleaning up its private result directory. Task processes inherit a snapshot of shell state and can share files and other external resources.
+Launching a task evaluates the call arguments in the parent and starts a background shell process. Handles can be awaited more than once, including from sibling tasks that capture the handle. Each waiter observes the same completed value or exit status. The enclosing task scope waits for unfinished children before cleaning up its private result directory. Task processes inherit a snapshot of shell state and can share files and other external resources.

@@ -56,8 +56,9 @@ pub(super) fn start_task(
     out.push_str(&format!(
         "{prefix}__result=$__ush_slot/result\n: > \"${{{prefix}__result}}\"\n"
     ));
+    out.push_str(&format!(": > \"${{{prefix}__result}}.status\"\n"));
     out.push_str(&format!(
-        "( __ush_task_scope; __ush_return_path=\"${{{prefix}__result}}\"; {rendered}"
+        "( __ush_task_scope \"${{{prefix}__result}}.status\"; __ush_return_path=\"${{{prefix}__result}}\"; {rendered}"
     ));
     if stdout_value {
         out.push_str(" > \"$__ush_return_path\"");
@@ -80,8 +81,9 @@ pub(crate) fn compile_await(task: &str, env: &Env, out: &mut OutputBuffer) -> Re
     };
 
     out.push_str(&format!("if [ \"${{{prefix}__awaited}}\" = '0' ]; then\n"));
-    out.push_str(&format!("  wait \"${{{prefix}__pid}}\" || exit \"$?\"\n"));
-    out.push_str(&format!("  __ush_forget_job \"${{{prefix}__pid}}\"\n"));
+    out.push_str(&format!(
+        "  __ush_wait_job \"${{{prefix}__pid}}\" \"${{{prefix}__result}}.status\" || exit \"$?\"\n"
+    ));
     out.push_str(&format!("  {prefix}__awaited='1'\n"));
     out.push_str("fi\n");
 

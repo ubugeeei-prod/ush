@@ -10,6 +10,14 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.11.1] — 2026-11-23
+
+### Fixed
+
+- Preserve the original exit status and source locations when awaiting a failed
+  task. Cleanup reaps each child once. Sibling tasks can await the same handle
+  and read its completed result.
+
 ## [0.11.0] — 2026-11-23
 
 ### Language and runtime
@@ -407,7 +415,8 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei/ush/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.11.1...HEAD
+[0.11.1]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.1
 [0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
 [0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
 [0.9.0]: https://github.com/ubugeeei/ush/releases/tag/v0.9.0
