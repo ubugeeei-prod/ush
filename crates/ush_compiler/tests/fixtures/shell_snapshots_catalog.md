@@ -80,12 +80,28 @@ __ush_task_slot() {
     [ -d "$__ush_slot" ] || return 1
   done
 }
-__ush_forget_job() {
-  __ush_remaining=''
-  for __ush_pid in $__ush_jobs; do
-    if [ "$__ush_pid" != "$1" ]; then __ush_remaining="$__ush_remaining $__ush_pid"; fi
+__ush_wait_job() {
+  __ush_wait_fallback=127
+  case " $__ush_jobs " in
+    *" $1 "*)
+      __ush_wait_fallback=0
+      wait "$1" 2>/dev/null || __ush_wait_fallback=$?
+      __ush_remaining=''
+      for __ush_pid in $__ush_jobs; do
+        if [ "$__ush_pid" != "$1" ]; then __ush_remaining="$__ush_remaining $__ush_pid"; fi
+      done
+      __ush_jobs=$__ush_remaining ;;
+  esac
+  # Only the launching shell can reap the child. Other task scopes may
+  # also await its result, including after the launching shell has reaped it.
+  while ! IFS= read -r __ush_wait_status < "$2"; do
+    if ! kill -0 "$1" 2>/dev/null; then
+      IFS= read -r __ush_wait_status < "$2" || return "$__ush_wait_fallback"
+      break
+    fi
+    sleep 0.01 2>/dev/null || sleep 1
   done
-  __ush_jobs=$__ush_remaining
+  return "$__ush_wait_status"
 }
 __ush_join() {
   __ush_exit=$1
@@ -96,7 +112,15 @@ __ush_join() {
 }
 __ush_task_scope() {
   __ush_jobs=''
-  trap '__ush_join "$?"; exit "$__ush_exit"' 0
+  __ush_completion=${1:-}
+  trap '__ush_end_scope "$?"' 0
+}
+__ush_end_scope() {
+  __ush_join "$1"
+  if [ -n "$__ush_completion" ]; then
+    printf '%s\n' "$__ush_exit" > "$__ush_completion"
+  fi
+  exit "$__ush_exit"
 }
 __ush_finish() {
   __ush_join "$1"
@@ -151,7 +175,8 @@ __ush_at 6 'let task = async worker "worker"'
 __ush_task_slot
 __ush_task_0__result=$__ush_slot/result
 : > "${__ush_task_0__result}"
-( __ush_task_scope; __ush_return_path="${__ush_task_0__result}"; ush_fn_worker 'worker' ) &
+: > "${__ush_task_0__result}.status"
+( __ush_task_scope "${__ush_task_0__result}.status"; __ush_return_path="${__ush_task_0__result}"; ush_fn_worker 'worker' ) &
 __ush_task_0__pid=$!
 __ush_task_0__awaited=0
 __ush_jobs="${__ush_jobs} $!"
@@ -170,7 +195,8 @@ ush_fn___ush_task_block_1() {
 __ush_task_slot
 __ush_task_2__result=$__ush_slot/result
 : > "${__ush_task_2__result}"
-( __ush_task_scope; __ush_return_path="${__ush_task_2__result}"; ush_fn___ush_task_block_1 ) &
+: > "${__ush_task_2__result}.status"
+( __ush_task_scope "${__ush_task_2__result}.status"; __ush_return_path="${__ush_task_2__result}"; ush_fn___ush_task_block_1 ) &
 __ush_task_2__pid=$!
 __ush_task_2__awaited=0
 __ush_jobs="${__ush_jobs} $!"
@@ -199,7 +225,8 @@ ush_fn___ush_task_block_3() {
 __ush_task_slot
 __ush_task_4__result=$__ush_slot/result
 : > "${__ush_task_4__result}"
-( __ush_task_scope; __ush_return_path="${__ush_task_4__result}"; ush_fn___ush_task_block_3 ) &
+: > "${__ush_task_4__result}.status"
+( __ush_task_scope "${__ush_task_4__result}.status"; __ush_return_path="${__ush_task_4__result}"; ush_fn___ush_task_block_3 ) &
 __ush_task_4__pid=$!
 __ush_task_4__awaited=0
 __ush_jobs="${__ush_jobs} $!"
@@ -207,22 +234,19 @@ __ush_at 17 'print "after"'
 printf '%s\n' 'after'
 __ush_at 18 'let result = task.await'
 if [ "${__ush_task_0__awaited}" = '0' ]; then
-  wait "${__ush_task_0__pid}" || exit "$?"
-  __ush_forget_job "${__ush_task_0__pid}"
+  __ush_wait_job "${__ush_task_0__pid}" "${__ush_task_0__result}.status" || exit "$?"
   __ush_task_0__awaited='1'
 fi
 result="$(cat "${__ush_task_0__result}")"
 __ush_at 19 'let next = block.await'
 if [ "${__ush_task_2__awaited}" = '0' ]; then
-  wait "${__ush_task_2__pid}" || exit "$?"
-  __ush_forget_job "${__ush_task_2__pid}"
+  __ush_wait_job "${__ush_task_2__pid}" "${__ush_task_2__result}.status" || exit "$?"
   __ush_task_2__awaited='1'
 fi
 next="$(cat "${__ush_task_2__result}")"
 __ush_at 20 'let value = number.await'
 if [ "${__ush_task_4__awaited}" = '0' ]; then
-  wait "${__ush_task_4__pid}" || exit "$?"
-  __ush_forget_job "${__ush_task_4__pid}"
+  __ush_wait_job "${__ush_task_4__pid}" "${__ush_task_4__result}.status" || exit "$?"
   __ush_task_4__awaited='1'
 fi
 value="$(cat "${__ush_task_4__result}")"
@@ -858,12 +882,28 @@ __ush_task_slot() {
     [ -d "$__ush_slot" ] || return 1
   done
 }
-__ush_forget_job() {
-  __ush_remaining=''
-  for __ush_pid in $__ush_jobs; do
-    if [ "$__ush_pid" != "$1" ]; then __ush_remaining="$__ush_remaining $__ush_pid"; fi
+__ush_wait_job() {
+  __ush_wait_fallback=127
+  case " $__ush_jobs " in
+    *" $1 "*)
+      __ush_wait_fallback=0
+      wait "$1" 2>/dev/null || __ush_wait_fallback=$?
+      __ush_remaining=''
+      for __ush_pid in $__ush_jobs; do
+        if [ "$__ush_pid" != "$1" ]; then __ush_remaining="$__ush_remaining $__ush_pid"; fi
+      done
+      __ush_jobs=$__ush_remaining ;;
+  esac
+  # Only the launching shell can reap the child. Other task scopes may
+  # also await its result, including after the launching shell has reaped it.
+  while ! IFS= read -r __ush_wait_status < "$2"; do
+    if ! kill -0 "$1" 2>/dev/null; then
+      IFS= read -r __ush_wait_status < "$2" || return "$__ush_wait_fallback"
+      break
+    fi
+    sleep 0.01 2>/dev/null || sleep 1
   done
-  __ush_jobs=$__ush_remaining
+  return "$__ush_wait_status"
 }
 __ush_join() {
   __ush_exit=$1
@@ -874,7 +914,15 @@ __ush_join() {
 }
 __ush_task_scope() {
   __ush_jobs=''
-  trap '__ush_join "$?"; exit "$__ush_exit"' 0
+  __ush_completion=${1:-}
+  trap '__ush_end_scope "$?"' 0
+}
+__ush_end_scope() {
+  __ush_join "$1"
+  if [ -n "$__ush_completion" ]; then
+    printf '%s\n' "$__ush_exit" > "$__ush_completion"
+  fi
+  exit "$__ush_exit"
 }
 __ush_finish() {
   __ush_join "$1"
@@ -971,14 +1019,14 @@ ush_fn_awaited() {
     __ush_task_slot
     __ush_task_3__result=$__ush_slot/result
     : > "${__ush_task_3__result}"
-    ( __ush_task_scope; __ush_return_path="${__ush_task_3__result}"; ush_fn_fail ) &
+    : > "${__ush_task_3__result}.status"
+    ( __ush_task_scope "${__ush_task_3__result}.status"; __ush_return_path="${__ush_task_3__result}"; ush_fn_fail ) &
     __ush_task_3__pid=$!
     __ush_task_3__awaited=0
     __ush_jobs="${__ush_jobs} $!"
     __ush_at 25 'let value = task.await'
     if [ "${__ush_task_3__awaited}" = '0' ]; then
-      wait "${__ush_task_3__pid}" || exit "$?"
-      __ush_forget_job "${__ush_task_3__pid}"
+      __ush_wait_job "${__ush_task_3__pid}" "${__ush_task_3__result}.status" || exit "$?"
       __ush_task_3__awaited='1'
     fi
     value="$(cat "${__ush_task_3__result}")"

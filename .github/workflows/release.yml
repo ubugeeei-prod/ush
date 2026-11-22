@@ -123,6 +123,9 @@ jobs:
       - name: Build release binaries
         run: cargo build --locked --release --target "${{ matrix.target }}" -p ush -p ush_lsp
 
+      - name: Check task diagnostics with the release binary
+        run: sh scripts/test_task_await.sh "target/${{ matrix.target }}/release/ush"
+
       - name: Package release archive
         env:
           COPYFILE_DISABLE: "1"
