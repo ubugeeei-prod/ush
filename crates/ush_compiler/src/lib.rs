@@ -14,7 +14,7 @@
 //!
 //! 1. **Parse** — turns `.ush` text into an AST.
 //! 2. **Resolve imports** — flattens `use` paths.
-//! 3. **Effects pass** — typed-error / `Problem!T` propagation,
+//! 3. **Effects pass** — typed-error / `T / Problem` propagation,
 //!    match exhaustiveness, control-flow validation.
 //! 4. **Codegen** — lowers to POSIX `sh` and emits a [`SourceMap`].
 //!
@@ -29,19 +29,26 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod ast;
+mod commands;
+mod contracts;
+pub use commands::command_names;
 mod codegen;
 mod docs;
 mod effects;
 mod env;
 mod errors;
+#[cfg(feature = "std")]
+mod file;
 mod imports;
 mod matching;
 mod parse;
 mod scan;
 mod sourcemap;
 mod string_literal;
+mod target;
 mod traits;
 mod types;
+pub use target::ShellTarget;
 mod util;
 
 #[macro_use]
@@ -50,6 +57,7 @@ extern crate alloc;
 use anyhow::Result;
 pub use docs::ScriptDocs;
 pub use effects::{Effect, EffectSet, FunctionEffects};
+pub use scan::{closes_shell_capture, opens_shell_capture};
 pub use sourcemap::{
     CompiledScript, SourceMap, SourceMapLine, SourceMapSection, SourceMapSectionSummary,
     SourceMapSourceLine, SourceMapSummary,
@@ -57,83 +65,33 @@ pub use sourcemap::{
 use types::OutputString;
 
 #[cfg(feature = "std")]
-use anyhow::{Context, ensure};
+use anyhow::Context;
 #[cfg(feature = "std")]
 use std::{fs, path::Path};
 
 #[derive(Debug, Clone, Default)]
 pub struct UshCompiler {
-    _private: (),
+    target: ShellTarget,
 }
 
 #[allow(non_upper_case_globals)]
-pub const UshCompiler: UshCompiler = UshCompiler { _private: () };
+pub const UshCompiler: UshCompiler = UshCompiler {
+    target: ShellTarget::Sh,
+};
 
 impl UshCompiler {
-    #[cfg(feature = "std")]
-    pub fn compile_file(&self, path: &Path) -> Result<OutputString> {
-        Ok(self.compile_file_with_sourcemap(path)?.shell)
-    }
-
-    #[cfg(feature = "std")]
-    pub fn compile_file_with_sourcemap(&self, path: &Path) -> Result<CompiledScript> {
-        let source = fs::read_to_string(path)
-            .with_context(|| format!("failed to read {}", path.display()))?;
-        let absolute = fs::canonicalize(path)
-            .with_context(|| format!("failed to canonicalize {}", path.display()))?;
-        let source_dir = absolute.parent().and_then(|item| item.to_str());
-        let source_path = absolute.to_str();
-        self.compile_with_context(
-            &source,
-            path.file_name().and_then(|name| name.to_str()),
-            codegen::SourceContext::Absolute {
-                directory: source_dir.unwrap_or(""),
-                path: source_path.unwrap_or(""),
-            },
-        )
-        .with_context(|| format!("failed to compile {}", path.display()))
-    }
-
-    /// Compiles a script into a deterministic artifact intended to be checked in.
-    ///
-    /// The source and output must be adjacent. The generated shell resolves
-    /// source-relative paths from its own location instead of embedding the
-    /// build machine's absolute path.
-    #[cfg(feature = "std")]
-    pub fn compile_checked_in_file_with_sourcemap(
-        &self,
-        path: &Path,
-        output: &Path,
-    ) -> Result<CompiledScript> {
-        let source_parent = canonical_parent(path)?;
-        let output_parent = canonical_parent(output)?;
-        ensure!(
-            source_parent == output_parent,
-            "checked-in source and output must be in the same directory"
-        );
-
-        let source_name = portable_file_name(path, "source")?;
-        let output_name = portable_file_name(output, "output")?;
-        let source = fs::read_to_string(path)
-            .with_context(|| format!("failed to read {}", path.display()))?;
-
-        self.compile_with_context(
-            &source,
-            Some(source_name),
-            codegen::SourceContext::CheckedIn {
-                source_name,
-                output_name,
-            },
-        )
-        .with_context(|| format!("failed to compile {}", path.display()))
+    pub const fn for_target(target: ShellTarget) -> Self {
+        Self { target }
     }
 
     pub fn compile_source(&self, source: &str) -> Result<OutputString> {
-        Ok(self.compile_source_with_sourcemap(source)?.shell)
+        self.compile_with_context(source, None, codegen::SourceContext::none(), false)
+            .map(|out| out.into_shell())
     }
 
     pub fn compile_source_with_sourcemap(&self, source: &str) -> Result<CompiledScript> {
-        self.compile_with_context(source, None, codegen::SourceContext::none())
+        self.compile_with_context(source, None, codegen::SourceContext::none(), true)
+            .map(|out| out.into_compiled(Some(source)))
     }
 
     fn compile_with_context(
@@ -141,10 +99,23 @@ impl UshCompiler {
         source: &str,
         script_name: Option<&str>,
         source_context: codegen::SourceContext<'_>,
-    ) -> Result<CompiledScript> {
+        mapped: bool,
+    ) -> Result<sourcemap::OutputBuffer> {
         let program = imports::resolve_program(parse::parse_program(source)?)?;
+        if script_name == Some("bin.ush") && program.iter().any(|s| matches!(&s.kind, ast::StatementKind::Function(f) if f.name=="bin" && f.scheme.as_ref().is_some_and(|scheme| !scheme.variables.is_empty()))) {
+            anyhow::bail!("bin.ush requires concrete parameter types for its shell entrypoint");
+        }
+        let program = contracts::elaborate(program)?;
         let docs = ScriptDocs::parse(source);
-        codegen::compile_program(&program, &docs, source, script_name, source_context)
+        codegen::compile_program(
+            &program,
+            &docs,
+            source,
+            script_name,
+            source_context,
+            self.target,
+            mapped,
+        )
     }
 
     #[cfg(feature = "std")]
@@ -175,28 +146,6 @@ impl UshCompiler {
             top_level: effects::top_level_effects(&program)?,
         })
     }
-}
-
-#[cfg(feature = "std")]
-fn canonical_parent(path: &Path) -> Result<std::path::PathBuf> {
-    let parent = path
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
-    fs::canonicalize(parent).with_context(|| format!("failed to canonicalize {}", parent.display()))
-}
-
-#[cfg(feature = "std")]
-fn portable_file_name<'a>(path: &'a Path, kind: &str) -> Result<&'a str> {
-    let name = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .with_context(|| format!("checked-in {kind} must have a UTF-8 file name"))?;
-    ensure!(
-        !name.contains(['\n', '\r']),
-        "checked-in {kind} file name must not contain a newline"
-    );
-    Ok(name)
 }
 
 /// What a whole program touches, function by function.

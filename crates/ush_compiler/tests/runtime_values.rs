@@ -142,10 +142,10 @@ fn a_raised_error_propagates_through_the_question_mark() {
         enum Problem {
           MissingConfig,
         }
-        fn load() -> Problem!String {
-          raise Problem::MissingConfig
+        fn load() -> String / Problem, stderr {
+          fail Problem::MissingConfig
         }
-        fn run() -> Problem!String {
+        fn run() -> String / Problem, stderr {
           let value = load()?
           value
         }
@@ -164,10 +164,10 @@ fn a_successful_fallible_call_keeps_going() {
         enum Problem {
           MissingConfig,
         }
-        fn load() -> Problem!String {
+        fn load() -> String / Problem, stderr {
           "config"
         }
-        fn run() -> Problem!String {
+        fn run() -> String / Problem, stderr {
           let value = load()?
           "<" + value + ">"
         }

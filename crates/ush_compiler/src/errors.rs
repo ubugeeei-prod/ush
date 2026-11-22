@@ -56,12 +56,12 @@ impl ErrorSet {
             return payload;
         }
 
-        let errors = self.render();
-        if self.items.len() == 1 {
-            format!("{errors}!{payload}").into()
-        } else {
-            format!("({errors})!{payload}").into()
-        }
+        let names = self
+            .iter()
+            .map(ErrorType::render)
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!("{payload} / {names}").into()
     }
 }
 

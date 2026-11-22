@@ -107,6 +107,8 @@ fn compile_string_fragment(
     enums: &EnumRegistry,
 ) -> Result<String> {
     match expr {
+        Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
+        Expr::ShellCapture(command) => Ok(format!("\"$(\n{command}\n)\"")),
         Expr::String(value) => Ok(super::super::util::shell_quote(value)),
         Expr::Int(value) => Ok(super::super::util::shell_quote(&value.to_string())),
         Expr::Bool(value) => Ok(super::super::util::shell_quote(if *value {
@@ -202,7 +204,7 @@ fn primitive_var<'a>(binding: &'a Binding, name: &str) -> Result<&'a str> {
         Storage::Primitive(var) => Ok(var.as_str()),
         Storage::Adt(_) => bail!("`{name}` is not a primitive value"),
         Storage::Aggregate(_) => bail!("`{name}` is a structured value"),
-        Storage::Task(_) => bail!("`{name}` is a task handle"),
+        Storage::Task(_, _) => bail!("`{name}` is a task handle"),
     }
 }
 

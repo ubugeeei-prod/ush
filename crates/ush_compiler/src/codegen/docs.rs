@@ -10,6 +10,14 @@ pub(crate) fn push_doc_support(
     script_name: &str,
     extra_completion: &[String],
 ) {
+    if docs.is_empty() && extra_completion.is_empty() {
+        out.push_str("case \"${1:-}\" in\n  -h|--help) printf '%s' ");
+        out.push_str(&shell_quote(&docs.render_help(script_name)));
+        out.push_str("; exit 0 ;;\n  man|--man)\n    if [ -n \"${2:-}\" ]; then printf 'No documented item named: %s\\n' \"$2\" >&2; exit 1; fi\n    printf '%s' ");
+        out.push_str(&shell_quote(&docs.render_man(script_name, None)));
+        out.push_str("; exit 0 ;;\n  complete|--complete)\n    for item in --complete --help --man -h complete man; do\n      case $item in \"${2:-}\"*) printf '%s\\n' \"$item\" ;; esac\n    done\n    exit 0 ;;\nesac\n\n");
+        return;
+    }
     push_simple_doc_function(out, "__ush_print_help", &docs.render_help(script_name));
     push_man_function(out, docs, script_name);
     push_complete_function(out, docs, extra_completion);

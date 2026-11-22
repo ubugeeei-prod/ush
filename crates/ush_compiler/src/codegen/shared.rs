@@ -11,7 +11,7 @@ pub(crate) fn binding_for_name(name: &str, ty: Type) -> Binding {
         Type::String | Type::Int | Type::Bool | Type::Unit => {
             Storage::Primitive(NameString::from(name))
         }
-        Type::Task(_) => Storage::Task(NameString::from(name)),
+        Type::Task(_) => Storage::Task(NameString::from(name), Default::default()),
     };
     Binding { ty, storage }
 }

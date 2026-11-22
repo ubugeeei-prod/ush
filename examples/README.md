@@ -29,7 +29,8 @@ and adding `;` keeps that expression as a statement instead.
 - `std_modules.ush`: `std::env`, `from_cwd` / `from_source` path refs, plus method-style `path.resolve()`, `path.exists()`, `path.read_text()`, `std::fs`, `std::command`, and `std::string`
 - `http_regex.ush`: `std::http::{get, download}` plus `std::regex::{is_match, find, capture, replace}` and String regex methods
 - `control_flow.ush`: `if` tail values, `for in`, ranges, `while`, `loop`, and `if let ... && ...`
-- `effects.ush`: Effekt-style effect rows (`-> T / { … }`), `effect` declarations, `do`, and `try … with` handlers
+- `contracts.ush` exercises higher-kinded parameters, indexed sequences, quantities, shell captures and tasks.
+- `effects.ush`: Effekt-style effect rows (`-> T / …`), `effect` declarations, `do`, and `try … with` handlers
 
 ## ADT and Pattern Matching
 
@@ -37,7 +38,7 @@ and adding `;` keeps that expression as a statement instead.
 - `adt.ush`: nested tuple-style enums
 - `option.ush`: wildcard matching on a small enum
 - `response.ush`: struct-style enum payloads with shorthand bindings
-- `error_streams.ush`: typed `Problem!T` signatures, `raise`, tail expressions, inferred `# raises:`, and Rust-like `?` propagation
+- `error_streams.ush`: typed `T / Problem` signatures, `raise`, tail expressions, inferred `# raises:`, and Rust-like `?` propagation
 
 ## Async and Tasks
 

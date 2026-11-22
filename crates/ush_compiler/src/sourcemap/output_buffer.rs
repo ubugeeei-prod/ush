@@ -1,5 +1,6 @@
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
-use core::{iter, mem};
+use core::mem;
 
 use crate::types::OutputString;
 
@@ -8,37 +9,38 @@ use super::{CompiledScript, SourceMap, SourceMapLine, SourceMapSection};
 #[derive(Debug, Clone)]
 pub(crate) struct OutputBuffer {
     text: OutputString,
+    mapped: bool,
     line_origins: Vec<Option<usize>>,
     line_sections: Vec<SourceMapSection>,
+    verbatim: BTreeSet<usize>,
     current_origin: Option<usize>,
     current_section: SourceMapSection,
 }
 
-impl Default for OutputBuffer {
-    fn default() -> Self {
+impl OutputBuffer {
+    pub(crate) fn new(mapped: bool) -> Self {
         Self {
             text: OutputString::new(),
+            mapped,
             line_origins: Vec::new(),
             line_sections: Vec::new(),
+            verbatim: BTreeSet::new(),
             current_origin: None,
             current_section: SourceMapSection::UserCode,
         }
     }
-}
 
-impl OutputBuffer {
-    /// Root buffer for a whole program. Every script carries the
-    /// shared runtime prelude, so the final text is always at least
-    /// this large — reserving up front avoids a dozen reallocations
-    /// and copies of a growing buffer.
-    pub(crate) fn for_program(section: SourceMapSection) -> Self {
-        const EXPECTED_BYTES: usize = 24 * 1024;
-        const EXPECTED_LINES: usize = 640;
+    /// Reserve shell text up front. Only a requested sidecar needs per-line metadata.
+    pub(crate) fn for_program(section: SourceMapSection, mapped: bool) -> Self {
+        const EXPECTED_BYTES: usize = 2 * 1024;
+        const EXPECTED_LINES: usize = 64;
 
         Self {
             text: OutputString::with_capacity(EXPECTED_BYTES),
-            line_origins: Vec::with_capacity(EXPECTED_LINES),
-            line_sections: Vec::with_capacity(EXPECTED_LINES),
+            mapped,
+            line_origins: Vec::with_capacity(if mapped { EXPECTED_LINES } else { 0 }),
+            line_sections: Vec::with_capacity(if mapped { EXPECTED_LINES } else { 0 }),
+            verbatim: BTreeSet::new(),
             current_origin: None,
             current_section: section,
         }
@@ -46,6 +48,9 @@ impl OutputBuffer {
 
     pub(crate) fn push_str(&mut self, value: &str) {
         self.text.push_str(value);
+        if !self.mapped {
+            return;
+        }
         // Codegen pushes multi-kilobyte runtime blobs through here,
         // so count line breaks over the bytes instead of decoding
         // every character.
@@ -57,10 +62,23 @@ impl OutputBuffer {
 
     pub(crate) fn push(&mut self, ch: char) {
         self.text.push(ch);
-        if ch == '\n' {
+        if self.mapped && ch == '\n' {
             self.line_origins.push(self.current_origin);
             self.line_sections.push(self.current_section);
         }
+    }
+
+    pub(crate) fn as_str(&self) -> &str {
+        &self.text
+    }
+
+    pub(crate) fn append(&mut self, mut other: Self) {
+        let base = self.text.len();
+        self.verbatim
+            .extend(other.verbatim.iter().map(|pos| base + *pos));
+        self.text.push_str(&other.text);
+        self.line_origins.append(&mut other.line_origins);
+        self.line_sections.append(&mut other.line_sections);
     }
 
     pub(crate) fn is_empty(&self) -> bool {
@@ -76,15 +94,59 @@ impl OutputBuffer {
     }
 
     pub(crate) fn append_buffer(&mut self, other: &Self, indent: usize) {
-        for (line, (origin, section)) in other.text.lines().zip(other.completed_line_metadata()) {
-            let previous_origin = self.set_origin(origin);
-            let previous_section = self.set_section(section);
-            self.push_indent(indent);
+        let mut position = 0;
+        for (index, line) in other.text.split_inclusive('\n').enumerate() {
+            if other.verbatim.contains(&position) {
+                self.verbatim.insert(self.text.len());
+            } else {
+                self.push_indent(indent);
+            }
+            self.text.push_str(line);
+            if !line.ends_with('\n') {
+                self.text.push('\n');
+            }
+            if self.mapped {
+                self.line_origins.push(
+                    other
+                        .line_origins
+                        .get(index)
+                        .copied()
+                        .unwrap_or(other.current_origin),
+                );
+                self.line_sections.push(
+                    other
+                        .line_sections
+                        .get(index)
+                        .copied()
+                        .unwrap_or(other.current_section),
+                );
+            }
+            position += line.len();
+        }
+    }
+
+    /// Shell source has significant columns (here-doc delimiters and bodies).
+    pub(crate) fn push_shell_source(&mut self, source: &str) {
+        let origin = self.current_origin;
+        for (offset, line) in source.split('\n').enumerate() {
+            self.verbatim.insert(self.text.len());
+            self.current_origin = origin.map(|n| n + offset);
             self.push_str(line);
             self.push('\n');
-            self.set_origin(previous_origin);
-            self.set_section(previous_section);
         }
+        self.current_origin = origin;
+    }
+
+    pub(crate) fn finish(&mut self) {
+        while self.text.ends_with("\n\n") {
+            self.text.pop();
+            self.line_origins.pop();
+            self.line_sections.pop();
+        }
+    }
+
+    pub(crate) fn into_shell(self) -> OutputString {
+        self.text
     }
 
     /// Writes `indent` spaces without building a temporary string.
@@ -102,38 +164,22 @@ impl OutputBuffer {
 
     pub(crate) fn into_compiled(mut self, source: Option<&str>) -> CompiledScript {
         self.finish_partial_line();
-        let generated_lines = self
-            .text
-            .lines()
-            .map(OutputString::from)
-            .collect::<Vec<_>>();
-        debug_assert_eq!(generated_lines.len(), self.line_origins.len());
-        debug_assert_eq!(generated_lines.len(), self.line_sections.len());
-        let source_lines = source
-            .map(|value| value.lines().map(OutputString::from).collect::<Vec<_>>())
-            .unwrap_or_default();
+        let source_lines: Vec<_> = source.unwrap_or("").lines().collect();
         let sourcemap = SourceMap {
             lines: self
-                .line_origins
-                .into_iter()
+                .text
+                .lines()
+                .zip(self.line_origins)
                 .zip(self.line_sections)
-                .zip(
-                    generated_lines
-                        .into_iter()
-                        .chain(iter::repeat_with(OutputString::default)),
-                )
                 .enumerate()
-                .map(|(index, ((source_line, section), generated_text))| {
-                    let source_text = source_line
-                        .and_then(|line| source_lines.get(line.saturating_sub(1)))
-                        .cloned();
-                    SourceMapLine {
-                        generated_line: index + 1,
-                        section,
-                        source_line,
-                        generated_text,
-                        source_text,
-                    }
+                .map(|(index, ((text, source_line), section))| SourceMapLine {
+                    generated_line: index + 1,
+                    section,
+                    source_line,
+                    generated_text: text.into(),
+                    source_text: source_line
+                        .and_then(|n| source_lines.get(n - 1))
+                        .map(|s| (*s).into()),
                 })
                 .collect(),
         };
@@ -141,18 +187,6 @@ impl OutputBuffer {
             shell: self.text,
             sourcemap,
         }
-    }
-
-    fn completed_line_metadata(
-        &self,
-    ) -> impl Iterator<Item = (Option<usize>, SourceMapSection)> + '_ {
-        let trailing = (!self.text.is_empty() && !self.text.ends_with('\n'))
-            .then_some((self.current_origin, self.current_section));
-        self.line_origins
-            .iter()
-            .copied()
-            .zip(self.line_sections.iter().copied())
-            .chain(trailing)
     }
 
     fn finish_partial_line(&mut self) {

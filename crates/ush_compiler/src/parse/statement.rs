@@ -150,11 +150,8 @@ fn parse_statement(
     if let Some(rest) = trimmed.strip_prefix("shell ") {
         return Ok(Statement::new(line_no, parse_shell_statement(rest)?));
     }
-    if let Some(rest) = trimmed.strip_prefix("raise ") {
-        return Ok(Statement::new(
-            line_no,
-            StatementKind::Raise(parse_statement_expr(rest)?),
-        ));
+    if let Some(kind) = super::statement_support::parse_failure(trimmed)? {
+        return Ok(Statement::new(line_no, kind));
     }
     if let Some(rest) = trimmed.strip_prefix("return ") {
         return Ok(Statement::new(

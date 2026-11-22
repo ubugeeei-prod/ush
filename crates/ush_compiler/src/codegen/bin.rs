@@ -84,6 +84,20 @@ pub(crate) fn push_bin_entry(
             out.push_str("\" >&2; return 2; }\n");
         }
     }
+    for param in &def.params {
+        if param.ty != Type::Int {
+            continue;
+        }
+        let var = cli_var(&param.name);
+        let (min, max) = def
+            .scheme
+            .as_ref()
+            .and_then(|s| s.integer_bounds(&param.name))
+            .unwrap_or((i64::MIN, i64::MAX));
+        out.push_str(&format!("  __ush_digits=${{{var}#-}}\n  case $__ush_digits in ''|*[!0-9]*) printf '%s\\n' 'invalid integer for {}' >&2; return 2 ;; esac\n",param.name));
+        out.push_str(&format!("  while [ \"${{__ush_digits#0}}\" != \"$__ush_digits\" ]; do __ush_digits=${{__ush_digits#0}}; done\n  case \"${var}\" in -*) {var}=-${{__ush_digits:-0}} ;; *) {var}=${{__ush_digits:-0}} ;; esac\n"));
+        out.push_str(&format!("  if ! [ \"${var}\" -ge '{min}' ] 2>/dev/null || ! [ \"${var}\" -le '{max}' ] 2>/dev/null; then printf '%s\\n' '{} is outside its integer bounds' >&2; return 2; fi\n", param.name));
+    }
     out.push_str("  ush_fn_bin");
     for param in &def.params {
         out.push(' ');

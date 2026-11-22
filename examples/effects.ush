@@ -1,6 +1,6 @@
 # Effects, modelled on Effekt.
 #
-# A function's effect row — the `/ { … }` after its return type — is
+# A function's effect row — the `/ …` after its return type — is
 # what its body still needs from its caller. Run
 # `ush effects examples/effects.ush` to see the row of every
 # function, whether or not it is written down.
@@ -15,20 +15,20 @@ effect audit(entry: String) -> ()
 
 effect ask(question: String) -> String
 
-# `/ {}` is the empty row: this function may touch nothing at all.
-fn slug(name: String) -> String / {} {
+# `/ ()` is the empty row: this function may touch nothing at all.
+fn slug(name: String) -> String / () {
   std::string::replace(name, " ", "-")
 }
 
 # Built-in effects describe what the generated shell does. They are
 # inferred rather than performed, and no handler can take them back.
-fn default_target() -> String / { env } {
+fn default_target() -> String / env {
   std::env::get_or("USER", "world")
 }
 
 # A row mixes both kinds. `audit` is discharged by the handler below;
 # `io` and `env` keep propagating outward.
-fn deploy() -> () / { io, env, ask, audit } {
+fn deploy() -> () / io, env, ask, audit {
   let target = do ask("deploy to?")
   do audit("deploying to " + target)
   print "deployed " + slug(target) + " as " + default_target()
@@ -40,8 +40,8 @@ fn deploy() -> () / { io, env, ask, audit } {
 # `audit` handler returns nothing and just records.
 try {
   deploy()
-} with audit { (entry) =>
+} with audit(entry) {
   print "[audit] " + entry
-} with ask { (question) =>
+} with ask(question) {
   "staging"
 }

@@ -52,6 +52,7 @@ fn statement_errors(
 ) -> Result<ErrorSet> {
     match &statement.kind {
         StatementKind::Use(_)
+        | StatementKind::UnitDef(_)
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)
         | StatementKind::Impl(_)
@@ -88,7 +89,10 @@ fn statement_errors(
             let ty = infer_async_block_type(body, env, functions, impls, enums)?;
             env.insert(
                 name.clone(),
-                binding_for_type(name, Type::Task(Box::new(ty))),
+                crate::env::Binding {
+                    ty: Type::Task(Box::new(ty)),
+                    storage: crate::env::Storage::Task(name.clone(), deferred.clone()),
+                },
             );
             tasks.insert(name.clone(), deferred);
             Ok(ErrorSet::default())
@@ -101,21 +105,17 @@ fn statement_errors(
         }
         StatementKind::Spawn { name, call } => {
             let errors = call_arg_errors(call, env, functions, impls, enums, function_errors)?;
-            let def = functions
-                .get(&call.name)
-                .ok_or_else(|| anyhow!("unknown function: {}", call.name))?;
-            let ty = def
-                .return_type
-                .clone()
-                .ok_or_else(|| anyhow!("async bindings require a return type: {}", call.name))?;
+            let ty = crate::codegen::calls::call_return_type(&call.name, functions)?
+                .ok_or_else(|| anyhow!("task requires a return type: {}", call.name))?;
+            let deferred = super::callee_errors(&call.name, function_errors);
             env.insert(
                 name.clone(),
-                binding_for_type(name, Type::Task(Box::new(ty))),
+                crate::env::Binding {
+                    ty: Type::Task(Box::new(ty)),
+                    storage: crate::env::Storage::Task(name.clone(), deferred.clone()),
+                },
             );
-            tasks.insert(
-                name.clone(),
-                function_errors.get(&call.name).cloned().unwrap_or_default(),
-            );
+            tasks.insert(name.clone(), deferred);
             Ok(errors)
         }
         StatementKind::Await { name, task } => {
@@ -139,6 +139,19 @@ fn statement_errors(
         }
         StatementKind::Call(call) | StatementKind::TryCall(call) => {
             call_errors(call, env, functions, impls, enums, function_errors)
+        }
+        StatementKind::Fail { status, message } => {
+            let mut errors = expr_errors(status, env, functions, impls, enums, function_errors)?;
+            errors.extend(&expr_errors(
+                message,
+                env,
+                functions,
+                impls,
+                enums,
+                function_errors,
+            )?);
+            errors.insert(ErrorType::Unknown);
+            Ok(errors)
         }
         StatementKind::Raise(expr) => {
             let mut errors = expr_errors(expr, env, functions, impls, enums, function_errors)?;

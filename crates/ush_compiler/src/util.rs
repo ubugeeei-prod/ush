@@ -32,7 +32,11 @@ pub(crate) fn split_top_level(source: &str, separator: char) -> Vec<&str> {
             .chars()
             .next()
             .expect("split index must be valid");
-        if state.top_level() && ch == separator {
+        if state.top_level()
+            && ch == separator
+            && !(ch == '$'
+                && (source[index..].starts_with("$(") || source[index..].starts_with("$bin::")))
+        {
             result.push(source[start..index].trim());
             start = index + ch.len_utf8();
         }
@@ -141,34 +145,6 @@ pub(crate) fn parse_paren_body(source: &str) -> Option<(&str, &str)> {
     let open = memchr(b'(', source.as_bytes())?;
     let close = memrchr(b')', source.as_bytes())?;
     (close > open).then_some((source[..open].trim(), source[open + 1..close].trim()))
-}
-
-pub(crate) fn strip_wrapping_parens(source: &str) -> Option<&str> {
-    let trimmed = source.trim();
-    if !trimmed.starts_with('(') || !trimmed.ends_with(')') {
-        return None;
-    }
-
-    let mut state = ScanState::default();
-    let mut index = 0usize;
-    while index < trimmed.len() {
-        if !state.in_string() && trimmed.as_bytes()[index] == b'(' {
-            state.paren += 1;
-            index += 1;
-            continue;
-        }
-        if !state.in_string() && trimmed.as_bytes()[index] == b')' {
-            state.paren = state.paren.saturating_sub(1);
-            if state.paren == 0 && index + 1 != trimmed.len() {
-                return None;
-            }
-            index += 1;
-            continue;
-        }
-        index = advance(trimmed, index, &mut state);
-    }
-
-    Some(trimmed[1..trimmed.len() - 1].trim())
 }
 
 pub(crate) fn parse_brace_body(source: &str) -> Option<(&str, &str)> {

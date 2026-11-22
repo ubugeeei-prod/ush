@@ -27,6 +27,11 @@ pub(crate) fn infer_field_expr(
     enums: &EnumRegistry,
 ) -> Result<Type> {
     let base_ty = infer(base, env, functions, impls, enums)?;
+    if name == "await"
+        && let Type::Task(result) = base_ty
+    {
+        return Ok(*result);
+    }
     let field = struct_field(&base_ty, name, enums)?;
     Ok(field.ty.clone())
 }
@@ -212,7 +217,7 @@ pub(crate) fn compile_method_capture(
     out.push_str(&temp);
     out.push_str("=\"$(__ush_capture_return='1' __ush_return_path='' ");
     out.push_str(&fn_name);
-    out.push_str(")\"\n");
+    out.push_str(" 4>&1 >&3)\"\n");
     Ok(format!("\"${{{temp}}}\""))
 }
 

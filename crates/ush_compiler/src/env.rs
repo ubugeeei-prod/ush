@@ -14,7 +14,7 @@ pub(crate) enum Storage {
     Primitive(String),
     Adt(String),
     Aggregate(String),
-    Task(String),
+    Task(String, crate::errors::ErrorSet),
 }
 
 pub(crate) type Env = HashMap<String, Binding>;
@@ -23,9 +23,20 @@ pub(crate) type EnumRegistry = HashMap<String, EnumDef>;
 #[derive(Debug, Default)]
 pub(crate) struct CodegenState {
     next_id: usize,
+    pub mapped: bool,
+    pub wire_types: crate::types::HeapVec<Type>,
+    pub(crate) source_lines: crate::types::HeapVec<String>,
 }
 
 impl CodegenState {
+    pub(crate) fn new(source: &str, mapped: bool) -> Self {
+        Self {
+            source_lines: source.lines().map(|s| s.trim().into()).collect(),
+            next_id: 0,
+            mapped,
+            wire_types: Default::default(),
+        }
+    }
     pub(crate) fn temp_var(&mut self, prefix: &str) -> String {
         format!("__ush_{prefix}_{}", self.next_handler_id()).into()
     }

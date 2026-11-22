@@ -6,7 +6,7 @@ use super::{
     super::{
         ast::{Condition, Statement, Type},
         env::{Binding, Env, Storage},
-        matching::{compile_pattern, materialize_expr},
+        matching::{compile_pattern, read_expr},
     },
     compile_runtime_primitive_expr,
     control::ControlContext,
@@ -33,7 +33,7 @@ pub(super) fn compile_condition(
             if super::infer(expr, env, ctx.functions, ctx.impls, ctx.enums)? != Type::Bool {
                 bail!("if/while conditions must be boolean");
             }
-            let mut buffer = OutputBuffer::default();
+            let mut buffer = OutputBuffer::new(ctx.state.mapped);
             let rendered = compile_runtime_primitive_expr(
                 expr,
                 env,
@@ -51,8 +51,8 @@ pub(super) fn compile_condition(
             })
         }
         Condition::Let { pattern, expr } => {
-            let mut buffer = OutputBuffer::default();
-            let subject = materialize_expr(
+            let mut buffer = OutputBuffer::new(ctx.state.mapped);
+            let subject = read_expr(
                 expr,
                 env,
                 ctx.functions,
@@ -112,7 +112,7 @@ pub(super) fn compile_body(
     tail_position: bool,
     ctx: &mut ControlContext<'_>,
 ) -> Result<OutputBuffer> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(ctx.state.mapped);
     for (index, statement) in statements.iter().enumerate() {
         compile_statement(
             statement,
@@ -153,7 +153,7 @@ pub(super) fn tuple_item_binding(prefix: &str, index: usize, ty: &Type) -> Bindi
         Type::String | Type::Int | Type::Bool | Type::Unit => {
             Storage::Primitive(format!("{prefix}__{index}").into())
         }
-        Type::Task(_) => Storage::Task(format!("{prefix}__{index}").into()),
+        Type::Task(_) => Storage::Task(format!("{prefix}__{index}").into(), Default::default()),
     };
     Binding {
         ty: ty.clone(),
@@ -166,7 +166,7 @@ fn block_script(buffer: OutputBuffer, condition: &str) -> String {
 }
 
 fn block_script_with_lines(buffer: OutputBuffer, lines: &[String], condition: &str) -> String {
-    let compiled = buffer.into_compiled(None).shell;
+    let compiled = buffer.into_shell();
     let mut out = String::from("{\n");
     out.push_str(&compiled);
     for line in lines {

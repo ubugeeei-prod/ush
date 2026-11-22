@@ -56,10 +56,25 @@ pub(crate) fn analyze_globals(
 ) -> Result<Env> {
     let mut env = Env::default();
     for statement in program {
-        if let StatementKind::Let { name, expr } = &statement.kind {
-            let ty = super::infer(expr, &env, functions, impls, enums)?;
-            env.insert(name.clone(), binding_for_name(name, ty));
-        }
+        let (name, ty) = match &statement.kind {
+            StatementKind::Let { name, expr } => {
+                (name, super::infer(expr, &env, functions, impls, enums)?)
+            }
+            StatementKind::Spawn { name, call } => (
+                name,
+                crate::ast::Type::Task(alloc::boxed::Box::new(super::calls::call_expr_type(
+                    call, functions,
+                )?)),
+            ),
+            StatementKind::Await { name, task } => {
+                let Some(crate::ast::Type::Task(ty)) = env.get(task).map(|b| &b.ty) else {
+                    continue;
+                };
+                (name, (**ty).clone())
+            }
+            _ => continue,
+        };
+        env.insert(name.clone(), binding_for_name(name, ty));
     }
     Ok(env)
 }
@@ -76,6 +91,14 @@ pub(crate) fn compile_function(
     out: &mut OutputBuffer,
 ) -> Result<()> {
     ensure_signature(def)?;
+    if def
+        .return_type
+        .as_ref()
+        .is_some_and(|ty| *ty != crate::ast::Type::Unit)
+        && !crate::contracts::completes(&def.body, true)
+    {
+        bail!("function {} can finish without returning a value", def.name);
+    }
     if let Some(errors) = function_errors
         .get(&def.name)
         .filter(|errors| !errors.is_empty())
@@ -91,7 +114,20 @@ pub(crate) fn compile_function(
     let mut env = globals.clone();
     for (index, param) in def.params.iter().enumerate() {
         let storage = param_storage(&def.name, index);
-        push_line(out, &format!("{storage}=\"${}\"", index + 1), 2);
+        if param.ty.is_structured() {
+            super::wire::register(&param.ty, state);
+            let mut unpack = OutputBuffer::new(state.mapped);
+            super::wire::decode(
+                &param.ty,
+                &storage,
+                &format!("\"${{{}}}\"", index + 1),
+                &mut unpack,
+            );
+            push_output(out, &unpack, 2);
+        } else {
+            push_line(out, &format!("{storage}=\"${{{}}}\"", index + 1), 2);
+            push_line(out, &format!("{}=\"${{{storage}}}\"", param.name), 2);
+        }
         env.insert(
             param.name.clone(),
             binding_for_name(&storage, param.ty.clone()),
@@ -109,26 +145,17 @@ pub(crate) fn compile_function(
         state,
         def.return_type.as_ref(),
     )?;
-    if body.is_empty() {
+    if body.as_str().contains("__ush_jobs=") {
+        out.push_str("  (\n    __ush_task_scope\n");
+        push_output(out, &body, 4);
+        out.push_str("  )\n");
+    } else if body.is_empty() {
         push_line(out, ":", 2);
     } else {
         push_output(out, &body, 2);
     }
     out.push_str("}\n\n");
     Ok(())
-}
-
-pub(crate) fn push_wait_footer(out: &mut OutputBuffer) {
-    out.push_str("\nif [ -n \"$__ush_jobs\" ]; then\n");
-    out.push_str("  for __ush_job in $__ush_jobs; do\n");
-    out.push_str("    wait \"$__ush_job\" 2>/dev/null || true\n");
-    out.push_str("  done\n");
-    out.push_str("fi\n");
-    out.push_str("if [ -n \"$__ush_task_files\" ]; then\n");
-    out.push_str("  for __ush_task_file in $__ush_task_files; do\n");
-    out.push_str("    rm -f \"$__ush_task_file\"\n");
-    out.push_str("  done\n");
-    out.push_str("fi\n");
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -143,7 +170,7 @@ fn compile_many(
     state: &mut CodegenState,
     return_type: Option<&super::super::ast::Type>,
 ) -> Result<OutputBuffer> {
-    let mut buffer = OutputBuffer::default();
+    let mut buffer = OutputBuffer::new(state.mapped);
     for (index, statement) in statements.iter().enumerate() {
         compile_statement(
             statement,

@@ -6,9 +6,9 @@ use super::{
     super::ast::{EffectHandler, StatementKind},
     SourceLine,
 };
-use crate::types::{AstString as String, HeapVec as Vec};
+use crate::types::HeapVec as Vec;
 
-/// `try { … } with log { (message) => … }`
+/// `try { … } with log(message) { … }`
 ///
 /// A handler discharges an effect for the block it wraps: inside the
 /// `try`, `do log(…)` is answered by this arm, and the row of the
@@ -50,15 +50,26 @@ fn parse_handler(
     lines: &[SourceLine<'_>],
     cursor: &mut usize,
 ) -> Result<EffectHandler> {
-    let (effect, rest) = header
-        .split_once('{')
-        .ok_or_else(|| anyhow!("line {line_no}: expected `{{` after the effect name"))?;
-    let effect = String::from(effect.trim());
-    if effect.is_empty() {
-        bail!("line {line_no}: a handler needs an effect name");
+    let signature = header
+        .strip_suffix('{')
+        .ok_or_else(|| anyhow!("line {line_no}: expected `with name(args) {{`"))?
+        .trim();
+    let (effect, args, tail) = super::signature::split_paren_form(signature)
+        .ok_or_else(|| anyhow!("line {line_no}: expected `with name(args) {{`"))?;
+    let effect = super::path::parse_identifier(effect)?;
+    if !tail.is_empty() {
+        bail!("line {line_no}: unexpected text after handler parameters");
     }
-
-    let params = parse_handler_params(rest.trim(), line_no)?;
+    let mut params = Vec::new();
+    if !args.trim().is_empty() {
+        for arg in args.split(',') {
+            let name = super::path::parse_identifier(arg.trim())?;
+            if params.contains(&name) {
+                bail!("line {line_no}: duplicate handler parameter: {name}");
+            }
+            params.push(name);
+        }
+    }
     *cursor += 1;
     let body = super::statement::parse_block(lines, cursor, false, true)?;
     Ok(EffectHandler {
@@ -66,33 +77,4 @@ fn parse_handler(
         params,
         body,
     })
-}
-
-/// `(message) =>`, `(a, b) =>`, or nothing at all for an operation
-/// that takes no arguments.
-fn parse_handler_params(source: &str, line_no: usize) -> Result<Vec<String>> {
-    if source.is_empty() {
-        return Ok(Vec::new());
-    }
-    let arrow = source
-        .strip_suffix("=>")
-        .ok_or_else(|| anyhow!("line {line_no}: a handler binds its arguments with `=>`"))?
-        .trim();
-    let inner = arrow
-        .strip_prefix('(')
-        .and_then(|rest| rest.strip_suffix(')'))
-        .ok_or_else(|| anyhow!("line {line_no}: handler arguments are written `(a, b) =>`"))?;
-
-    let mut params = Vec::new();
-    for part in crate::util::split_top_level(inner, ',') {
-        let part = part.trim();
-        if part.is_empty() {
-            continue;
-        }
-        if !crate::util::is_identifier(part) {
-            bail!("line {line_no}: invalid handler argument: {part}");
-        }
-        params.push(String::from(part));
-    }
-    Ok(params)
 }

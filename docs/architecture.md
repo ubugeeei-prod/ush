@@ -69,8 +69,8 @@ ush  ──parse args──>  apps/ush::cli
 | Wrong generated sh / lowering bug | `crates/ush_compiler/src/codegen/` |
 | Match arm not lowered correctly | `crates/ush_compiler/src/matching/` |
 | Match exhaustiveness diagnostic missing or wrong | `crates/ush_compiler/src/matching/exhaustiveness.rs` |
-| Error effect / `Problem!T` typing | `crates/ush_compiler/src/effects/` |
-| Side-effect inference and `#[effects(...)]` checking | `crates/ush_compiler/src/effects/side.rs` |
+| Error effect / `T / Problem` typing | `crates/ush_compiler/src/effects/` |
+| Side-effect inference and slash-row checking | `crates/ush_compiler/src/effects/side.rs` |
 | Sourcemap entry missing / pointing at wrong line | `crates/ush_compiler/src/sourcemap.rs` |
 | Built-in (`cd`, `pwd`, `port`, …) behaves wrong | `crates/ush_shell/src/builtins/` |
 | Job control / signals / pipelines | `crates/ush_shell/src/process/` |

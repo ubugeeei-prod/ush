@@ -1,5 +1,3 @@
-use alloc::boxed::Box;
-
 use anyhow::Result;
 
 use super::infer::infer_async_block_type;
@@ -8,7 +6,7 @@ use crate::traits::TraitImplRegistry;
 use crate::{
     ast::{Statement, Type},
     effects::FunctionErrorRegistry,
-    env::{Binding, CodegenState, EnumRegistry, Env, Storage},
+    env::{Binding, CodegenState, EnumRegistry, Env},
 };
 
 use super::super::{
@@ -55,25 +53,13 @@ pub(crate) fn compile_async_block(
     }
     out.push_str("}\n");
 
-    let prefix = state.temp_var("task");
-    out.push_str("__ush_task_seq=$((__ush_task_seq + 1))\n");
-    out.push_str(&format!(
-        "{prefix}__result=\"${{TMPDIR:-/tmp}}/{prefix}.$$.$__ush_task_seq\"\n"
-    ));
-    out.push_str(&format!(": > \"${{{prefix}__result}}\"\n"));
-    out.push_str(&format!(
-        "__ush_task_files=\"${{__ush_task_files}}${{__ush_task_files:+ }}${{{prefix}__result}}\"\n"
-    ));
-    out.push_str(&format!(
-        "( __ush_return_path=\"${{{prefix}__result}}\"; {helper} ) &\n"
-    ));
-    out.push_str(&format!("{prefix}__pid=\"$!\"\n"));
-    out.push_str(&format!("{prefix}__awaited='0'\n"));
-    out.push_str("__ush_jobs=\"${__ush_jobs}${__ush_jobs:+ }$!\"\n");
-    Ok(Binding {
-        ty: Type::Task(Box::new(return_type)),
-        storage: Storage::Task(prefix),
-    })
+    Ok(super::super::tasks::start_task(
+        &helper,
+        return_type,
+        false,
+        state,
+        out,
+    ))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -88,7 +74,7 @@ fn compile_body(
     state: &mut CodegenState,
     return_type: &Type,
 ) -> Result<OutputBuffer> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(state.mapped);
     for (index, statement) in body.iter().enumerate() {
         compile_statement(
             statement,

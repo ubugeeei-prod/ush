@@ -20,7 +20,7 @@ pub struct SourceMap {
 
 impl SourceMap {
     pub fn line(&self, generated_line: usize) -> Option<&SourceMapLine> {
-        self.lines.get(generated_line.saturating_sub(1))
+        self.lines.get(generated_line.checked_sub(1)?)
     }
 
     pub fn source_line(&self, generated_line: usize) -> Option<usize> {

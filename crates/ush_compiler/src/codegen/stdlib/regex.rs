@@ -1,10 +1,7 @@
+use crate::ast::{FunctionDef, Type};
 use crate::types::HeapVec as Vec;
-use crate::{
-    ast::{FunctionDef, Type},
-    sourcemap::OutputBuffer,
-};
 
-use super::{builtin, emit_fn, param};
+use super::{builtin, param};
 
 pub(super) fn definitions() -> Vec<FunctionDef> {
     vec![
@@ -37,27 +34,4 @@ pub(super) fn definitions() -> Vec<FunctionDef> {
             Some(Type::String),
         ),
     ]
-}
-
-pub(super) fn emit(out: &mut OutputBuffer) {
-    emit_fn(
-        out,
-        "std::regex::is_match",
-        "  VALUE=\"$1\" PATTERN=\"$2\" awk 'BEGIN { value = ENVIRON[\"VALUE\"]; pattern = ENVIRON[\"PATTERN\"]; if (value ~ pattern) { printf \"true\" } else { printf \"false\" } }'\n",
-    );
-    emit_fn(
-        out,
-        "std::regex::find",
-        "  VALUE=\"$1\" PATTERN=\"$2\" awk 'BEGIN { value = ENVIRON[\"VALUE\"]; pattern = ENVIRON[\"PATTERN\"]; if (match(value, pattern)) { printf \"%s\", substr(value, RSTART, RLENGTH) } }'\n",
-    );
-    emit_fn(
-        out,
-        "std::regex::replace",
-        "  VALUE=\"$1\" PATTERN=\"$2\" REPLACEMENT=\"$3\" awk 'BEGIN { value = ENVIRON[\"VALUE\"]; pattern = ENVIRON[\"PATTERN\"]; replacement = ENVIRON[\"REPLACEMENT\"]; gsub(pattern, replacement, value); printf \"%s\", value }'\n",
-    );
-    emit_fn(
-        out,
-        "std::regex::capture",
-        "  if ! command -v perl >/dev/null 2>&1; then\n    printf '%s\\n' 'ush std::regex::capture: perl is required' >&2\n    return 1\n  fi\n  LC_ALL=C LANG=C LC_CTYPE=C perl -e 'my ($value, $pattern, $index) = @ARGV; $index = int($index); exit 0 if $index < 1; if ($value =~ /$pattern/) { if (defined $-[$index] && $-[$index] >= 0) { print substr($value, $-[$index], $+[$index] - $-[$index]); } }' -- \"$1\" \"$2\" \"$3\"\n",
-    );
 }

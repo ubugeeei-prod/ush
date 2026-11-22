@@ -1,23 +1,27 @@
 summary:
-  generated_line_count: 461
-  mapped_line_count: 2
-  unmapped_line_count: 459
+  generated_line_count: 47
+  mapped_line_count: 4
+  unmapped_line_count: 43
   source_line_count: 2
-  first_mapped_generated_line: 449
-  last_mapped_generated_line: 450
+  first_mapped_generated_line: 44
+  last_mapped_generated_line: 47
 sections:
-  runtime-support: generated=395 mapped=0
-  doc-support: generated=64 mapped=0
-  user-code: generated=2 mapped=2
+  runtime-support: generated=18 mapped=0
+  doc-support: generated=25 mapped=0
+  user-code: generated=4 mapped=4
 sources:
-  S0001 -> G0449 | let greeting = "hello"
-  S0002 -> G0450 | print greeting
+  S0001 -> G0044, G0045 | let greeting = "hello"
+  S0002 -> G0046, G0047 | print greeting
 
 mapped listing:
-mapped 2 / 461 generated lines across 2 source lines
-mapped span G0449..G0450
+mapped 4 / 47 generated lines across 2 source lines
+mapped span G0044..G0047
 -- user-code --
-G0449 -> S0001 | greeting='hello'
+G0044 -> S0001 | __ush_at 1 'let greeting = "hello"'
              <= let greeting = "hello"
-G0450 -> S0002 | printf '%s\n' "${greeting}"
+G0045 -> S0001 | greeting='hello'
+             <= let greeting = "hello"
+G0046 -> S0002 | __ush_at 2 'print greeting'
+             <= print greeting
+G0047 -> S0002 | printf '%s\n' "${greeting}"
              <= print greeting

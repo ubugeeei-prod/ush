@@ -1,13 +1,12 @@
 use anyhow::{Result, bail};
 
 use super::super::{
-    ast::{ExprFields, Type, VariantExpr, VariantFields},
+    ast::{ExprFields, VariantExpr, VariantFields},
     codegen::FunctionRegistry,
     env::{Binding, CodegenState, EnumRegistry, Env, Storage, lookup_variant},
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
-use crate::types::AstString as NameString;
 
 use super::emit_value_to_target;
 
@@ -86,89 +85,15 @@ pub(super) fn emit_variant(
 
 pub(super) fn emit_copy(
     target: &str,
-    enum_name: &str,
+    _enum_name: &str,
     binding: &Binding,
-    enums: &EnumRegistry,
+    _enums: &EnumRegistry,
     state: &mut CodegenState,
     out: &mut OutputBuffer,
 ) -> Result<()> {
     let Storage::Adt(source) = &binding.storage else {
         bail!("cannot copy primitive into ADT target");
     };
-    out.push_str(&format!("{target}__tag=\"${{{source}__tag}}\"\n"));
-    let enum_def = enums
-        .get(enum_name)
-        .ok_or_else(|| anyhow::anyhow!("unknown enum: {enum_name}"))?;
-    out.push_str(&format!("case \"${{{source}__tag}}\" in\n"));
-    for variant in &enum_def.variants {
-        out.push_str(&format!("  '{}::{}')\n", enum_name, variant.name));
-        match &variant.fields {
-            VariantFields::Unit => {}
-            VariantFields::Tuple(types) => {
-                for (index, ty) in types.iter().enumerate() {
-                    copy_field(
-                        &format!("{source}__{index}"),
-                        &format!("{target}__{index}"),
-                        ty,
-                        enums,
-                        state,
-                        out,
-                    )?;
-                }
-            }
-            VariantFields::Struct(fields) => {
-                for field in fields {
-                    copy_field(
-                        &format!("{source}__{}", field.name),
-                        &format!("{target}__{}", field.name),
-                        &field.ty,
-                        enums,
-                        state,
-                        out,
-                    )?;
-                }
-            }
-        }
-        out.push_str("    ;;\n");
-    }
-    out.push_str("esac\n");
-    Ok(())
-}
-
-fn copy_field(
-    source: &str,
-    target: &str,
-    ty: &Type,
-    enums: &EnumRegistry,
-    state: &mut CodegenState,
-    out: &mut OutputBuffer,
-) -> Result<()> {
-    match ty {
-        Type::String | Type::Int | Type::Bool | Type::Unit => {
-            out.push_str(&format!("{target}=\"${{{source}}}\"\n"))
-        }
-        Type::Adt(enum_name) => emit_copy(
-            target,
-            enum_name,
-            &Binding {
-                ty: ty.clone(),
-                storage: Storage::Adt(NameString::from(source)),
-            },
-            enums,
-            state,
-            out,
-        )?,
-        Type::Tuple(_) | Type::List(_) => super::sequence::copy_sequence(
-            target,
-            &Binding {
-                ty: ty.clone(),
-                storage: Storage::Aggregate(NameString::from(source)),
-            },
-            enums,
-            state,
-            out,
-        )?,
-        Type::Task(_) => bail!("task handles cannot be stored inside ADT values"),
-    }
+    crate::codegen::wire::copy(&binding.ty, source, target, state, out);
     Ok(())
 }

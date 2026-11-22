@@ -8,7 +8,7 @@ use crate::{
     errors::{ErrorSet, ErrorType},
 };
 
-use super::FunctionErrorRegistry;
+use super::{FunctionErrorRegistry, callee_errors};
 
 pub(super) fn expr_errors(
     expr: &Expr,
@@ -20,13 +20,23 @@ pub(super) fn expr_errors(
 ) -> Result<ErrorSet> {
     let mut errors = ErrorSet::default();
     match expr {
-        Expr::String(_)
+        Expr::Quantity(..)
+        | Expr::String(_)
         | Expr::Int(_)
         | Expr::Bool(_)
         | Expr::Unit
         | Expr::Var(_)
         | Expr::AsyncBlock(_) => {}
-        Expr::Field { base, .. } => {
+        Expr::Field { base, name } => {
+            if name == "await"
+                && let Expr::Var(n) = &**base
+                && let Some(Binding {
+                    storage: Storage::Task(_, deferred),
+                    ..
+                }) = env.get(n)
+            {
+                errors.extend(deferred);
+            }
             errors.extend(&expr_errors(
                 base,
                 env,
@@ -116,6 +126,7 @@ pub(super) fn expr_errors(
                 function_errors,
             )?);
         }
+        Expr::ShellCapture(_) => errors.insert(ErrorType::Unknown),
         Expr::Try(inner) => {
             errors.extend(&expr_errors(
                 inner,
@@ -189,9 +200,7 @@ pub(super) fn call_errors(
     function_errors: &FunctionErrorRegistry,
 ) -> Result<ErrorSet> {
     let mut errors = call_arg_errors(call, env, functions, impls, enums, function_errors)?;
-    if let Some(raised) = function_errors.get(&call.name) {
-        errors.extend(raised);
-    }
+    errors.extend(&callee_errors(&call.name, function_errors));
     Ok(errors)
 }
 
@@ -235,7 +244,7 @@ pub(super) fn binding_for_type(name: &str, ty: Type) -> Binding {
         Type::Adt(_) => Storage::Adt(name.into()),
         Type::Tuple(_) | Type::List(_) => Storage::Aggregate(name.into()),
         Type::String | Type::Int | Type::Bool | Type::Unit => Storage::Primitive(name.into()),
-        Type::Task(_) => Storage::Task(name.into()),
+        Type::Task(_) => Storage::Task(name.into(), Default::default()),
     };
     Binding { ty, storage }
 }

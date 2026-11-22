@@ -17,23 +17,6 @@ const SCRIPT: &str = concat!(
     "print \"after\"\n",
 );
 
-/// The line number `/bin/sh` itself printed for the failure.
-///
-/// The wording differs by shell — bash writes `/bin/sh: line 490:`
-/// and dash writes `/bin/sh: 490:` — so this takes the first integer
-/// out of the shell's own diagnostic rather than matching a phrase.
-fn failing_shell_line(stderr: &str) -> String {
-    let line = stderr
-        .lines()
-        .find(|line| line.starts_with("/bin/sh:") || line.starts_with("sh:"))
-        .unwrap_or_else(|| panic!("no shell diagnostic in: {stderr}"));
-
-    line.split(|ch: char| !ch.is_ascii_digit())
-        .find(|part| !part.is_empty())
-        .unwrap_or_else(|| panic!("no line number in: {line}"))
-        .to_string()
-}
-
 #[test]
 fn a_shell_line_number_maps_back_to_the_ush_source() {
     let dir = tempdir().expect("tempdir");
@@ -44,14 +27,21 @@ fn a_shell_line_number_maps_back_to_the_ush_source() {
     let stderr = String::from_utf8_lossy(&run.stderr).into_owned();
     assert!(!run.status.success());
 
-    // The number `/bin/sh` complains about and the number the runtime
-    // report hands to `ush explain` have to be the same one, or the
-    // mapping is decorative.
-    let shell_line = failing_shell_line(&stderr);
     assert!(
-        stderr.contains(&format!("shell  : line {shell_line} |")),
-        "runtime report disagrees with /bin/sh: {stderr}"
+        stderr.contains("boom.ush:3: command failed (exit 127)"),
+        "{stderr}"
     );
+    assert!(!stderr.contains("__ush_"), "{stderr}");
+    let native = stderr
+        .lines()
+        .find(|s| s.contains("ush-explain-test-missing-tool") && !s.trim_start().starts_with('$'))
+        .unwrap();
+    let fields: Vec<_> = native.split(':').collect();
+    let shell_line = fields
+        .iter()
+        .find_map(|s| s.trim().trim_start_matches("line ").parse::<usize>().ok())
+        .expect("native shell line")
+        .to_string();
 
     let explained = ush()
         .args(["explain", script.to_str().expect("utf-8"), &shell_line])
@@ -74,13 +64,11 @@ fn a_sourcemap_id_is_accepted_too() {
     let script = dir.path().join("boom.ush");
     fs::write(&script, SCRIPT).expect("write script");
 
-    let run = ush().arg(&script).output().expect("run ush");
-    let stderr = String::from_utf8_lossy(&run.stderr).into_owned();
-    let id = stderr
-        .split("| G")
-        .nth(1)
-        .map(|rest| format!("G{}", &rest[..4]))
-        .expect("sourcemap id in the report");
+    let compiled = ush_compiler::UshCompiler
+        .compile_file_with_sourcemap(&script)
+        .unwrap();
+    let line = compiled.sourcemap.generated_lines_for_source(3)[0];
+    let id = format!("G{line:04}");
 
     let explained = ush()
         .args(["explain", script.to_str().expect("utf-8"), &id])
@@ -106,10 +94,6 @@ fn a_line_inside_the_scaffolding_is_reported_as_such() {
         .output()
         .expect("run ush explain");
 
-    assert!(!output.status.success());
-    assert!(
-        String::from_utf8_lossy(&output.stderr).contains("runtime scaffolding"),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert!(output.status.success());
+    assert!(String::from_utf8_lossy(&output.stdout).contains("generated support code"));
 }

@@ -1,6 +1,8 @@
 mod emit;
 mod exhaustiveness;
 mod pattern;
+mod read;
+pub(crate) use read::read_expr;
 mod sequence;
 
 pub(crate) use exhaustiveness::check_exhaustive;
@@ -112,6 +114,47 @@ pub(crate) fn emit_value_to_target(
     inside_function: bool,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    if expected.is_structured() {
+        if let Expr::Try(inner) = expr {
+            return emit_value_to_target(
+                target,
+                inner,
+                expected,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                inside_function,
+                out,
+            );
+        }
+        if let Expr::Field { base, name } = expr
+            && name == "await"
+            && let Expr::Var(task) = &**base
+            && env.get(task).is_some_and(|b| matches!(b.ty, Type::Task(_)))
+        {
+            crate::codegen::bind_await(target, task, &mut env.clone(), out)?;
+            return Ok(());
+        }
+        if let Expr::Call(call) = expr {
+            let command = crate::codegen::rendered_call_runtime(
+                call,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                inside_function,
+                out,
+            )?;
+            let temp = state.temp_var("packed");
+            out.push_str(&format!("{temp}=\"$(__ush_return_path='' __ush_capture_return=1 {command} 4>&1 >&3)\" || {} \"$?\"\n",if inside_function{"return"}else{"exit"}));
+            crate::codegen::wire::register(expected, state);
+            crate::codegen::wire::decode(expected, target, &format!("\"${{{temp}}}\""), out);
+            return Ok(());
+        }
+    }
     match expected {
         Type::String | Type::Int | Type::Bool | Type::Unit => {
             let rendered = super::codegen::compile_runtime_primitive_expr(

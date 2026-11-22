@@ -36,7 +36,7 @@ fn raise_requires_an_error_adt() {
           Nope,
         }
 
-        fn fail() -> Problem!() {
+        fn fail() -> () / Problem, stderr {
           raise "oops"
         }
     "#,
@@ -54,13 +54,13 @@ fn effectful_functions_must_declare_error_sets() {
         }
 
         fn fail() -> String {
-          raise Problem::Nope
+          fail Problem::Nope
         }
     "#,
     );
 
     assert!(error.contains("does not declare an error set"));
-    assert!(error.contains("-> Problem!String"));
+    assert!(error.contains("-> String / Problem"));
 }
 
 #[test]
@@ -75,13 +75,13 @@ fn declared_error_sets_must_cover_inferred_errors() {
           Nope,
         }
 
-        fn fail() -> Other!String {
-          raise Problem::Nope
+        fn fail() -> String / Other, stderr {
+          fail Problem::Nope
         }
     "#,
     );
 
-    assert!(error.contains("declares `Other!String`"));
+    assert!(error.contains("declares `String / Other`"));
     assert!(error.contains("can raise `Problem`"));
 }
 
@@ -97,18 +97,18 @@ fn call_sites_use_declared_error_sets_as_the_function_contract() {
           Nope,
         }
 
-        fn fail() -> (Other | Problem)!String {
-          raise Problem::Nope
+        fn fail() -> String / Other, Problem, stderr {
+          fail Problem::Nope
         }
 
-        fn outer() -> Problem!String {
+        fn outer() -> String / Problem, stderr {
           let value = fail()?
           value
         }
     "#,
     );
 
-    assert!(error.contains("function `outer` declares `Problem!String`"));
+    assert!(error.contains("function `outer` declares `String / Problem`"));
     assert!(error.contains("can raise `Other | Problem`"));
 }
 
@@ -120,20 +120,20 @@ fn function_error_streams_are_inferred_and_composed() {
           Nope,
         }
 
-        fn leaf() -> Problem!String {
-          raise Problem::Nope
+        fn leaf() -> String / Problem, stderr {
+          fail Problem::Nope
         }
 
         fn wrap(message: String) -> String {
           "<" + message + ">"
         }
 
-        fn mixed() -> (Problem | unknown)!String {
+        fn mixed() -> String / Problem, unknown, exec, fs, env, net, io {
           $ false
-          $ wrap $ leaf ()
+          wrap(leaf()?)
         }
 
-        fn awaited() -> Problem!String {
+        fn awaited() -> String / Problem, stderr, task {
           let task = async leaf ()
           let value = task.await
           value
@@ -154,8 +154,8 @@ fn raise_aborts_runtime_with_typed_message() {
           Nope,
         }
 
-        fn fail() -> Problem!String {
-          raise Problem::Nope
+        fn fail() -> String / Problem, stderr {
+          fail Problem::Nope
         }
 
         print $ fail ()
@@ -164,7 +164,7 @@ fn raise_aborts_runtime_with_typed_message() {
 
     assert!(!output.status.success());
     assert_eq!(output.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&output.stderr).contains("ush raise: Problem"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Problem::Nope (exit 1)"));
 }
 
 #[test]
@@ -175,8 +175,8 @@ fn piped_raise_aborts_runtime_with_typed_message() {
           Nope,
         }
 
-        fn fail() -> Problem!String {
-          raise Problem::Nope
+        fn fail() -> String / Problem, stderr {
+          fail Problem::Nope
         }
 
         fn wrap(message: String) -> String {
@@ -189,7 +189,7 @@ fn piped_raise_aborts_runtime_with_typed_message() {
 
     assert!(!output.status.success());
     assert_eq!(output.status.code(), Some(1));
-    assert!(String::from_utf8_lossy(&output.stderr).contains("ush raise: Problem"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Problem::Nope (exit 1)"));
 }
 
 #[test]
@@ -200,11 +200,11 @@ fn try_operator_returns_from_the_current_function() {
           Nope,
         }
 
-        fn fail() -> Problem!String {
-          raise Problem::Nope
+        fn fail() -> String / Problem, stderr {
+          fail Problem::Nope
         }
 
-        fn outer() -> Problem!String {
+        fn outer() -> String / Problem, stderr {
           let value = fail()?
           value
         }
@@ -212,26 +212,30 @@ fn try_operator_returns_from_the_current_function() {
     );
 
     assert!(compiled.contains("# raises: Problem\nush_fn_outer()"));
-    assert!(compiled.contains("$(__ush_capture_return='1' ush_fn_fail)\" || return \"$?\""));
+    assert!(compiled.contains(
+        "$(__ush_return_path='' __ush_capture_return='1' ush_fn_fail 4>&1 >&3)\" || return \"$?\""
+    ));
 }
 
 #[test]
 fn try_statements_propagate_call_and_shell_failures() {
     let compiled = compile_program(
         r#"
-        fn outer() -> unknown!() {
+        fn outer() -> () / unknown, exec, fs, env, net, io {
           let command = "false"
           shell command?
           helper()?
         }
 
-        fn helper() -> unknown!() {
+        fn helper() -> () / unknown, exec, fs, env, net, io {
           $ false?
         }
     "#,
     );
 
-    assert!(compiled.contains("eval \"${command}\" || return \"$?\""));
-    assert!(compiled.contains("$(__ush_capture_return='1' ush_fn_helper)\" || return \"$?\""));
-    assert!(compiled.contains("false || return \"$?\""));
+    assert!(compiled.contains("eval \"${command}\"\n"));
+    assert!(compiled.contains(
+        "$(__ush_return_path='' __ush_capture_return='1' ush_fn_helper 4>&1 >&3)\" || return \"$?\""
+    ));
+    assert!(compiled.contains("__ush_report \"$__ush_status\"; return \"$__ush_status\""));
 }

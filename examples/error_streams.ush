@@ -2,15 +2,15 @@ enum Problem {
   MissingConfig,
 }
 
-fn load_config() -> Problem!String {
-  raise Problem::MissingConfig
+fn load_config() -> String / Problem, stderr {
+  fail Problem::MissingConfig
 }
 
 fn wrap(message: String) -> String {
   "<" + message + ">"
 }
 
-fn run() -> Problem!String {
+fn run() -> String / Problem, stderr {
   let value = load_config()?
   wrap(value)
 }

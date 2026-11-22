@@ -31,6 +31,7 @@ pub(crate) struct UseItem {
 
 #[derive(Debug, Clone)]
 pub(crate) struct FunctionDef {
+    pub scheme: Option<alloc::boxed::Box<crate::contracts::Scheme>>,
     pub attrs: Vec<Attribute>,
     pub name: String,
     pub receiver: Option<Type>,
@@ -38,8 +39,8 @@ pub(crate) struct FunctionDef {
     pub return_type: Option<Type>,
     pub declared_errors: Option<ErrorSet>,
     /// The effect row written after the return type, as in
-    /// `-> String / { fs, log }`. `None` means no row was written and
-    /// the inferred one is not checked; `Some([])` is `/ {}`, a
+    /// `-> String / fs, log`. `None` means no row was written and
+    /// the inferred one is not checked; `Some([])` is `/ ()`, a
     /// function that may need nothing at all.
     pub declared_effects: Option<Vec<String>>,
     pub body: Vec<super::Statement>,
@@ -57,7 +58,7 @@ pub(crate) struct EffectDef {
     pub return_type: Option<Type>,
 }
 
-/// One `with NAME { (a, b) => … }` arm of a `try`.
+/// One `with NAME(a, b) { … }` arm of a `try`.
 #[derive(Debug, Clone)]
 pub(crate) struct EffectHandler {
     pub effect: String,

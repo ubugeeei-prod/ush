@@ -13,14 +13,13 @@ use std::path::Path;
 use anyhow::{Context, Result, bail};
 use ush_compiler::{SourceMap, SourceMapLine, UshCompiler};
 
-use crate::runtime_diagnostics::{InstrumentedScript, instrument_compiled_script};
+use ush_compiler::ShellTarget;
 
 /// How many `.ush` lines of context to print on each side.
 const CONTEXT_RADIUS: usize = 2;
 
-pub fn explain(input: &Path, targets: &[String]) -> Result<i32> {
-    let compiled = UshCompiler.compile_file_with_sourcemap(input)?;
-    let instrumented = instrument_compiled_script(input, &compiled);
+pub fn explain(input: &Path, targets: &[String], target: ShellTarget) -> Result<i32> {
+    let compiled = UshCompiler::for_target(target).compile_file_with_sourcemap(input)?;
     let source =
         fs::read_to_string(input).with_context(|| format!("failed to read {}", input.display()))?;
     let source_lines = source.lines().collect::<Vec<_>>();
@@ -30,13 +29,7 @@ pub fn explain(input: &Path, targets: &[String]) -> Result<i32> {
         if index > 0 {
             println!();
         }
-        if !explain_one(
-            input,
-            target,
-            &compiled.sourcemap,
-            &instrumented,
-            &source_lines,
-        )? {
+        if !explain_one(input, target, &compiled.sourcemap, &source_lines)? {
             status = 1;
         }
     }
@@ -47,10 +40,9 @@ fn explain_one(
     input: &Path,
     target: &str,
     sourcemap: &SourceMap,
-    instrumented: &InstrumentedScript,
     source_lines: &[&str],
 ) -> Result<bool> {
-    let (generated_line, requested) = parse_target(target, instrumented)?;
+    let (generated_line, requested) = parse_target(target)?;
     let Some(entry) = sourcemap.line(generated_line) else {
         println!(
             "{requested}: outside the generated shell for {}",
@@ -62,7 +54,7 @@ fn explain_one(
     println!(
         "{}: shell line {} | G{:04} | {}",
         input.display(),
-        instrumented.shell_line(generated_line),
+        generated_line,
         generated_line,
         entry.section.label()
     );
@@ -75,13 +67,13 @@ fn explain_one(
 
     println!("  source : {}:{source_line}", input.display());
     print_context(source_lines, source_line);
-    print_siblings(sourcemap, source_line, generated_line, instrumented);
+    print_siblings(sourcemap, source_line, generated_line);
     Ok(true)
 }
 
 /// Accepts either a `/bin/sh` line number or a sourcemap `G` id, so
 /// both halves of the runtime report can be pasted back in.
-fn parse_target(target: &str, instrumented: &InstrumentedScript) -> Result<(usize, String)> {
+fn parse_target(target: &str) -> Result<(usize, String)> {
     let trimmed = target.trim();
     if let Some(rest) = trimmed
         .strip_prefix('G')
@@ -96,14 +88,10 @@ fn parse_target(target: &str, instrumented: &InstrumentedScript) -> Result<(usiz
     let shell_line: usize = trimmed
         .parse()
         .with_context(|| format!("expected a shell line number or a `G####` id, got {trimmed}"))?;
-    match instrumented.generated_line(shell_line) {
-        Some(generated) => Ok((generated, format!("shell line {shell_line}"))),
-        None => bail!(
-            "shell line {shell_line} falls inside the {} lines of runtime scaffolding `ush` adds \
-             before the generated program",
-            instrumented.header_lines
-        ),
+    if shell_line == 0 {
+        bail!("shell lines start at 1");
     }
+    Ok((shell_line, format!("shell line {shell_line}")))
 }
 
 fn print_context(source_lines: &[&str], source_line: usize) {
@@ -120,12 +108,7 @@ fn print_context(source_lines: &[&str], source_line: usize) {
 /// One source line routinely becomes a whole control-flow block, and
 /// seeing the group is what makes a failure in the middle of one
 /// readable.
-fn print_siblings(
-    sourcemap: &SourceMap,
-    source_line: usize,
-    generated_line: usize,
-    instrumented: &InstrumentedScript,
-) {
+fn print_siblings(sourcemap: &SourceMap, source_line: usize, generated_line: usize) {
     let group = sourcemap.generated_lines_for_source(source_line);
     if group.len() <= 1 {
         return;
@@ -137,9 +120,6 @@ fn print_siblings(
             .line(line)
             .map(|entry: &SourceMapLine| entry.generated_text.as_str())
             .unwrap_or("");
-        println!(
-            "  {marker} line {:>5} | G{line:04} | {text}",
-            instrumented.shell_line(line)
-        );
+        println!("  {marker} line {:>5} | G{line:04} | {text}", line);
     }
 }

@@ -210,7 +210,7 @@ fn omitted_unit_return_types_behave_like_explicit_unit() {
     "#,
     );
 
-    assert_eq!(output, "true\nworker\ntrue\n");
+    assert_eq!(output, "hello\ntrue\nworker\ntrue\n");
 }
 
 #[test]

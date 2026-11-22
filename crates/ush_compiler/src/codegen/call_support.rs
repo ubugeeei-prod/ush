@@ -63,3 +63,11 @@ pub(super) fn function_for_call<'a>(
         .get(name)
         .ok_or_else(|| anyhow!("unknown function: {name}"))
 }
+
+pub(super) fn capture_fds(name: &str) -> &'static str {
+    if name.starts_with("std::") || name.starts_with("$bin::") {
+        ""
+    } else {
+        " 4>&1 >&3"
+    }
+}

@@ -55,7 +55,7 @@ pub(super) fn compile_method_body(
     enums: &EnumRegistry,
     state: &mut CodegenState,
 ) -> Result<String> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(state.mapped);
     for (index, statement) in def.body.iter().enumerate() {
         compile_statement(
             statement,
@@ -159,7 +159,7 @@ fn copy_named_binding(
             ty: binding.ty,
             storage: Storage::Aggregate(binding_name(binding.storage).into()),
         },
-        Storage::Task(_) => bail!("task handles are not valid method arguments"),
+        Storage::Task(_, _) => bail!("task handles are not valid method arguments"),
     })
 }
 
@@ -168,6 +168,6 @@ fn binding_name(storage: Storage) -> String {
         Storage::Primitive(name)
         | Storage::Adt(name)
         | Storage::Aggregate(name)
-        | Storage::Task(name) => name.into(),
+        | Storage::Task(name, _) => name.into(),
     }
 }

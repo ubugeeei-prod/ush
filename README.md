@@ -15,8 +15,7 @@
 - Make the interactive shell feel fast, lightweight, and pleasant to edit in.
 
 > [!WARNING]
-> `ush` is still an early WIP / prototype.
-> Expect rough edges, missing POSIX coverage, incomplete language features, and breaking changes.
+> ush is pre-1.0. Pin the compiler version when committing generated scripts.
 > It is not yet a production shell replacement.
 
 ## Concept
@@ -38,7 +37,7 @@ Language direction:
 
 ## Status
 
-This repository is an MVP focused on architecture and interaction experiments.
+The compiler emits standalone shell scripts. The interactive shell and language server ship with each release.
 
 Implemented today:
 
@@ -48,11 +47,13 @@ Implemented today:
 - Startup tiers: an `env.sh` / `~/.ush_env` file read on *every* invocation (the `.zshenv` tier), a login profile that also picks up `/etc/profile`, and an interactive rc file
 - `&&`, `||`, `;`, and newline-separated command lists run inside `ush`, so builtins, helpers, and aliases work in a chained line
 - `.sh` / POSIX scripts executed through `/bin/sh`
-- `.ush` scripts compiled to `sh` and then executed by `/bin/sh`
+- Select `sh`, `bash`, `zsh` or `ash` with `ush compile script.ush --target zsh`. Run source directly with `ush --shell-target zsh script.ush`. The default interpreter is `/bin/sh`.
 - Generated `.ush` output stays within POSIX `sh` syntax and POSIX command usage
-- An effect system modelled on [Effekt](https://effekt-lang.org): an effect row after the return type (`-> String / { net, log }`) saying what a function needs from its caller, inferred for every function whether or not it is written; `effect` declarations, `do` to perform one, and `try … with` handlers that discharge it; six built-in rows (`io`, `fs`, `env`, `net`, `exec`, `task`) inferred from the stdlib; and `ush effects` to list them
+- An effect system modelled on [Effekt](https://effekt-lang.org): an effect row after the return type (`-> String / net, log`) saying what a function needs from its caller, inferred for every function whether or not it is written; `effect` declarations, `do` to perform one, and `try … with` handlers that discharge it; built-in capabilities (`stdin`, `stdout`, `stderr`, `fs`, `env`, `net`, `exec`, `task`) with `io` covering all three streams inferred from the stdlib; and `ush effects` to list them
 - `ush explain` to map a `/bin/sh` line number from a failing generated script back to the `.ush` line behind it
-- Prototype typed language features: `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, Zig-style error signatures like `Problem!String`, and Rust-like `?` propagation
+- Typed language features include `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, error and I/O rows such as `String / Problem, stderr`, and Rust-like `?` propagation
+- Inferred and generic functions, higher-kinded parameters, unit-tagged integers, indexed sequences, and integer refinements. [Type guide](docs/types.md)
+- Invoke installed tools with `$bin::git("status")` or `using $bin::` and `git("status")`. Capture shell pipelines with `let text = $( … )?` and launch ordinary functions with `let job = async build(path)`.
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
 - Rust-like `std::module::function` paths plus `use` imports for selected std helpers, including `std::env`, `std::path`, `std::fs`, `std::command`, `std::string`, `std::http`, and `std::regex` with capture support
 - Labeled function arguments plus parameter attributes such as `#[default(...)]` and `#[alias("n")]`
@@ -395,7 +396,7 @@ Current highlights:
 - `let`, `print`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
 - `""" ... """` multiline strings with common-indent dedent
 - `std::env`, `std::path`, `std::fs`, `std::command`, and `std::string` helpers via fully-qualified calls or top-level `use`, plus method-style path/string flows like `path.resolve()`, `path.exists()`, `path.read_text()`, and `name.trim_suffix(".ush")`
-- `raise` plus typed error signatures like `Problem!String`, with Rust-like `?` propagation
+- `fail` plus typed error signatures like `String / Problem`, with Rust-like `?` propagation
 - `$ command ...` for inline shell execution and `shell expr` for dynamic command strings
 - `async` / `.await`
 - `bin(...)` entrypoints for generated CLI tools
@@ -428,7 +429,7 @@ Start here for more detail:
 - `examples/README.md` for runnable samples
 - `docs/README.md` for guide index
 - `docs/sourcemaps.md` for the sourcemap JSON format, sections, reverse lookup, and runtime diagnostics
-- `docs/typed-errors.md` for a step-by-step walkthrough of `Problem!T`, `raise`, inferred `# raises:`, `?`, and external-command `unknown`
+- `docs/typed-errors.md` for a step-by-step walkthrough of `T / Problem`, `fail`, inferred `# raises:`, `?`, and external-command `unknown`
 - `docs/lsp.md` for editor integration with `ush_lsp`
 
 ## Install
@@ -545,7 +546,7 @@ A separate `Dependencies` workflow watches `vendor/rustyline` against `crates.io
 
 ## Production readiness
 
-`ush` is still a pre-1.0 prototype (see the warning at the top of this file), but the 0.7.0 line ships with a deliberately strict CI / supply-chain posture so a production-style deployment is feasible inside the supported scope:
+Release qualification includes the following checks.
 
 - **Correctness gates** — `cargo test --workspace` on Ubuntu and macOS, `cargo test --release` on every published target (Linux `x86_64`/`aarch64`, macOS `x86_64`/`aarch64`), `no_std` test suite, MSRV gate (currently 1.88), rustdoc with `-D warnings`, and `ush check` + `ush format --check` over the committed example corpus.
 - **Static analysis** — clippy `-D warnings`, workspace-wide lints denying `todo!()` / `dbg!()` / `unimplemented!()` / `unused_must_use`, plus CodeQL (Rust, `security-and-quality` query pack) on every PR and a weekly cron.

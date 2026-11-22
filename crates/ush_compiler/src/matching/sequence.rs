@@ -156,14 +156,21 @@ fn copy_list(
                 &format!("  eval \"{value}=\\\"\\${{{source}__$${index}}}\\\"\"\n")
                     .replace("$$", "$"),
             );
-            out.push_str(
-                &format!("  eval \"{target}__$${index}=\\\"$${value}\\\"\"\n").replace("$$", "$"),
-            );
+            out.push_str(&format!("  eval \"{target}__${{{index}}}=\\${value}\"\n"));
             out.push_str(&format!("  {index}=$(({index} + 1))\n"));
             out.push_str("done\n");
             Ok(())
         }
-        _ => bail!("copying lists of structured values is not implemented yet"),
+        _ => {
+            crate::codegen::wire::copy(
+                &Type::List(alloc::boxed::Box::new(item_ty.clone())),
+                source,
+                target,
+                state,
+                out,
+            );
+            Ok(())
+        }
     }
 }
 

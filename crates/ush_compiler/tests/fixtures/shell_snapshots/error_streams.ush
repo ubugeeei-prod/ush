@@ -2,25 +2,25 @@ enum Problem {
   Nope,
 }
 
-fn fail() -> Problem!String {
-  raise Problem::Nope
+fn fail() -> String / Problem, stderr {
+  fail Problem::Nope
 }
 
 fn wrap(message: String) -> String {
   "<" + message + ">"
 }
 
-fn outer() -> Problem!String {
+fn outer() -> String / Problem, stderr {
   let value = fail()?
   value
 }
 
-fn mixed() -> (Problem | unknown)!String {
+fn mixed() -> String / Problem, unknown, exec, fs, env, net, io {
   $ false
-  $ wrap $ outer ()
+  wrap(outer()?)
 }
 
-fn awaited() -> Problem!String {
+fn awaited() -> String / Problem, stderr, task {
   let task = async fail ()
   let value = task.await
   value

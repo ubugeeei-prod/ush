@@ -74,31 +74,20 @@ Example:
 
 ## Runtime failure mapping
 
-When `.ush` scripts run through `ush`, the generated shell is instrumented so
-runtime failures print a sourcemap report to `stderr`.
-
-Example:
+The compiler embeds original source locations in the script. Running through
+`ush` and running the generated artifact directly produce the same compact
+diagnostic, including on machines that only have the shell script.
 
 ```text
-/bin/sh: line 490: definitely_not_a_real_command: command not found
-
-ush runtime map: script.ush:3 (exit 127)
-  source : $ definitely_not_a_real_command
-  section: user-code
-  shell  : line 490 | G0451 | definitely_not_a_real_command
-  mapped : G0451
-  explain: ush explain script.ush 490
+deploy.ush:7: missing file (exit 2)
+  fail(2, "missing file")
 ```
 
-The `line 490` in the report is the same number `/bin/sh` printed: the
-instrumentation knows how tall its own header is, so a shell diagnostic can be
-matched to a sourcemap entry without counting lines by hand. `G0451` is the
-sourcemap id for the same line, the one that appears in the JSON above and in
-the listings below.
-
-For source lines that lower into multiple shell lines, `mapped` shows the whole
-generated group, not just the failing line. That makes control-flow lowering
-much easier to inspect.
+The command's own standard error is preserved. Detailed generated code is
+available through `ush explain` or the JSON sidecar. A physical shell line
+and its G-number refer to the same line of the artifact. For a non-default
+target use the same target when explaining it, for example
+`ush --shell-target zsh explain deploy.ush 42`.
 
 ## `ush explain`
 
@@ -111,7 +100,7 @@ ush explain script.ush 490
 ```
 
 ```text
-script.ush: shell line 490 | G0451 | user-code
+script.ush: shell line 490 | G0490 | user-code
   shell  : definitely_not_a_real_command
   source : script.ush:3
         1 | let greeting = "hello"

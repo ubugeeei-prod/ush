@@ -10,6 +10,27 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-11-23
+
+### Language and runtime
+
+- **Breaking syntax change.** Write `-> Value / Error, effect` and
+  `with log(message) { … }`. Use `/ ()` for an explicitly pure function.
+  Return typed failures with `fail Error::Variant` or supply a shell exit
+  status with `fail(code, message)`.
+- Track stdin, stdout and stderr in function effects. Declare `io` to permit
+  all three. Inspect inferred rows with `ush effects`.
+- Type-check generic and inferred functions, higher-kinded parameters, units,
+  length-indexed arrays and integer refinements with `ush check`.
+- Call 290 cataloged shell utilities and common commands through `$bin::`.
+  Import unqualified calls with `using $bin::`. Capture inline shell pipelines
+  with `$( … )?`, including scripts that read standard input.
+- Start ordinary functions with `async f(args)` and join them with `job.await`.
+  Tasks use private result storage and propagate exit status.
+- Select standalone sh, bash, zsh and ash output. Runtime failures identify the
+  original .ush line and source expression. Shell output links only the library
+  helpers the script uses.
+
 ### Added
 
 - `ush compile script.ush --checked-in -o script.sh` emits a deterministic,
@@ -20,6 +41,10 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+- Updated vendored rustyline to 18.0.1, including the completion prompt fix.
+  Upstream monitoring checks both new stable releases and updates to the
+  maintained major through the Cargo registry index. Rustyline 19 uses Rust
+  1.95 syntax while the workspace supports Rust 1.89.
 - Replaced the unmaintained `chrono` dependency with `time` for local file
   timestamps, resolving RUSTSEC-2026-0543 without suppressing the advisory.
 
@@ -382,7 +407,8 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei/ush/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/ubugeeei/ush/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
 [0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
 [0.9.0]: https://github.com/ubugeeei/ush/releases/tag/v0.9.0
 [0.8.0]: https://github.com/ubugeeei/ush/releases/tag/v0.8.0

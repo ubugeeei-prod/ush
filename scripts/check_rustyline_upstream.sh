@@ -36,18 +36,26 @@ MSG
   exit 1
 fi
 
-latest_version="$(curl -fsSL https://crates.io/api/v1/crates/rustyline \
-  | python3 -c 'import json,sys; print(json.load(sys.stdin)["crate"]["max_stable_version"])')"
+# The Cargo sparse index exposes published versions and yanked status.
+# Check the maintained major separately so a reviewed major never hides a patch.
+versions="$(curl -fsSL --retry 3 https://index.crates.io/ru/st/rustyline | python3 -c '
+import json, re, sys
+stable = []
+for line in sys.stdin:
+    item = json.loads(line)
+    if not item["yanked"] and re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", item["vers"]):
+        stable.append(tuple(map(int, item["vers"].split("."))))
+major = int(sys.argv[1].split(".")[0])
+for version in [max(stable), max(v for v in stable if v[0] == major)]:
+    print(".".join(map(str, version)))
+' "$pinned_version")"
+latest_version=$(printf '%s\n' "$versions" | head -n 1)
+latest_patch=$(printf '%s\n' "$versions" | tail -n 1)
+reviewed=$(awk -F': *' '/^reviewed:/ { print $2; exit }' "$UPSTREAM_FILE")
 
-if [ -z "$latest_version" ]; then
-  echo "check_rustyline_upstream: could not determine latest rustyline version" >&2
-  exit 1
-fi
-
-echo "pinned: $pinned_version"
-echo "latest: $latest_version"
-
-if [ "$pinned_version" != "$latest_version" ]; then
+echo "pinned: $pinned_version, latest in major: $latest_patch, latest overall: $latest_version"
+if [ "$pinned_version" != "$latest_patch" ] ||
+   { [ "$pinned_version" != "$latest_version" ] && [ "$reviewed" != "v$latest_version" ]; }; then
   cat >&2 <<MSG
 check_rustyline_upstream: vendored rustyline is behind upstream.
   Pinned: $pinned_version
@@ -62,4 +70,4 @@ MSG
   exit 1
 fi
 
-echo "rustyline vendored copy matches latest upstream."
+echo "Vendored rustyline is current in its major and upstream releases have been reviewed."

@@ -1,0 +1,28 @@
+using $bin::
+
+unit ms
+
+fn keep<F<_>, T>(value: F<T>) -> F<T> / () {
+  value
+}
+
+fn length<const N: Int>(values: [String; N]) -> Int / () {
+  N
+}
+
+fn delay(value: Int<ms> where value > 0) -> Int<ms> / () {
+  value
+}
+
+fn label(value) {
+  value
+}
+
+let names = keep(["test", "release"])
+print length(names)
+print delay(20ms)
+let job = async label("ready")
+let value = job.await
+let line = $(printf '%s' "$value")?
+print line
+print $bin::printf("%s", "done")

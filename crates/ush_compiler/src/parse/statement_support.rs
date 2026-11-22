@@ -24,6 +24,9 @@ pub(super) fn parse_alias(source: &str) -> Result<StatementKind> {
 }
 
 pub(super) fn parse_statement_expr(source: &str) -> Result<Expr> {
+    if source.trim_start().starts_with("$(") || source.trim_start().starts_with("$bin::") {
+        return parse_expr(source.trim());
+    }
     parse_expr(source.trim().strip_prefix('$').unwrap_or(source).trim())
 }
 
@@ -110,4 +113,29 @@ fn next_is_else(lines: &[SourceLine<'_>], mut index: usize) -> bool {
 
 fn brace_delta(line: &str) -> isize {
     scan::brace_delta(line)
+}
+
+pub(super) fn parse_failure(source: &str) -> Result<Option<StatementKind>> {
+    if source == "fail ()" {
+        return Ok(None);
+    }
+    if let Some(rest) = source
+        .strip_prefix("fail ")
+        .or_else(|| source.strip_prefix("raise "))
+    {
+        return Ok(Some(StatementKind::Raise(parse_statement_expr(rest)?)));
+    }
+    if let Some(args) = source
+        .strip_prefix("fail(")
+        .and_then(|text| text.strip_suffix(')'))
+    {
+        let parts = crate::util::split_top_level(args, ',');
+        if parts.len() == 2 {
+            return Ok(Some(StatementKind::Fail {
+                status: parse_expr(parts[0])?,
+                message: parse_expr(parts[1])?,
+            }));
+        }
+    }
+    Ok(None)
 }

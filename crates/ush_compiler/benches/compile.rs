@@ -1,4 +1,5 @@
 use criterion::{Criterion, criterion_group, criterion_main};
+use std::fmt::Write;
 use ush_compiler::UshCompiler;
 
 const SMALL_SOURCE: &str = r#"
@@ -47,6 +48,23 @@ fn bench_compile(criterion: &mut Criterion) {
     criterion.bench_function("compile adt ush program", |bench| {
         bench.iter(|| {
             let _ = compiler.compile_source(ADT_SOURCE).expect("compile adt");
+        });
+    });
+    let mut large = String::new();
+    for i in 0..1000 {
+        writeln!(large, "fn value_{i}(n: Int) -> Int {{\n  n + {i}\n}}").unwrap();
+    }
+    for i in 0..1000 {
+        writeln!(large, "print value_{i}(1)").unwrap();
+    }
+    criterion.bench_function("compile 1000 functions", |bench| {
+        bench.iter(|| compiler.compile_source(&large).unwrap());
+    });
+    criterion.bench_function("compile typed shell interop", |bench| {
+        bench.iter(|| {
+            compiler
+                .compile_source(include_str!("../../../examples/contracts.ush"))
+                .unwrap()
         });
     });
 }

@@ -4,7 +4,7 @@ use super::{
     super::{
         ast::{Call, Expr, MethodCall, Type},
         env::{Binding, CodegenState, EnumRegistry, Env, Storage},
-        matching::materialize_expr,
+        matching::read_expr,
     },
     FunctionRegistry, infer,
     method_fields::field_binding,
@@ -26,7 +26,17 @@ pub(super) fn hoist_field_access(
     inside_function: bool,
     out: &mut OutputBuffer,
 ) -> Result<Expr> {
-    let binding = materialize_expr(
+    if name == "await"
+        && let Expr::Var(task) = base
+        && env
+            .get(task)
+            .is_some_and(|b| matches!(b.ty, crate::ast::Type::Task(_)))
+    {
+        let temp = state.temp_var("await");
+        super::tasks::bind_await(&temp, task, env, out)?;
+        return Ok(Expr::Var(temp));
+    }
+    let binding = read_expr(
         base,
         env,
         functions,

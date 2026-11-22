@@ -6,7 +6,9 @@ use super::super::util::{is_identifier, is_path, path_tail};
 
 pub(super) fn looks_like_call_target(source: &str) -> bool {
     let trimmed = source.trim();
-    is_identifier(trimmed) || is_path(trimmed)
+    is_identifier(trimmed)
+        || is_path(trimmed)
+        || trimmed.strip_prefix("$bin::").is_some_and(is_identifier)
 }
 
 pub(super) fn parse_call_target(source: &str) -> Result<String> {

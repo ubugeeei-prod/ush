@@ -81,7 +81,7 @@ fn parse_method(
         .ok_or_else(|| anyhow!("expected `{{` after method signature"))?
         .trim();
     let rewritten = rewrite_receiver(head, receiver)?;
-    let (name, mut params, return_type, declared_errors, declared_effects) =
+    let (name, mut params, return_type, declared_effects) =
         signature::parse_function_header(&rewritten)?;
     let Some(first) = params.first() else {
         bail!("methods must declare `self` as the first parameter");
@@ -94,13 +94,14 @@ fn parse_method(
     let body = super::statement::parse_block(lines, cursor, false, return_type.is_some())?;
     let _ = finish_block(lines, cursor, "method body")?;
     Ok(FunctionDef {
+        scheme: None,
         declared_effects,
         attrs: Vec::new(),
         name,
         receiver: Some(receiver.clone()),
         params,
         return_type,
-        declared_errors,
+        declared_errors: None,
         body,
     })
 }

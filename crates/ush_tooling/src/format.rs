@@ -4,7 +4,23 @@ pub fn format_source(source: &str) -> String {
     let mut last_blank = false;
     let mut in_multiline = false;
 
+    let mut shell_indent = None;
     for raw in source.lines() {
+        if let Some(indent) = shell_indent {
+            out.push_str(raw);
+            out.push('\n');
+            if ush_compiler::closes_shell_capture(raw, indent) {
+                shell_indent = None;
+            }
+            continue;
+        }
+        if !in_multiline && ush_compiler::opens_shell_capture(raw) {
+            shell_indent = Some(&raw[..raw.len() - raw.trim_start().len()]);
+            out.push_str(raw);
+            out.push('\n');
+            last_blank = false;
+            continue;
+        }
         if in_multiline || triple_quote_toggles(raw) > 0 {
             out.push_str(raw);
             out.push('\n');
@@ -28,7 +44,7 @@ pub fn format_source(source: &str) -> String {
         out.push('\n');
         // The leading `}` was already paid for by `dedent`; counting
         // it again would cancel the brace that reopens on the same
-        // line, and `} with log { (m) =>` would indent nothing.
+        // line, and `} with log(m) {` would indent nothing.
         indent += brace_delta(line.strip_prefix('}').unwrap_or(line));
         last_blank = false;
     }
