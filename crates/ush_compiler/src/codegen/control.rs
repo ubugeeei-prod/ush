@@ -36,6 +36,8 @@ pub(crate) fn compile_if(
     ctx: &mut ControlContext<'_>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    let returns_value =
+        returns_value && (ctx.return_type != Some(&Type::Unit) || branch.else_body.is_some());
     if returns_value && branch.else_body.is_none() {
         bail!("if expressions require an else branch");
     }

@@ -244,3 +244,21 @@ fn unit_style_application_calls_zero_arg_functions() {
 
     assert_eq!(output, "ush\n");
 }
+
+#[test]
+fn unit_functions_can_end_in_a_conditional_failure() {
+    assert_eq!(
+        run_program(
+            r#"
+fn require_name(name: String) -> () / unknown, stderr {
+  if name == "" {
+    fail(2, "missing name")
+  }
+}
+require_name("ok")?
+print "ok"
+"#
+        ),
+        "ok\n"
+    );
+}
