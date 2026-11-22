@@ -222,7 +222,7 @@ fn compile_list_for(
     ));
     if item_ty.is_structured() {
         let source = format!("{prefix}__${{{index}}}");
-        let mut element = OutputBuffer::default();
+        let mut element = OutputBuffer::new(ctx.state.mapped);
         super::wire::copy(item_ty, &source, name, ctx.state, &mut element);
         push_output(out, &element, 2);
     } else {

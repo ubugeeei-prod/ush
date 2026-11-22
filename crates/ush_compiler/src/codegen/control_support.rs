@@ -33,7 +33,7 @@ pub(super) fn compile_condition(
             if super::infer(expr, env, ctx.functions, ctx.impls, ctx.enums)? != Type::Bool {
                 bail!("if/while conditions must be boolean");
             }
-            let mut buffer = OutputBuffer::default();
+            let mut buffer = OutputBuffer::new(ctx.state.mapped);
             let rendered = compile_runtime_primitive_expr(
                 expr,
                 env,
@@ -51,7 +51,7 @@ pub(super) fn compile_condition(
             })
         }
         Condition::Let { pattern, expr } => {
-            let mut buffer = OutputBuffer::default();
+            let mut buffer = OutputBuffer::new(ctx.state.mapped);
             let subject = read_expr(
                 expr,
                 env,
@@ -112,7 +112,7 @@ pub(super) fn compile_body(
     tail_position: bool,
     ctx: &mut ControlContext<'_>,
 ) -> Result<OutputBuffer> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(ctx.state.mapped);
     for (index, statement) in statements.iter().enumerate() {
         compile_statement(
             statement,

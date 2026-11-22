@@ -116,7 +116,7 @@ pub(crate) fn compile_function(
         let storage = param_storage(&def.name, index);
         if param.ty.is_structured() {
             super::wire::register(&param.ty, state);
-            let mut unpack = OutputBuffer::default();
+            let mut unpack = OutputBuffer::new(state.mapped);
             super::wire::decode(
                 &param.ty,
                 &storage,
@@ -170,7 +170,7 @@ fn compile_many(
     state: &mut CodegenState,
     return_type: Option<&super::super::ast::Type>,
 ) -> Result<OutputBuffer> {
-    let mut buffer = OutputBuffer::default();
+    let mut buffer = OutputBuffer::new(state.mapped);
     for (index, statement) in statements.iter().enumerate() {
         compile_statement(
             statement,

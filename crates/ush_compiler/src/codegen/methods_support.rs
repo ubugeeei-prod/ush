@@ -55,7 +55,7 @@ pub(super) fn compile_method_body(
     enums: &EnumRegistry,
     state: &mut CodegenState,
 ) -> Result<String> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(state.mapped);
     for (index, statement) in def.body.iter().enumerate() {
         compile_statement(
             statement,

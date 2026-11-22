@@ -74,7 +74,7 @@ fn compile_body(
     state: &mut CodegenState,
     return_type: &Type,
 ) -> Result<OutputBuffer> {
-    let mut out = OutputBuffer::default();
+    let mut out = OutputBuffer::new(state.mapped);
     for (index, statement) in body.iter().enumerate() {
         compile_statement(
             statement,

@@ -168,7 +168,7 @@ fn compile_one(
     return_type: Option<&Type>,
     inside_function: bool,
 ) -> Result<OutputBuffer> {
-    let mut buffer = OutputBuffer::default();
+    let mut buffer = OutputBuffer::new(state.mapped);
     compile_statement(
         statement,
         env,

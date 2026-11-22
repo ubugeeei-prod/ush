@@ -195,3 +195,41 @@ fn assert_snapshot(name: &str, listing: &str) {
     }
     assert_eq!(listing, std::fs::read_to_string(path).unwrap());
 }
+
+#[test]
+fn optional_line_index_preserves_identical_artifact_bytes() {
+    use std::fs;
+    use ush_compiler::ShellTarget;
+
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("demo.ush");
+    let output = dir.path().join("demo.sh");
+    let source = "fn text() -> String / unknown, fs, env, net, stdin, stderr, exec {\n  let value = $(\ncat <<'END'\n  body\nEND\n  )?\n  value\n}\nprint text()?\n";
+    fs::write(&input, source).unwrap();
+    for target in [
+        ShellTarget::Sh,
+        ShellTarget::Bash,
+        ShellTarget::Zsh,
+        ShellTarget::Ash,
+    ] {
+        let compiler = UshCompiler::for_target(target);
+        let compiled = compiler
+            .compile_checked_in_file_with_sourcemap(&input, &output)
+            .unwrap();
+        assert_eq!(
+            compiled.shell,
+            compiler.compile_checked_in_file(&input, &output).unwrap()
+        );
+        assert_eq!(
+            compiled.sourcemap.lines.len(),
+            compiled.shell.lines().count()
+        );
+        assert_eq!(
+            compiler.compile_source(source).unwrap(),
+            compiler
+                .compile_source_with_sourcemap(source)
+                .unwrap()
+                .shell
+        );
+    }
+}

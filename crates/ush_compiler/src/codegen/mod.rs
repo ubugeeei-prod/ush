@@ -57,14 +57,15 @@ pub(crate) fn compile_program(
     script_name: Option<&str>,
     source_context: SourceContext<'_>,
     target: crate::ShellTarget,
+    mapped: bool,
 ) -> Result<OutputBuffer> {
     let mut env = Env::default();
     let mut functions = functions::FunctionRegistry::default();
     let mut enums = EnumRegistry::default();
     let mut traits = TraitRegistry::default();
     let mut trait_impls = TraitImplRegistry::default();
-    let mut state = CodegenState::new(source);
-    let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport);
+    let mut state = CodegenState::new(source, mapped);
+    let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
 
     stdlib::register_builtins(&mut functions)?;
 
@@ -124,7 +125,7 @@ pub(crate) fn compile_program(
     }
     out.set_section(previous_section);
     let body = out;
-    let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport);
+    let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
     let uses_tasks = body.as_str().contains("__ush_jobs=");
     source_context::emit(&mut out, source_context, target, uses_tasks);
     let previous_section = out.set_section(SourceMapSection::DocSupport);

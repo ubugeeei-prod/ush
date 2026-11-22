@@ -118,19 +118,20 @@ fn compile_action(
     target: ush_compiler::ShellTarget,
 ) -> Result<()> {
     let compiler = UshCompiler::for_target(target);
-    let shell = if checked_in || sourcemap.is_some() {
-        let compiled = if checked_in {
-            compiler.compile_checked_in_file_with_sourcemap(
-                input,
-                output.expect("clap requires output with --checked-in"),
-            )?
-        } else {
-            compiler.compile_file_with_sourcemap(input)?
+    let artifact = if checked_in {
+        Some(output.expect("clap requires output with --checked-in"))
+    } else {
+        None
+    };
+    let shell = if let Some(map) = sourcemap {
+        let compiled = match artifact {
+            Some(path) => compiler.compile_checked_in_file_with_sourcemap(input, path)?,
+            None => compiler.compile_file_with_sourcemap(input)?,
         };
-        if let Some(map) = sourcemap {
-            write_sourcemap_file(map, input, output, &compiled.sourcemap)?;
-        }
+        write_sourcemap_file(map, input, output, &compiled.sourcemap)?;
         compiled.shell
+    } else if let Some(path) = artifact {
+        compiler.compile_checked_in_file(input, path)?
     } else {
         compiler.compile_file(input)?
     };
