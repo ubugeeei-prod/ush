@@ -170,13 +170,28 @@ jobs:
         with:
           key: bench
 
+      - name: Check out the PR base for same-runner measurements
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: .bench-base
+          persist-credentials: false
+
+      - name: Compare base and PR benchmarks on the same runner
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/compare_benchmarks.py .bench-base
+
       - name: Run parser bench
+        if: github.event_name == 'push'
         run: cargo bench --locked -p ush_shell --bench parser -- --output-format bencher | tee bench-output.txt
 
       - name: Run compile bench
+        if: github.event_name == 'push'
         run: cargo bench --locked -p ush_compiler --bench compile -- --output-format bencher | tee -a bench-output.txt
 
-      - name: Compare against baseline on main
+      - name: Publish benchmark history on main
+        if: github.event_name == 'push'
         uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1.22.1
         with:
           name: Criterion microbenchmarks
@@ -188,7 +203,7 @@ jobs:
           benchmark-data-dir-path: bench
           summary-always: true
           alert-threshold: "125%"
-          fail-on-alert: ${{ github.event_name == 'pull_request' }}
+          fail-on-alert: false
           comment-on-alert: true
           alert-comment-cc-users: "@ubugeeei"
 
