@@ -127,3 +127,20 @@ to this project.
 APIs requiring capabilities unavailable in POSIX sh will use an optional ush
 runtime. Portable programs remain standalone; the runtime-backed API surface
 will be introduced in separate changes.
+
+## Tests
+
+Write named test blocks and import their assertions explicitly:
+
+```ush
+use std::string::to_upper_ascii
+use std::test::assert_eq
+
+test "ASCII case conversion" {
+  assert_eq (to_upper_ascii "hello") "HELLO"
+}
+```
+
+Run them with `ush test path/to/tests.ush`. Select a generated shell with
+`ush --shell-target zsh test path/to/tests.ush`. The portable fixtures in
+`crates/ush_compiler/tests/fixtures/portable/` use this same syntax.

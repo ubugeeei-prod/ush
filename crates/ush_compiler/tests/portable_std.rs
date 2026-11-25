@@ -25,9 +25,18 @@ fn each_shell(mut check: impl FnMut(&str, ShellTarget)) {
 fn run(shell: &str, target: ShellTarget, source: &str, input: &[u8]) -> Output {
     let dir = tempdir().unwrap();
     let script = dir.path().join("program.sh");
-    let generated = UshCompiler::for_target(target)
-        .compile_source(source)
-        .unwrap_or_else(|error| panic!("{error:#}"));
+    let compiler = UshCompiler::for_target(target);
+    let cases = compiler.test_cases_source(source).unwrap();
+    let generated = match cases.as_slice() {
+        [] => compiler.compile_source(source),
+        [case] => {
+            let input = dir.path().join("test.ush");
+            fs::write(&input, source).unwrap();
+            compiler.compile_test_file(&input, case.line)
+        }
+        _ => panic!("fixture runner expects one named test per source"),
+    }
+    .unwrap_or_else(|error| panic!("{error:#}"));
     assert!(
         !generated.contains("__runtime"),
         "portable code must stand alone"
@@ -53,6 +62,13 @@ fn portable_apis_work_across_shells_without_a_runtime() {
         include_str!("fixtures/portable/filesystem.ush"),
         include_str!("fixtures/portable/paths.ush"),
     ] {
+        assert_eq!(
+            UshCompiler::default()
+                .test_cases_source(source)
+                .unwrap()
+                .len(),
+            1
+        );
         each_shell(|shell, target| {
             let output = run(shell, target, source, b"");
             assert!(

@@ -7,12 +7,16 @@ use std::string::{lines, contains}
 use std::test::{assert, assert_eq}
 use std::command::exists
 
-fn run_fixture(target: String, script: String, directory: String) -> String / unknown, exec, env, fs, stdin, stderr, net {
+fn run_fixture(compiler: String, target: String, source: String, directory: String) -> String / unknown, exec, env, fs, stdin, stderr, net {
   std::process::chdir directory
-  output target [script]
+  output compiler ["--shell-target", target, "test", source]
 }
 
+let root = pwd
 let compiler = get_or "USH_BIN" "target/debug/ush"
+if std::path::is_absolute compiler == false {
+  let compiler = root + "/" + compiler
+}
 let work = temp_dir
 let targets = ["sh", "bash", "zsh"]
 if exists "busybox" {
@@ -27,9 +31,8 @@ else if uname "-s" == "Linux" {
 for target in targets {
   sh "scripts/test_task_await.sh" compiler target
   for name in ["strings", "filesystem", "paths"] {
-    let source = "crates/ush_compiler/tests/fixtures/portable/" + name + ".ush"
-    exec compiler ["compile", source, "--target", target, "-o", work + "/portable"]
-    assert_eq (run_fixture target (work + "/portable") work) "passed"
+    let source = root + "/crates/ush_compiler/tests/fixtures/portable/" + name + ".ush"
+    assert (contains (run_fixture compiler target source work) "1 passed; 0 failed")
   }
   for source in lines (find "examples" "-name" "*.ush" "-type" "f") {
     exec compiler ["compile", source, "--target", target, "-o", work + "/script"]
