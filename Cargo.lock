@@ -1364,6 +1364,7 @@ name = "ush_tooling"
 version = "0.15.0"
 dependencies = [
  "anyhow",
+ "tempfile",
  "ush_compiler",
 ]
 

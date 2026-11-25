@@ -15,7 +15,7 @@ use crate::types::HeapVec as Vec;
 /// enclosing function no longer mentions `log`.
 pub(super) fn parse_handle(lines: &[SourceLine<'_>], cursor: &mut usize) -> Result<StatementKind> {
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     let mut handlers = Vec::new();
 
     loop {
@@ -71,7 +71,7 @@ fn parse_handler(
         }
     }
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, true)?;
+    let body = super::statement::parse_block(lines, cursor, None, true)?;
     Ok(EffectHandler {
         effect,
         params,

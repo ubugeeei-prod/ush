@@ -1,0 +1,7 @@
+# Two modules both define `label`; only reachable functions are emitted.
+mod "local_modules/report.ush"
+mod "local_modules/text.ush"
+use report::{Status, line}
+
+print line Status::Passed "build"
+print text::label

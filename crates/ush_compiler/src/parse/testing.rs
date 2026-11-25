@@ -22,7 +22,7 @@ pub(super) fn parse(
         parse_string_literal(label).ok_or_else(|| anyhow!("test name must be a string literal"))?
     };
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     finish_block(lines, cursor, "test block")?;
     Ok(Statement::new(
         line,

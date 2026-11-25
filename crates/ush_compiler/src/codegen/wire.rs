@@ -11,7 +11,14 @@ use anyhow::{Result, anyhow, bail};
 
 fn layout(ty: &Type) -> String {
     match ty {
-        Type::Adt(n) => format!("record_{}_{}", n.len(), n),
+        // Length-prefixed segments keep `gh::Level` a valid, unambiguous
+        // shell name; a root type `Level` stays `record_5_Level`.
+        Type::Adt(n) => n
+            .split("::")
+            .fold(String::from("record"), |mut name, segment| {
+                name.push_str(&format!("_{}_{segment}", segment.len()));
+                name
+            }),
         Type::List(t) => format!("list_{}", layout(t)),
         Type::Tuple(ts) => format!(
             "tuple_{}_{}",

@@ -40,7 +40,10 @@ use crate::types::{AstString as NameString, HeapVec as Vec};
 /// The shell variable that holds the current handler for an effect.
 fn handler_variable(effect: &str) -> NameString {
     let mut name = NameString::from("__ush_handler_");
-    name.push_str(effect);
+    // A module's `gh::log` becomes `gh__log`, like its function name.
+    for ch in effect.chars() {
+        name.push(if ch.is_ascii_alphanumeric() { ch } else { '_' });
+    }
     name
 }
 

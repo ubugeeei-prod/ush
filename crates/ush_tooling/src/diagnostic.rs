@@ -12,11 +12,26 @@ pub struct UshDiagnostic {
 pub fn check_file(path: &Path) -> Result<Vec<UshDiagnostic>> {
     let source =
         fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
-    Ok(check_source(&source))
+    Ok(check_source_at(&source, path))
 }
 
+/// Checks source that has no file, so it cannot import modules.
 pub fn check_source(source: &str) -> Vec<UshDiagnostic> {
-    match UshCompiler.compile_source(source) {
+    diagnostics(UshCompiler.compile_source(source))
+}
+
+/// Checks `source` as the contents of `path`, reading its modules from
+/// beside `path`. An editor buffer may differ from the file on disk.
+/// A module's error is reported on the `mod` line that imports it.
+pub fn check_source_at(source: &str, path: &Path) -> Vec<UshDiagnostic> {
+    if !path.exists() {
+        return check_source(source);
+    }
+    diagnostics(UshCompiler.compile_source_at(source, path))
+}
+
+fn diagnostics<T>(result: anyhow::Result<T>) -> Vec<UshDiagnostic> {
+    match result {
         Ok(_) => Vec::new(),
         // `{:#}` renders the whole context chain. Plain `Display`
         // shows only the outermost frame, which for most compiler

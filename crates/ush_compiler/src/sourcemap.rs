@@ -27,24 +27,29 @@ impl SourceMap {
         self.line(generated_line).and_then(|line| line.source_line)
     }
 
+    /// Generated lines for a line of the root script.
     pub fn generated_lines_for_source(&self, source_line: usize) -> Vec<usize> {
         self.lines
             .iter()
             .filter_map(|line| {
-                (line.source_line == Some(source_line)).then_some(line.generated_line)
+                (line.source_file.is_none() && line.source_line == Some(source_line))
+                    .then_some(line.generated_line)
             })
             .collect()
     }
 
+    /// Source lines with their generated lines: the root script's first,
+    /// then each module's, by file and line.
     pub fn source_index(&self) -> Vec<SourceMapSourceLine> {
-        let mut grouped = BTreeMap::<usize, SourceMapSourceLine>::new();
+        let mut grouped = BTreeMap::<(Option<&str>, usize), SourceMapSourceLine>::new();
         for line in &self.lines {
             let Some(source_line) = line.source_line else {
                 continue;
             };
             let entry = grouped
-                .entry(source_line)
+                .entry((line.source_file.as_deref(), source_line))
                 .or_insert_with(|| SourceMapSourceLine {
+                    source_file: line.source_file.clone(),
                     source_line,
                     source_text: line.source_text.clone(),
                     generated_lines: Vec::new(),
@@ -146,10 +151,11 @@ impl SourceMap {
                 let _ = writeln!(out, "-- {} --", line.section.label());
                 current_section = Some(line.section);
             }
-            let source = line
-                .source_line
-                .map(|value| format!("S{value:04}"))
-                .unwrap_or_else(|| OutputString::from("----"));
+            let source = match (&line.source_file, line.source_line) {
+                (Some(file), Some(value)) => format!("{file}:S{value:04}"),
+                (None, Some(value)) => format!("S{value:04}"),
+                (_, None) => OutputString::from("----"),
+            };
             let _ = writeln!(
                 out,
                 "G{:04} -> {} | {}",
@@ -191,6 +197,8 @@ impl SourceMapSection {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceMapSourceLine {
+    /// The module file, or `None` for the root script.
+    pub source_file: Option<OutputString>,
     pub source_line: usize,
     pub source_text: Option<OutputString>,
     pub generated_lines: Vec<usize>,
@@ -218,6 +226,8 @@ pub struct SourceMapSectionSummary {
 pub struct SourceMapLine {
     pub generated_line: usize,
     pub section: SourceMapSection,
+    /// The module file `source_line` belongs to; `None` for the root script.
+    pub source_file: Option<OutputString>,
     pub source_line: Option<usize>,
     pub generated_text: OutputString,
     pub source_text: Option<OutputString>,

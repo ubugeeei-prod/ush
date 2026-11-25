@@ -85,19 +85,46 @@ fn source_relative_paths_follow_the_generated_script() {
 }
 
 #[test]
-fn source_and_output_must_be_adjacent() {
-    let source_directory = tempdir().expect("source tempdir");
-    let output_directory = tempdir().expect("output tempdir");
-    let source = source_directory.path().join("script.ush");
-    fs::write(&source, "print \"hello\"\n").expect("write source");
+fn output_in_another_directory_finds_its_source() {
+    let directory = tempdir().expect("tempdir");
+    let root = fs::canonicalize(directory.path()).unwrap();
+    let source = root.join("scripts/locate.ush");
+    let output = root.join("scripts/compiled/locate.sh");
+    fs::create_dir_all(output.parent().unwrap()).unwrap();
+    fs::write(root.join("scripts/payload.txt"), "payload\n").unwrap();
+    fs::write(
+        &source,
+        "use std::path::{from_source}\nlet payload = from_source \"payload.txt\"\nprint payload.read_text()\n",
+    )
+    .unwrap();
 
-    let output = compile(&source, &output_directory.path().join("script.sh"));
-
-    assert!(!output.status.success());
+    let result = compile(&source, &output);
     assert!(
-        String::from_utf8_lossy(&output.stderr)
-            .contains("checked-in source and output must be in the same directory")
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
     );
+    let shell = fs::read_to_string(&output).unwrap();
+    assert!(shell.contains("# Source: ../locate.ush\n"));
+    assert!(
+        shell.contains(
+            "# Regenerate with: ush compile '../locate.ush' --checked-in -o 'locate.sh'\n"
+        )
+    );
+    assert!(!shell.contains(root.to_str().unwrap()));
+
+    let other = tempdir().unwrap();
+    let run = Command::new("sh")
+        .arg(&output)
+        .current_dir(other.path())
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    assert_eq!(run.stdout, b"payload\n");
 }
 
 #[test]

@@ -62,6 +62,11 @@ const KEYWORDS: &[(&str, &str)] = &[
     ),
     ("loop", "Infinite loop; exit with `break`."),
     (
+        "mod",
+        "Imports a local `.ush` module: `mod \"lib/gh.ush\" as gh`.",
+    ),
+    ("pub", "Lets other files import this module item."),
+    (
         "match",
         "Pattern-match an expression. The compiler enforces exhaustiveness.",
     ),

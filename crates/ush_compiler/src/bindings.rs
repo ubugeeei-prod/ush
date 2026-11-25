@@ -159,6 +159,7 @@ fn statement(s: &Statement, scope: &mut Scope, globals: &Scope) -> Result<()> {
             block(body, &mut scope.clone(), globals)?;
         }
         S::Use(_)
+        | S::Module(_)
         | S::UnitDef(_)
         | S::Enum(_)
         | S::Trait(_)

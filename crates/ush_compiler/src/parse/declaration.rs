@@ -44,6 +44,9 @@ pub(super) fn parse_declaration(
             alias: "*".into(),
         }])));
     }
+    if let Some(rest) = trimmed.strip_prefix("mod ") {
+        return Ok(Some(super::module_decl::parse(rest)?));
+    }
     if let Some(rest) = trimmed.strip_prefix("use ") {
         return Ok(Some(use_decl::parse_use(rest)?));
     }
@@ -181,7 +184,7 @@ fn parse_function(
     // A declared `-> ()` has no tail value, so its last line is a statement.
     let declared_unit = !tail.is_empty() && return_type == Some(Type::Unit);
     let tail_values = return_type.is_some() && !declared_unit;
-    let body = super::statement::parse_block(lines, cursor, false, tail_values)?;
+    let body = super::statement::parse_block(lines, cursor, None, tail_values)?;
     let _ = finish_block(lines, cursor, "function body")?;
     if scheme.is_none()
         && tail.is_empty()

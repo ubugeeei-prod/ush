@@ -1,5 +1,6 @@
 mod convert;
 mod document;
+mod paths;
 mod server;
 
 use anyhow::Result;

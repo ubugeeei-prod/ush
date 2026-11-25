@@ -1,0 +1,11 @@
+pub fn shout(text: String) -> String {
+  text + "!"
+}
+
+pub fn label() -> String {
+  "text"
+}
+
+pub fn unused() -> String {
+  "not emitted"
+}

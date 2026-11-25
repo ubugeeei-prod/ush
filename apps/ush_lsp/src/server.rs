@@ -19,7 +19,7 @@ use lsp_types::{
         Request as _, SemanticTokensFullRequest, SignatureHelpRequest,
     },
 };
-use ush_tooling::{check_source, semantic_token_legend};
+use ush_tooling::{check_source, check_source_at, semantic_token_legend};
 
 use crate::{convert, document::DocumentStore};
 
@@ -177,7 +177,14 @@ fn publish_diagnostics(
 ) -> Result<()> {
     let params = PublishDiagnosticsParams {
         uri: uri.clone(),
-        diagnostics: convert::diagnostics(source, &check_source(source)),
+        // A file on disk can import modules from beside it.
+        diagnostics: convert::diagnostics(
+            source,
+            &match crate::paths::file_path(uri) {
+                Some(path) => check_source_at(source, &path),
+                None => check_source(source),
+            },
+        ),
         version,
     };
     connection

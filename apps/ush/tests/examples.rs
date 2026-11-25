@@ -51,6 +51,7 @@ fn runnable_examples_exit_successfully() {
         ("hello.ush", &[]),
         ("http_regex.ush", &[]),
         ("literal_match.ush", &[]),
+        ("modules.ush", &[]),
         ("multiline_string.ush", &[]),
         ("named_args.ush", &[]),
         ("option.ush", &[]),

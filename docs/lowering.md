@@ -14,16 +14,16 @@ Every artifact starts with a target shebang, a source comment, a
 the standard-library helpers that the program reaches. Task bookkeeping is
 included when the program starts a background task.
 
-For a generated artifact that will be committed, use adjacent source and
-output files:
+For a generated artifact that will be committed, use `--checked-in`:
 
 ```sh
-ush compile tools/check.ush --checked-in -o tools/check.sh
+ush compile tools/check.ush --checked-in -o tools/compiled/check.sh
 ```
 
 This mode adds source and regeneration comments, avoids machine-specific
-absolute paths, and resolves `std::path::from_source` from the generated
-script's directory at runtime.
+absolute paths, and resolves `std::path::from_source` from the source's
+directory at runtime: the script's own directory plus the recorded relative
+path. See [checked-in output](native-scripting.md#checked-in-output).
 
 If the source has doc comments or a `bin(...)` entrypoint, the compiler also emits:
 
@@ -56,6 +56,7 @@ If the source has doc comments or a `bin(...)` entrypoint, the compiler also emi
 | `a \|& b`, `\| to_file p` | `2>&1`, `> p` on the stage itself |
 | `cd dir { … }` | save `$PWD`, `ush_fn_std__process__chdir`, body, `cd` back |
 | `export A = v { … }` | save value and set state, `export A=…`, body, restore or `unset` |
+| `mod "lib/gh.ush"` + `gh::run` | module inlined; `ush_fn_gh__run() { ... }` |
 
 ## `let` and `print`
 
@@ -423,6 +424,25 @@ A `bin(...)` entrypoint generates:
 - default handling
 - alias handling like `--name` and `-n`
 - usage / man / completion output
+
+## Local modules
+
+Modules are linked at compile time. Each module's statements are placed
+before the root script's, dependencies first, and its items take the
+importing alias as a namespace: `pub fn run` in a module imported as `gh`
+becomes `ush_fn_gh__run`. Only reachable module functions are emitted.
+Statements from a module record their file, so a failure names it:
+
+```sh
+__ush_at() { __ush_line=$1; __ush_source=$2; __ush_file=${3:-$__ush_origin}; }
+...
+ush_fn_gh__run() {
+  __ush_at 2 'print "x"' 'lib/gh.ush'
+  printf '%s\n' 'x'
+}
+```
+
+Programs without modules keep the two-argument `__ush_at`.
 
 ## See Also
 

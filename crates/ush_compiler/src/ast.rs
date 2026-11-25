@@ -9,18 +9,24 @@ use crate::types::{AstString as String, HeapVec as Vec};
 pub(crate) use control::{Condition, IfBranch};
 pub(crate) use items::{
     Attribute, Call, CallArg, EffectDef, EffectHandler, EnumDef, ExprFields, FunctionDef,
-    FunctionParam, MethodCall, NamedExpr, NamedFieldType, NamedPattern, PatternFields, TraitDef,
-    TraitImpl, UseItem, VariantDef, VariantExpr, VariantFields, VariantPattern,
+    FunctionParam, MethodCall, ModuleDecl, NamedExpr, NamedFieldType, NamedPattern, PatternFields,
+    TraitDef, TraitImpl, UseItem, VariantDef, VariantExpr, VariantFields, VariantPattern,
 };
 pub(crate) use shell::{EnvBinding, Pipeline, Scope, Stage};
 pub(crate) use ty::{CompareOp, Type};
 
 #[derive(Debug, Clone)]
 pub(crate) struct Statement {
+    /// A line in the program's source space. The root script keeps its own
+    /// line numbers; each module follows it at an offset, so a copied `line`
+    /// still names the right file. [`crate::modules::SourceSpace`] maps it
+    /// back to a file and a line within it.
     pub line: usize,
     pub kind: StatementKind,
     /// Binding intent for Let, Spawn, and Await; ignored on other statements.
     pub binding: BindingMode,
+    /// `pub` on a top-level declaration: other files may import it.
+    pub public: bool,
 }
 
 impl Statement {
@@ -29,6 +35,7 @@ impl Statement {
             line,
             kind,
             binding: BindingMode::Immutable,
+            public: false,
         }
     }
 }
@@ -43,6 +50,8 @@ pub(crate) enum BindingMode {
 #[derive(Debug, Clone)]
 pub(crate) enum StatementKind {
     Use(Vec<UseItem>),
+    /// `mod "lib/gh.ush" as gh`
+    Module(ModuleDecl),
     UnitDef(String),
     Enum(EnumDef),
     Trait(TraitDef),

@@ -72,7 +72,7 @@ pub(super) fn compile_method_body(
             &mut out,
         )?;
     }
-    Ok(out.into_compiled(None).shell)
+    Ok(out.into_shell())
 }
 
 pub(super) fn resolve_method_args<'a>(

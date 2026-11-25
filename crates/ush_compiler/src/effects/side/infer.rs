@@ -28,6 +28,7 @@ fn statement_effects(statement: &Statement, ctx: Context<'_>) -> EffectSet {
     match &statement.kind {
         // A nested definition contributes nothing until it is called.
         StatementKind::Use(_)
+        | StatementKind::Module(_)
         | StatementKind::UnitDef(_)
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)

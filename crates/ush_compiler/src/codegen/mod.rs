@@ -52,7 +52,7 @@ pub(crate) use effects_lowering::effect_dispatcher;
 pub(crate) use functions::FunctionRegistry;
 pub(crate) use primitive::{compile_primitive_expr, infer};
 pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runtime};
-pub(crate) use shared::binding_for_name;
+pub(crate) use shared::{binding_for_name, shell_function_name};
 pub(crate) use stdlib::host_required;
 pub(crate) use stdlib::register_builtins;
 pub(crate) use task_block::infer_async_block_type;
@@ -62,7 +62,7 @@ pub(crate) use uses_std::references as references_std;
 pub(crate) fn compile_program(
     program: &[Statement],
     docs: &ScriptDocs,
-    source: &str,
+    space: &crate::modules::SourceSpace,
     script_name: Option<&str>,
     source_context: SourceContext<'_>,
     target: crate::ShellTarget,
@@ -73,7 +73,7 @@ pub(crate) fn compile_program(
     let mut enums = EnumRegistry::default();
     let mut traits = TraitRegistry::default();
     let mut trait_impls = TraitImplRegistry::default();
-    let mut state = CodegenState::new(source, mapped);
+    let mut state = CodegenState::new(space, mapped);
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
 
     if uses_std::references(program) {
@@ -153,8 +153,11 @@ pub(crate) fn compile_program(
         &mut out,
         source_context,
         target,
-        uses_tasks,
-        body.as_str().contains("${__ush_lf}"),
+        source_context::Prelude {
+            tasks: uses_tasks,
+            literal_newlines: body.as_str().contains("${__ush_lf}"),
+            modules: space.has_modules(),
+        },
     );
     let previous_section = out.set_section(SourceMapSection::DocSupport);
     // Programs that read argv own their CLI, including --help and --man.

@@ -91,7 +91,7 @@ fn parse_method(
     }
     params.remove(0);
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, return_type.is_some())?;
+    let body = super::statement::parse_block(lines, cursor, None, return_type.is_some())?;
     let _ = finish_block(lines, cursor, "method body")?;
     Ok(FunctionDef {
         scheme: None,

@@ -59,6 +59,7 @@ Implemented today:
 - Scoped working directory and environment: `cd dir { … }` and `export NAME = value, … { … }` restore the previous state afterwards, and `export NAME = value` sets a variable for the rest of the script
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
 - Rust-like `std::module::function` paths plus `use` imports for selected std helpers, including `std::env`, `std::path`, `std::fs`, `std::command`, `std::string`, `std::http`, and `std::regex` with capture support
+- Local modules: `mod "lib/gh.ush" as gh` with `pub` items, `gh::item` paths and `use gh::{item}`; modules are inlined into one standalone script with namespaced, tree-shaken functions. [Modules guide](docs/shell-language.md#local-modules)
 - Labeled function arguments plus parameter attributes such as `#[default(...)]` and `#[alias("n")]`
 - `alias name = "..."` declarations in `.ush`
 - `bin.ush` as a generated CLI entrypoint, with flags/defaults/completion derived from the `bin(...)` signature
@@ -85,7 +86,7 @@ Not there yet:
 
 - Full native POSIX grammar coverage inside the Rust runtime
 - Richer typed structured values beyond text / JSON helpers
-- Broader language features such as HM inference, generics, HKT, modules, `yield`, and real green-thread scheduling
+- Broader language features such as HM inference, generics, HKT, module re-exports (`pub use`), `yield`, and real green-thread scheduling
 - Effect polymorphism, and multi-operation effect interfaces; handlers are tail-resumptive, so there is no `resume` to capture a continuation with
 - Inherent `impl Type { ... }` methods and a Rust-complete type system; the current prototype is still a small subset
 - A truly finished shell UX; editing, completion, and IME behavior are still being tuned
@@ -375,12 +376,17 @@ Repositories can commit generated shell without requiring contributors to
 install `ush` just to run a script:
 
 ```bash
-ush compile tools/check.ush --checked-in -o tools/check.sh
+ush compile tools/check.ush --checked-in -o tools/compiled/check.sh
+ush compile --check --checked-in --out-dir compiled tools/*.ush   # CI freshness gate
 ```
 
-The source and output stay adjacent. This mode produces a deterministic,
-relocatable artifact with a `DO NOT EDIT MANUALLY` header and the exact
-regeneration command; run the committed `.sh` with any POSIX shell.
+The output may live in any directory. This mode produces a deterministic,
+relocatable artifact with a `DO NOT EDIT MANUALLY` header, the source path
+relative to the output and the exact regeneration command; it resolves
+source-relative paths from the source's location, and runs with any POSIX
+shell. `--out-dir` compiles many scripts in one process and `--check` exits
+non-zero with a diff when a committed output is stale.
+[Checked-in output](docs/native-scripting.md#checked-in-output)
 
 Small example:
 
@@ -398,6 +404,7 @@ Current highlights:
 
 - `let`, `print`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
 - `""" ... """` multiline strings with common-indent dedent
+- `mod "lib/x.ush"` local modules with `pub` items, inlined at compile time
 - `std::env`, `std::path`, `std::fs`, `std::command`, and `std::string` helpers via fully-qualified calls or top-level `use`, plus method-style path/string flows like `path.resolve()`, `path.exists()`, `path.read_text()`, and `name.trim_suffix(".ush")`
 - `fail` plus typed error signatures like `String / Problem`, with Rust-like `?` propagation
 - `$ command ...` for inline shell execution and `shell expr` for dynamic command strings

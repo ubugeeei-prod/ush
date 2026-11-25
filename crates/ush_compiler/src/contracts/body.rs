@@ -146,6 +146,7 @@ impl Checker {
             | S::Trait(_)
             | S::Impl(_)
             | S::Use(_)
+            | S::Module(_)
             | S::UnitDef(_)
             | S::Break
             | S::Continue => {}

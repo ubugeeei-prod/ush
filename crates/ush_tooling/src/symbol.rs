@@ -63,6 +63,32 @@ pub fn document_symbols(source: &str) -> Vec<DocumentSymbol> {
 }
 
 fn declaration_on_line(line_no: u32, line: &str) -> Option<DocumentSymbol> {
+    if let Some(rest) = line.strip_prefix("pub ") {
+        let mut symbol = declaration_on_line(line_no, rest)?;
+        symbol.start += 4;
+        return Some(symbol);
+    }
+    if let Some(rest) = line.strip_prefix("mod ") {
+        let (name, start) = match line.rsplit_once(" as ") {
+            Some((prefix, alias)) => (alias.trim(), prefix.len() + 4),
+            None => {
+                let path = rest.trim().trim_matches('"');
+                let file = path.rsplit('/').next().unwrap_or(path);
+                (file.strip_suffix(".ush").unwrap_or(file), 4)
+            }
+        };
+        return Some(DocumentSymbol {
+            name: name.into(),
+            kind: SymbolKind::Module,
+            line: line_no,
+            start: start as u32,
+            length: if line.contains(" as ") {
+                name.len() as u32
+            } else {
+                rest.trim().len() as u32
+            },
+        });
+    }
     if let Some(rest) = line.strip_prefix("test")
         && (rest.starts_with(char::is_whitespace) || rest.starts_with('{'))
     {
@@ -191,5 +217,23 @@ alias ll = \"ls -la\"
         let symbols = document_symbols(source);
         let names: Vec<&str> = symbols.iter().map(|s| s.name.as_str()).collect();
         assert_eq!(names, vec!["page", "real"]);
+    }
+
+    #[test]
+    fn lists_modules_and_exported_items() {
+        let source = "mod \"lib/gh.ush\" as gh\nmod \"util.ush\"\npub fn run() {\n}\n";
+        let symbols = document_symbols(source);
+        let names: Vec<(&str, SymbolKind, u32)> = symbols
+            .iter()
+            .map(|s| (s.name.as_str(), s.kind, s.start))
+            .collect();
+        assert_eq!(
+            names,
+            vec![
+                ("gh", SymbolKind::Module, 20),
+                ("util", SymbolKind::Module, 4),
+                ("run", SymbolKind::Function, 7),
+            ]
+        );
     }
 }
