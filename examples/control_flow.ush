@@ -6,8 +6,7 @@ enum Option {
 fn classify(value: Int) -> String {
   if value < 3 {
     "small"
-  }
-  else {
+  } else {
     "large"
   }
 }

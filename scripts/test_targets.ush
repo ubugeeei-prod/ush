@@ -24,8 +24,7 @@ if exists "busybox" {
   ln "-s" $busybox (work + "/ash")
   set "PATH" (work + ":" + get "PATH")
   targets = ["sh", "bash", "zsh", "ash"]
-}
-else if uname "-s" == "Linux" {
+} else if uname "-s" == "Linux" {
   fail 1 "BusyBox is required to check the ash target on Linux"
 }
 for target in targets {

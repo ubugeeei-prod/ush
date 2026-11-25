@@ -1,8 +1,7 @@
 fn pick(flag: Bool) -> String {
   if flag {
     "yes"
-  }
-  else {
+  } else {
     "no"
   }
 }

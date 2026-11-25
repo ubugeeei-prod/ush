@@ -137,8 +137,7 @@ fn fetch(url: String, output: String) -> () {
   if starts_with $url "file://" {
     if exists "curl" {
       curl "-fsSL" "--proto" "=file" $url "-o" $output
-    }
-    else {
+    } else {
       let mut local_path = trim_prefix $url "file://"
       if starts_with $local_path "localhost/" {
         local_path = trim_prefix $local_path "localhost"
@@ -148,14 +147,11 @@ fn fetch(url: String, output: String) -> () {
       }
       cp $local_path $output
     }
-  }
-  else if exists "curl" {
+  } else if exists "curl" {
     curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" $url "-o" $output
-  }
-  else if exists "wget" {
+  } else if exists "wget" {
     wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" $output $url
-  }
-  else {
+  } else {
     fail 1 "install.sh: curl or wget is required"
   }
   ()
@@ -176,8 +172,7 @@ fn expected_checksum(file: String, asset: String) -> String {
       if word != "" {
         if field == 0 {
           digest = word
-        }
-        else if field == 1 && trim_prefix $word "*" == asset {
+        } else if field == 1 && trim_prefix $word "*" == asset {
           return digest
         }
         field = field + 1
@@ -207,19 +202,15 @@ for value in args {
       _ => fail 1 "install.sh: invalid option state"
     }
     pending = ""
-  }
-  else {
+  } else {
     if value == "--help" || value == "-h" {
       usage
       exit 0
-    }
-    else if value == "--no-modify-path" {
+    } else if value == "--no-modify-path" {
       automatic = "0"
-    }
-    else if value == "--version" || value == "--prefix" || value == "--bin-dir" || value == "--download-url" || value == "--checksum-url" {
+    } else if value == "--version" || value == "--prefix" || value == "--bin-dir" || value == "--download-url" || value == "--checksum-url" {
       pending = value
-    }
-    else {
+    } else {
       fail 1 ("install.sh: unknown option: " + value)
     }
   }
@@ -277,12 +268,10 @@ let path_status = ensure_path $directory (automatic != "0")?
 echo ("ush installed to " + directory + "/ush")
 if path_status == "ready" {
   echo "ush is already on PATH. Try: ush --version"
-}
-else if path_status == "manual" {
+} else if path_status == "manual" {
   echo "add this to your shell config, then restart your shell:"
   echo (path_line $directory)
-}
-else {
+} else {
   echo ("added " + directory + " to PATH in " + path_status)
   echo ("restart your shell or run: . \"" + path_status + "\"")
 }

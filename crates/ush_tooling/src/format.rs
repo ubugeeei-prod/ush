@@ -1,3 +1,7 @@
+mod scan;
+
+use scan::{brace_delta, ends_with_brace, triple_quote_toggles};
+
 pub fn format_source(source: &str) -> String {
     let mut out = String::new();
     let mut indent = 0usize;
@@ -46,6 +50,18 @@ pub fn format_source(source: &str) -> String {
             continue;
         }
 
+        // An `else` right after its `}` shares the brace's line: `} else {`.
+        if (line == "else {" || line.starts_with("else if "))
+            && !last_blank
+            && ends_with_brace(&out)
+        {
+            out.pop();
+            out.push(' ');
+            out.push_str(&normalize_line(line));
+            out.push('\n');
+            indent += brace_delta(line);
+            continue;
+        }
         let dedent = usize::from(line.starts_with('}'));
         indent = indent.saturating_sub(dedent);
         // The stages after a trailing `|` sit one level deeper.
@@ -63,16 +79,6 @@ pub fn format_source(source: &str) -> String {
     }
 
     out
-}
-
-fn triple_quote_toggles(line: &str) -> usize {
-    let mut count = 0usize;
-    let mut index = 0usize;
-    while let Some(offset) = line[index..].find("\"\"\"") {
-        count += 1;
-        index += offset + 3;
-    }
-    count
 }
 
 fn normalize_line(line: &str) -> String {
@@ -113,89 +119,6 @@ fn assignment_parts(line: &str) -> Option<(String, String)> {
         return None;
     }
     Some((left.trim().to_string(), right.trim().to_string()))
-}
-
-fn brace_delta(line: &str) -> usize {
-    let mut single = false;
-    let mut double = false;
-    // The double-quoted string is a `$"…"`, whose `${…}` holes are code.
-    let mut interpolating = false;
-    let mut previous = ' ';
-    // One entry per open `${…}` hole: braces opened inside it so far.
-    let mut holes: Vec<usize> = Vec::new();
-    let mut delta = 0isize;
-    let mut chars = line.chars().peekable();
-
-    while let Some(ch) = chars.next() {
-        let before = core::mem::replace(&mut previous, ch);
-        if single {
-            single = ch != '\'';
-            continue;
-        }
-        if double {
-            match ch {
-                '\\' => {
-                    let _ = chars.next();
-                }
-                '"' => double = false,
-                '$' if interpolating && chars.peek() == Some(&'{') => {
-                    chars.next();
-                    double = false;
-                    holes.push(0);
-                }
-                _ => {}
-            }
-            continue;
-        }
-        match ch {
-            '#' if holes.is_empty() => {
-                // `#[…]` is an attribute, not a comment. Skip past
-                // its matching `]` (handling nested brackets) so
-                // braces inside the attribute do not throw off the
-                // outer indent counter, and so the rest of the line
-                // is still inspected.
-                if chars.peek() == Some(&'[') {
-                    chars.next();
-                    let mut depth = 1isize;
-                    for inner in chars.by_ref() {
-                        match inner {
-                            '[' => depth += 1,
-                            ']' => {
-                                depth -= 1;
-                                if depth == 0 {
-                                    break;
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                } else {
-                    break;
-                }
-            }
-            '\'' => single = true,
-            '"' => {
-                double = true;
-                interpolating = before == '$';
-            }
-            '{' => match holes.last_mut() {
-                Some(open) => *open += 1,
-                None => delta += 1,
-            },
-            '}' => match holes.last_mut() {
-                Some(0) => {
-                    holes.pop();
-                    double = true;
-                    interpolating = true;
-                }
-                Some(open) => *open -= 1,
-                None => delta -= 1,
-            },
-            _ => {}
-        }
-    }
-
-    delta.max(0) as usize
 }
 
 #[cfg(test)]

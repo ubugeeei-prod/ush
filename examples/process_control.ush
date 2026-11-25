@@ -12,8 +12,7 @@ if grep "-Fxq" "ready" (work + "/status.txt") && ! test "-e" (work + "/lock") {
 }
 if ls (work + "/missing") | discard_stderr {
   print "unreachable"
-}
-else {
+} else {
   print "missing, quietly"
 }
 let code = status_of sh "-c" "echo checking; exit 3"

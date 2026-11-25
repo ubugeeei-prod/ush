@@ -907,59 +907,59 @@ ush_fn_fetch() {
       __ush_at 139 'curl "-fsSL" "--proto" "=file" $url "-o" $output'
       command curl '-fsSL' '--proto' '=file' "${__ush_fn_fetch_arg_0}" '-o' "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     else
-      __ush_at 142 'let mut local_path = trim_prefix $url "file://"'
+      __ush_at 141 'let mut local_path = trim_prefix $url "file://"'
       __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_fn_fetch_arg_0}" 'file://')" || return "$?"
-      __ush_binding_142_local_path="${__ush_value_43}"
+      __ush_binding_141_local_path="${__ush_value_43}"
       # shellcheck disable=SC2034
-      local_path="${__ush_binding_142_local_path}"
-      __ush_at 143 'if starts_with $local_path "localhost/" {'
+      local_path="${__ush_binding_141_local_path}"
+      __ush_at 142 'if starts_with $local_path "localhost/" {'
       if {
-      __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_142_local_path}" 'localhost/')" || return "$?"
+      __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_141_local_path}" 'localhost/')" || return "$?"
       [ "${__ush_value_44}" = 'true' ]
       }; then
-        __ush_at 144 'local_path = trim_prefix $local_path "localhost"'
-        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_142_local_path}" 'localhost')" || return "$?"
-        __ush_binding_142_local_path="${__ush_value_45}"
+        __ush_at 143 'local_path = trim_prefix $local_path "localhost"'
+        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_141_local_path}" 'localhost')" || return "$?"
+        __ush_binding_141_local_path="${__ush_value_45}"
         # shellcheck disable=SC2034
-        local_path="${__ush_binding_142_local_path}"
+        local_path="${__ush_binding_141_local_path}"
       fi
-      __ush_at 146 'if starts_with $local_path "/" == false || contains $local_path "%" {'
+      __ush_at 145 'if starts_with $local_path "/" == false || contains $local_path "%" {'
       if {
       {
-      __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_142_local_path}" '/')" || return "$?"
+      __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_141_local_path}" '/')" || return "$?"
       [ "$(if [ "${__ush_value_46}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
       } || {
-      __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_binding_142_local_path}" '%')" || return "$?"
+      __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_binding_141_local_path}" '%')" || return "$?"
       [ "${__ush_value_47}" = 'true' ]
       }
       }; then
-        __ush_at 147 'fail 1 "install.sh: encoded or nonlocal file URLs require curl"'
+        __ush_at 146 'fail 1 "install.sh: encoded or nonlocal file URLs require curl"'
         __ush_status=1
         if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
         __ush_report "$__ush_status" 'install.sh: encoded or nonlocal file URLs require curl'
         return "$__ush_status"
       fi
-      __ush_at 149 'cp $local_path $output'
-      command cp "${__ush_binding_142_local_path}" "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+      __ush_at 148 'cp $local_path $output'
+      command cp "${__ush_binding_141_local_path}" "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     fi
   else
-    __ush_at 152 'else if exists "curl" {'
+    __ush_at 150 '} else if exists "curl" {'
     if {
     __ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'curl')" || return "$?"
     [ "${__ush_value_48}" = 'true' ]
     }; then
-      __ush_at 153 'curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" $url "-o" $output'
+      __ush_at 151 'curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" $url "-o" $output'
       command curl '-fsSL' '--proto' '=https' '--tlsv1.2' '--retry' '3' '--retry-delay' '2' "${__ush_fn_fetch_arg_0}" '-o' "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     else
-      __ush_at 155 'else if exists "wget" {'
+      __ush_at 152 '} else if exists "wget" {'
       if {
       __ush_value_49="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'wget')" || return "$?"
       [ "${__ush_value_49}" = 'true' ]
       }; then
-        __ush_at 156 'wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" $output $url'
+        __ush_at 153 'wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" $output $url'
         command wget '-q' '--https-only' '--secure-protocol=TLSv1_2' '--tries=3' '-O' "${__ush_fn_fetch_arg_1}" "${__ush_fn_fetch_arg_0}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
       else
-        __ush_at 159 'fail 1 "install.sh: curl or wget is required"'
+        __ush_at 155 'fail 1 "install.sh: curl or wget is required"'
         __ush_status=1
         if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
         __ush_report "$__ush_status" 'install.sh: curl or wget is required'
@@ -967,7 +967,7 @@ ush_fn_fetch() {
       fi
     fi
   fi
-  __ush_at 161 '()'
+  __ush_at 157 '()'
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' '' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -986,11 +986,11 @@ ush_fn_release_url() {
   __ush_fn_release_url_arg_2="${3}"
   # shellcheck disable=SC2034
   asset="${__ush_fn_release_url_arg_2}"
-  __ush_at 165 'if version == "latest" {'
+  __ush_at 161 'if version == "latest" {'
   if {
   [ "$(if [ "${__ush_fn_release_url_arg_1}" = 'latest' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 166 'return "https://github.com/" + repo + "/releases/latest/download/" + asset'
+    __ush_at 162 'return "https://github.com/" + repo + "/releases/latest/download/" + asset'
     if [ -n "${__ush_return_path:-}" ]; then
       printf '%s' 'https://github.com/'"${__ush_fn_release_url_arg_0}"'/releases/latest/download/'"${__ush_fn_release_url_arg_2}" > "$__ush_return_path"
     elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -998,7 +998,7 @@ ush_fn_release_url() {
     fi
     return 0
   fi
-  __ush_at 168 '"https://github.com/" + repo + "/releases/download/" + version + "/" + asset'
+  __ush_at 164 '"https://github.com/" + repo + "/releases/download/" + version + "/" + asset'
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' 'https://github.com/'"${__ush_fn_release_url_arg_0}"'/releases/download/'"${__ush_fn_release_url_arg_1}"'/'"${__ush_fn_release_url_arg_2}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -1015,7 +1015,7 @@ ush_fn_expected_checksum() {
   __ush_fn_expected_checksum_arg_1="${2}"
   # shellcheck disable=SC2034
   asset="${__ush_fn_expected_checksum_arg_1}"
-  __ush_at 172 'for line in lines (read_text $file) {'
+  __ush_at 168 'for line in lines (read_text $file) {'
   __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_fn_expected_checksum_arg_0}")" || return "$?"
   __ush_packed_52="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_51}")" || return "$?"
   __ush_match_50__len=0
@@ -1026,15 +1026,15 @@ ush_fn_expected_checksum() {
     eval "__ush_for_value_54=\"\${__ush_match_50__${__ush_for_list_index_53}}\""
     line="${__ush_for_value_54}"
     __ush_for_list_index_53=$((__ush_for_list_index_53 + 1))
-    __ush_at 173 'let mut field = 0'
-    __ush_binding_173_field=0
+    __ush_at 169 'let mut field = 0'
+    __ush_binding_169_field=0
     # shellcheck disable=SC2034
-    field="${__ush_binding_173_field}"
-    __ush_at 174 'let mut digest = ""'
-    __ush_binding_174_digest=''
+    field="${__ush_binding_169_field}"
+    __ush_at 170 'let mut digest = ""'
+    __ush_binding_170_digest=''
     # shellcheck disable=SC2034
-    digest="${__ush_binding_174_digest}"
-    __ush_at 175 'for word in split (replace $line "\t" " ") " " {'
+    digest="${__ush_binding_170_digest}"
+    __ush_at 171 'for word in split (replace $line "\t" " ") " " {'
     __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${line}" '	' ' ')" || return "$?"
     __ush_packed_57="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_value_56}" ' ')" || return "$?"
     __ush_match_55__len=0
@@ -1045,99 +1045,99 @@ ush_fn_expected_checksum() {
       eval "__ush_for_value_59=\"\${__ush_match_55__${__ush_for_list_index_58}}\""
       word="${__ush_for_value_59}"
       __ush_for_list_index_58=$((__ush_for_list_index_58 + 1))
-      __ush_at 176 'if word != "" {'
+      __ush_at 172 'if word != "" {'
       if {
       [ "$(if [ "${word}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
       }; then
-        __ush_at 177 'if field == 0 {'
+        __ush_at 173 'if field == 0 {'
         if {
-        [ "$(if [ "${__ush_binding_173_field}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+        [ "$(if [ "${__ush_binding_169_field}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }; then
-          __ush_at 178 'digest = word'
-          __ush_binding_174_digest="${word}"
+          __ush_at 174 'digest = word'
+          __ush_binding_170_digest="${word}"
           # shellcheck disable=SC2034
-          digest="${__ush_binding_174_digest}"
+          digest="${__ush_binding_170_digest}"
         else
-          __ush_at 180 'else if field == 1 && trim_prefix $word "*" == asset {'
+          __ush_at 175 '} else if field == 1 && trim_prefix $word "*" == asset {'
           if {
           {
-          [ "$(if [ "${__ush_binding_173_field}" -eq 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+          [ "$(if [ "${__ush_binding_169_field}" -eq 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
           } && {
           __ush_value_60="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${word}" '*')" || return "$?"
           [ "$(if [ "${__ush_value_60}" = "${__ush_fn_expected_checksum_arg_1}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
           }
           }; then
-            __ush_at 181 'return digest'
+            __ush_at 176 'return digest'
             if [ -n "${__ush_return_path:-}" ]; then
-              printf '%s' "${__ush_binding_174_digest}" > "$__ush_return_path"
+              printf '%s' "${__ush_binding_170_digest}" > "$__ush_return_path"
             elif [ "${__ush_capture_return:-0}" = '1' ]; then
-              printf '%s' "${__ush_binding_174_digest}" >&4
+              printf '%s' "${__ush_binding_170_digest}" >&4
             fi
             return 0
           fi
         fi
-        __ush_at 183 'field = field + 1'
-        __ush_binding_173_field=$((__ush_binding_173_field + 1))
+        __ush_at 178 'field = field + 1'
+        __ush_binding_169_field=$((__ush_binding_169_field + 1))
         # shellcheck disable=SC2034
-        field="${__ush_binding_173_field}"
+        field="${__ush_binding_169_field}"
       fi
     done
   done
-  __ush_at 187 'fail 1 ("install.sh: could not find checksum for " + asset)'
+  __ush_at 182 'fail 1 ("install.sh: could not find checksum for " + asset)'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
   __ush_report "$__ush_status" 'install.sh: could not find checksum for '"${__ush_fn_expected_checksum_arg_1}"
   return "$__ush_status"
 }
 
-__ush_at 190 'let mut repo = option "USH_REPO" "UBSH_REPO" "ubugeeei/ush"'
+__ush_at 185 'let mut repo = option "USH_REPO" "UBSH_REPO" "ubugeeei/ush"'
 __ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_REPO' 'UBSH_REPO' 'ubugeeei/ush' 4>&1 >&3)" || exit "$?"
-__ush_binding_190_repo="${__ush_value_61}"
+__ush_binding_185_repo="${__ush_value_61}"
 # shellcheck disable=SC2034
-repo="${__ush_binding_190_repo}"
-__ush_at 191 'repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix $repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"'
-__ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_190_repo}" 'https://github.com/')" || exit "$?"
+repo="${__ush_binding_185_repo}"
+__ush_at 186 'repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix $repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"'
+__ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_185_repo}" 'https://github.com/')" || exit "$?"
 __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_62}" 'http://github.com/')" || exit "$?"
 __ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_63}" 'git@github.com:')" || exit "$?"
 __ush_value_65="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_value_64}" '.git')" || exit "$?"
-__ush_binding_190_repo="${__ush_value_65}"
+__ush_binding_185_repo="${__ush_value_65}"
 # shellcheck disable=SC2034
-repo="${__ush_binding_190_repo}"
-__ush_at 192 'let mut version = option "USH_VERSION" "UBSH_VERSION" "latest"'
+repo="${__ush_binding_185_repo}"
+__ush_at 187 'let mut version = option "USH_VERSION" "UBSH_VERSION" "latest"'
 __ush_value_66="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_VERSION' 'UBSH_VERSION' 'latest' 4>&1 >&3)" || exit "$?"
-__ush_binding_192_version="${__ush_value_66}"
+__ush_binding_187_version="${__ush_value_66}"
 # shellcheck disable=SC2034
-version="${__ush_binding_192_version}"
-__ush_at 193 'let mut prefix = option "USH_PREFIX" "UBSH_PREFIX" ""'
+version="${__ush_binding_187_version}"
+__ush_at 188 'let mut prefix = option "USH_PREFIX" "UBSH_PREFIX" ""'
 __ush_value_67="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_PREFIX' 'UBSH_PREFIX' '' 4>&1 >&3)" || exit "$?"
-__ush_binding_193_prefix="${__ush_value_67}"
+__ush_binding_188_prefix="${__ush_value_67}"
 # shellcheck disable=SC2034
-prefix="${__ush_binding_193_prefix}"
-__ush_at 194 'let mut directory = option "USH_BIN_DIR" "UBSH_BIN_DIR" ""'
+prefix="${__ush_binding_188_prefix}"
+__ush_at 189 'let mut directory = option "USH_BIN_DIR" "UBSH_BIN_DIR" ""'
 __ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_BIN_DIR' 'UBSH_BIN_DIR' '' 4>&1 >&3)" || exit "$?"
-__ush_binding_194_directory="${__ush_value_68}"
+__ush_binding_189_directory="${__ush_value_68}"
 # shellcheck disable=SC2034
-directory="${__ush_binding_194_directory}"
-__ush_at 195 'let mut download_url = option "USH_DOWNLOAD_URL" "UBSH_DOWNLOAD_URL" ""'
+directory="${__ush_binding_189_directory}"
+__ush_at 190 'let mut download_url = option "USH_DOWNLOAD_URL" "UBSH_DOWNLOAD_URL" ""'
 __ush_value_69="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_DOWNLOAD_URL' 'UBSH_DOWNLOAD_URL' '' 4>&1 >&3)" || exit "$?"
-__ush_binding_195_download_url="${__ush_value_69}"
+__ush_binding_190_download_url="${__ush_value_69}"
 # shellcheck disable=SC2034
-download_url="${__ush_binding_195_download_url}"
-__ush_at 196 'let mut checksum_url = option "USH_CHECKSUM_URL" "UBSH_CHECKSUM_URL" ""'
+download_url="${__ush_binding_190_download_url}"
+__ush_at 191 'let mut checksum_url = option "USH_CHECKSUM_URL" "UBSH_CHECKSUM_URL" ""'
 __ush_value_70="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_CHECKSUM_URL' 'UBSH_CHECKSUM_URL' '' 4>&1 >&3)" || exit "$?"
-__ush_binding_196_checksum_url="${__ush_value_70}"
+__ush_binding_191_checksum_url="${__ush_value_70}"
 # shellcheck disable=SC2034
-checksum_url="${__ush_binding_196_checksum_url}"
-__ush_at 197 'let mut automatic = option "USH_AUTO_PATH" "UBSH_AUTO_PATH" "1"'
+checksum_url="${__ush_binding_191_checksum_url}"
+__ush_at 192 'let mut automatic = option "USH_AUTO_PATH" "UBSH_AUTO_PATH" "1"'
 __ush_value_71="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'USH_AUTO_PATH' 'UBSH_AUTO_PATH' '1' 4>&1 >&3)" || exit "$?"
-__ush_binding_197_automatic="${__ush_value_71}"
+__ush_binding_192_automatic="${__ush_value_71}"
 # shellcheck disable=SC2034
-automatic="${__ush_binding_197_automatic}"
-__ush_at 198 'let mut pending = ""'
-__ush_binding_198_pending=''
+automatic="${__ush_binding_192_automatic}"
+__ush_at 193 'let mut pending = ""'
+__ush_binding_193_pending=''
 # shellcheck disable=SC2034
-pending="${__ush_binding_198_pending}"
-__ush_at 199 'for value in args {'
+pending="${__ush_binding_193_pending}"
+__ush_at 194 'for value in args {'
 __ush_packed_73="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__process__args)" || exit "$?"
 __ush_match_72__len=0
 ush_fn_std__unpack __ush_match_72 "${__ush_packed_73}"
@@ -1147,56 +1147,56 @@ while [ "${__ush_for_list_index_74}" -lt "${__ush_match_72__len}" ]; do
   eval "__ush_for_value_75=\"\${__ush_match_72__${__ush_for_list_index_74}}\""
   value="${__ush_for_value_75}"
   __ush_for_list_index_74=$((__ush_for_list_index_74 + 1))
-  __ush_at 200 'if pending != "" {'
+  __ush_at 195 'if pending != "" {'
   if {
-  [ "$(if [ "${__ush_binding_198_pending}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_193_pending}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 201 'match pending {'
-    case "${__ush_binding_198_pending}" in
+    __ush_at 196 'match pending {'
+    case "${__ush_binding_193_pending}" in
       '--version')
-        __ush_at 202 '"--version" => version = value'
-        __ush_binding_192_version="${value}"
+        __ush_at 197 '"--version" => version = value'
+        __ush_binding_187_version="${value}"
         # shellcheck disable=SC2034
-        version="${__ush_binding_192_version}"
+        version="${__ush_binding_187_version}"
         ;;
       '--prefix')
-        __ush_at 203 '"--prefix" => prefix = value'
-        __ush_binding_193_prefix="${value}"
+        __ush_at 198 '"--prefix" => prefix = value'
+        __ush_binding_188_prefix="${value}"
         # shellcheck disable=SC2034
-        prefix="${__ush_binding_193_prefix}"
+        prefix="${__ush_binding_188_prefix}"
         ;;
       '--bin-dir')
-        __ush_at 204 '"--bin-dir" => directory = value'
-        __ush_binding_194_directory="${value}"
+        __ush_at 199 '"--bin-dir" => directory = value'
+        __ush_binding_189_directory="${value}"
         # shellcheck disable=SC2034
-        directory="${__ush_binding_194_directory}"
+        directory="${__ush_binding_189_directory}"
         ;;
       '--download-url')
-        __ush_at 205 '"--download-url" => download_url = value'
-        __ush_binding_195_download_url="${value}"
+        __ush_at 200 '"--download-url" => download_url = value'
+        __ush_binding_190_download_url="${value}"
         # shellcheck disable=SC2034
-        download_url="${__ush_binding_195_download_url}"
+        download_url="${__ush_binding_190_download_url}"
         ;;
       '--checksum-url')
-        __ush_at 206 '"--checksum-url" => checksum_url = value'
-        __ush_binding_196_checksum_url="${value}"
+        __ush_at 201 '"--checksum-url" => checksum_url = value'
+        __ush_binding_191_checksum_url="${value}"
         # shellcheck disable=SC2034
-        checksum_url="${__ush_binding_196_checksum_url}"
+        checksum_url="${__ush_binding_191_checksum_url}"
         ;;
       *)
-        __ush_at 207 '_ => fail 1 "install.sh: invalid option state"'
+        __ush_at 202 '_ => fail 1 "install.sh: invalid option state"'
         __ush_status=1
         if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
         __ush_report "$__ush_status" 'install.sh: invalid option state'
         exit "$__ush_status"
         ;;
     esac
-    __ush_at 209 'pending = ""'
-    __ush_binding_198_pending=''
+    __ush_at 204 'pending = ""'
+    __ush_binding_193_pending=''
     # shellcheck disable=SC2034
-    pending="${__ush_binding_198_pending}"
+    pending="${__ush_binding_193_pending}"
   else
-    __ush_at 212 'if value == "--help" || value == "-h" {'
+    __ush_at 206 'if value == "--help" || value == "-h" {'
     if {
     {
     [ "$(if [ "${value}" = '--help' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -1204,21 +1204,21 @@ while [ "${__ush_for_list_index_74}" -lt "${__ush_match_72__len}" ]; do
     [ "$(if [ "${value}" = '-h' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
     }
     }; then
-      __ush_at 213 'usage'
+      __ush_at 207 'usage'
       ( __ush_capture_return='0' __ush_return_path=''; ush_fn_usage )
-      __ush_at 214 'exit 0'
+      __ush_at 208 'exit 0'
       ush_fn_std__process__exit 0
     else
-      __ush_at 216 'else if value == "--no-modify-path" {'
+      __ush_at 209 '} else if value == "--no-modify-path" {'
       if {
       [ "$(if [ "${value}" = '--no-modify-path' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
       }; then
-        __ush_at 217 'automatic = "0"'
-        __ush_binding_197_automatic='0'
+        __ush_at 210 'automatic = "0"'
+        __ush_binding_192_automatic='0'
         # shellcheck disable=SC2034
-        automatic="${__ush_binding_197_automatic}"
+        automatic="${__ush_binding_192_automatic}"
       else
-        __ush_at 219 'else if value == "--version" || value == "--prefix" || value == "--bin-dir" || value == "--download-url" || value == "--checksum-url" {'
+        __ush_at 211 '} else if value == "--version" || value == "--prefix" || value == "--bin-dir" || value == "--download-url" || value == "--checksum-url" {'
         if {
         {
         [ "$(if [ "${value}" = '--version' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -1232,12 +1232,12 @@ while [ "${__ush_for_list_index_74}" -lt "${__ush_match_72__len}" ]; do
         [ "$(if [ "${value}" = '--checksum-url' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }
         }; then
-          __ush_at 220 'pending = value'
-          __ush_binding_198_pending="${value}"
+          __ush_at 212 'pending = value'
+          __ush_binding_193_pending="${value}"
           # shellcheck disable=SC2034
-          pending="${__ush_binding_198_pending}"
+          pending="${__ush_binding_193_pending}"
         else
-          __ush_at 223 'fail 1 ("install.sh: unknown option: " + value)'
+          __ush_at 214 'fail 1 ("install.sh: unknown option: " + value)'
           __ush_status=1
           if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
           __ush_report "$__ush_status" 'install.sh: unknown option: '"${value}"
@@ -1247,17 +1247,17 @@ while [ "${__ush_for_list_index_74}" -lt "${__ush_match_72__len}" ]; do
     fi
   fi
 done
-__ush_at 227 'if pending != "" {'
+__ush_at 218 'if pending != "" {'
 if {
-[ "$(if [ "${__ush_binding_198_pending}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_193_pending}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 228 'fail 1 ("install.sh: " + pending + " requires a value")'
+  __ush_at 219 'fail 1 ("install.sh: " + pending + " requires a value")'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-  __ush_report "$__ush_status" 'install.sh: '"${__ush_binding_198_pending}"' requires a value'
+  __ush_report "$__ush_status" 'install.sh: '"${__ush_binding_193_pending}"' requires a value'
   exit "$__ush_status"
 fi
-__ush_at 230 'if std::env::contains "USH_BRANCH" || std::env::contains "UBSH_BRANCH" {'
+__ush_at 221 'if std::env::contains "USH_BRANCH" || std::env::contains "UBSH_BRANCH" {'
 if {
 {
 __ush_value_76="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__contains 'USH_BRANCH')" || exit "$?"
@@ -1267,187 +1267,187 @@ __ush_value_77="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env_
 [ "${__ush_value_77}" = 'true' ]
 }
 }; then
-  __ush_at 231 'fail 1 "install.sh: USH_BRANCH/UBSH_BRANCH is no longer supported; use USH_VERSION or build from source"'
+  __ush_at 222 'fail 1 "install.sh: USH_BRANCH/UBSH_BRANCH is no longer supported; use USH_VERSION or build from source"'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
   __ush_report "$__ush_status" 'install.sh: USH_BRANCH/UBSH_BRANCH is no longer supported; use USH_VERSION or build from source'
   exit "$__ush_status"
 fi
-__ush_at 233 'need "tar"'
+__ush_at 224 'need "tar"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_need 'tar' )
-__ush_at 234 'need "install"'
+__ush_at 225 'need "install"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_need 'install' )
-__ush_at 235 'let target = target'
+__ush_at 226 'let target = target'
 __ush_value_78="$(__ush_return_path='' __ush_capture_return='1' ush_fn_target 4>&1 >&3)" || exit "$?"
-__ush_binding_235_target="${__ush_value_78}"
+__ush_binding_226_target="${__ush_value_78}"
 # shellcheck disable=SC2034
-target="${__ush_binding_235_target}"
-__ush_at 236 'directory = bin_directory $directory $prefix'
-__ush_value_79="$(__ush_return_path='' __ush_capture_return='1' ush_fn_bin_directory "${__ush_binding_194_directory}" "${__ush_binding_193_prefix}" 4>&1 >&3)" || exit "$?"
-__ush_binding_194_directory="${__ush_value_79}"
+target="${__ush_binding_226_target}"
+__ush_at 227 'directory = bin_directory $directory $prefix'
+__ush_value_79="$(__ush_return_path='' __ush_capture_return='1' ush_fn_bin_directory "${__ush_binding_189_directory}" "${__ush_binding_188_prefix}" 4>&1 >&3)" || exit "$?"
+__ush_binding_189_directory="${__ush_value_79}"
 # shellcheck disable=SC2034
-directory="${__ush_binding_194_directory}"
-__ush_at 237 'if starts_with $directory "/" == false {'
+directory="${__ush_binding_189_directory}"
+__ush_at 228 'if starts_with $directory "/" == false {'
 if {
-__ush_value_80="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_194_directory}" '/')" || exit "$?"
+__ush_value_80="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_189_directory}" '/')" || exit "$?"
 [ "$(if [ "${__ush_value_80}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 238 'directory = std::path::cwd + "/" + directory'
+  __ush_at 229 'directory = std::path::cwd + "/" + directory'
   __ush_value_81="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
-  __ush_binding_194_directory="${__ush_value_81}"'/'"${__ush_binding_194_directory}"
+  __ush_binding_189_directory="${__ush_value_81}"'/'"${__ush_binding_189_directory}"
   # shellcheck disable=SC2034
-  directory="${__ush_binding_194_directory}"
+  directory="${__ush_binding_189_directory}"
 fi
-__ush_at 240 'let asset = "ush-" + target + ".tar.gz"'
-__ush_binding_240_asset='ush-'"${__ush_binding_235_target}"'.tar.gz'
+__ush_at 231 'let asset = "ush-" + target + ".tar.gz"'
+__ush_binding_231_asset='ush-'"${__ush_binding_226_target}"'.tar.gz'
 # shellcheck disable=SC2034
-asset="${__ush_binding_240_asset}"
-__ush_at 241 'if download_url == "" {'
+asset="${__ush_binding_231_asset}"
+__ush_at 232 'if download_url == "" {'
 if {
-[ "$(if [ "${__ush_binding_195_download_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_190_download_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 242 'download_url = release_url $repo $version $asset'
-  __ush_value_82="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_190_repo}" "${__ush_binding_192_version}" "${__ush_binding_240_asset}" 4>&1 >&3)" || exit "$?"
-  __ush_binding_195_download_url="${__ush_value_82}"
+  __ush_at 233 'download_url = release_url $repo $version $asset'
+  __ush_value_82="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_185_repo}" "${__ush_binding_187_version}" "${__ush_binding_231_asset}" 4>&1 >&3)" || exit "$?"
+  __ush_binding_190_download_url="${__ush_value_82}"
   # shellcheck disable=SC2034
-  download_url="${__ush_binding_195_download_url}"
+  download_url="${__ush_binding_190_download_url}"
 fi
-__ush_at 244 'if checksum_url == "" {'
+__ush_at 235 'if checksum_url == "" {'
 if {
-[ "$(if [ "${__ush_binding_196_checksum_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_191_checksum_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 245 'checksum_url = release_url $repo $version "sha256sums.txt"'
-  __ush_value_83="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_190_repo}" "${__ush_binding_192_version}" 'sha256sums.txt' 4>&1 >&3)" || exit "$?"
-  __ush_binding_196_checksum_url="${__ush_value_83}"
+  __ush_at 236 'checksum_url = release_url $repo $version "sha256sums.txt"'
+  __ush_value_83="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_185_repo}" "${__ush_binding_187_version}" 'sha256sums.txt' 4>&1 >&3)" || exit "$?"
+  __ush_binding_191_checksum_url="${__ush_value_83}"
   # shellcheck disable=SC2034
-  checksum_url="${__ush_binding_196_checksum_url}"
+  checksum_url="${__ush_binding_191_checksum_url}"
 fi
-__ush_at 247 'let work = temp_dir'
+__ush_at 238 'let work = temp_dir'
 __ush_task_init
-__ush_at 247 'let work = temp_dir'
+__ush_at 238 'let work = temp_dir'
 __ush_value_84="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-__ush_binding_247_work="${__ush_value_84}"
+__ush_binding_238_work="${__ush_value_84}"
 # shellcheck disable=SC2034
-work="${__ush_binding_247_work}"
-__ush_at 248 'let archive = work + "/ush.tar.gz"'
-__ush_binding_248_archive="${__ush_binding_247_work}"'/ush.tar.gz'
+work="${__ush_binding_238_work}"
+__ush_at 239 'let archive = work + "/ush.tar.gz"'
+__ush_binding_239_archive="${__ush_binding_238_work}"'/ush.tar.gz'
 # shellcheck disable=SC2034
-archive="${__ush_binding_248_archive}"
-__ush_at 249 'let sums = work + "/sha256sums.txt"'
-__ush_binding_249_sums="${__ush_binding_247_work}"'/sha256sums.txt'
+archive="${__ush_binding_239_archive}"
+__ush_at 240 'let sums = work + "/sha256sums.txt"'
+__ush_binding_240_sums="${__ush_binding_238_work}"'/sha256sums.txt'
 # shellcheck disable=SC2034
-sums="${__ush_binding_249_sums}"
-__ush_at 250 'eprint ("install.sh: downloading " + download_url)'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_195_download_url}" )
-__ush_at 251 'fetch $download_url $archive'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_195_download_url}" "${__ush_binding_248_archive}" )
-__ush_at 252 'eprint ("install.sh: downloading " + checksum_url)'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_196_checksum_url}" )
-__ush_at 253 'fetch $checksum_url $sums'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_196_checksum_url}" "${__ush_binding_249_sums}" )
-__ush_at 254 'let expected = expected_checksum $sums $asset'
-__ush_value_85="$(__ush_return_path='' __ush_capture_return='1' ush_fn_expected_checksum "${__ush_binding_249_sums}" "${__ush_binding_240_asset}" 4>&1 >&3)" || exit "$?"
-__ush_binding_254_expected="${__ush_value_85}"
+sums="${__ush_binding_240_sums}"
+__ush_at 241 'eprint ("install.sh: downloading " + download_url)'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_190_download_url}" )
+__ush_at 242 'fetch $download_url $archive'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_190_download_url}" "${__ush_binding_239_archive}" )
+__ush_at 243 'eprint ("install.sh: downloading " + checksum_url)'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_191_checksum_url}" )
+__ush_at 244 'fetch $checksum_url $sums'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_191_checksum_url}" "${__ush_binding_240_sums}" )
+__ush_at 245 'let expected = expected_checksum $sums $asset'
+__ush_value_85="$(__ush_return_path='' __ush_capture_return='1' ush_fn_expected_checksum "${__ush_binding_240_sums}" "${__ush_binding_231_asset}" 4>&1 >&3)" || exit "$?"
+__ush_binding_245_expected="${__ush_value_85}"
 # shellcheck disable=SC2034
-expected="${__ush_binding_254_expected}"
-__ush_at 255 'let actual = sha256 $archive?'
-__ush_value_86="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${__ush_binding_248_archive}")" || exit "$?"
-__ush_binding_255_actual="${__ush_value_86}"
+expected="${__ush_binding_245_expected}"
+__ush_at 246 'let actual = sha256 $archive?'
+__ush_value_86="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${__ush_binding_239_archive}")" || exit "$?"
+__ush_binding_246_actual="${__ush_value_86}"
 # shellcheck disable=SC2034
-actual="${__ush_binding_255_actual}"
-__ush_at 256 'if actual != expected {'
+actual="${__ush_binding_246_actual}"
+__ush_at 247 'if actual != expected {'
 if {
-[ "$(if [ "${__ush_binding_255_actual}" != "${__ush_binding_254_expected}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_246_actual}" != "${__ush_binding_245_expected}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 257 'fail 1 ("install.sh: checksum verification failed for " + asset)'
+  __ush_at 248 'fail 1 ("install.sh: checksum verification failed for " + asset)'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-  __ush_report "$__ush_status" 'install.sh: checksum verification failed for '"${__ush_binding_240_asset}"
+  __ush_report "$__ush_status" 'install.sh: checksum verification failed for '"${__ush_binding_231_asset}"
   exit "$__ush_status"
 fi
-__ush_at 259 'eprint ("install.sh: verified checksum for " + asset)'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: verified checksum for '"${__ush_binding_240_asset}" )
-__ush_at 260 'let unpack = work + "/unpack"'
-__ush_binding_260_unpack="${__ush_binding_247_work}"'/unpack'
+__ush_at 250 'eprint ("install.sh: verified checksum for " + asset)'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: verified checksum for '"${__ush_binding_231_asset}" )
+__ush_at 251 'let unpack = work + "/unpack"'
+__ush_binding_251_unpack="${__ush_binding_238_work}"'/unpack'
 # shellcheck disable=SC2034
-unpack="${__ush_binding_260_unpack}"
-__ush_at 261 'mkdir_p $unpack'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_260_unpack}" )
-__ush_at 262 'tar "-xzf" $archive "-C" $unpack'
-command tar '-xzf' "${__ush_binding_248_archive}" '-C' "${__ush_binding_260_unpack}"
-__ush_at 263 'let mut package = unpack + "/ush-" + target'
-__ush_binding_263_package="${__ush_binding_260_unpack}"'/ush-'"${__ush_binding_235_target}"
+unpack="${__ush_binding_251_unpack}"
+__ush_at 252 'mkdir_p $unpack'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_251_unpack}" )
+__ush_at 253 'tar "-xzf" $archive "-C" $unpack'
+command tar '-xzf' "${__ush_binding_239_archive}" '-C' "${__ush_binding_251_unpack}"
+__ush_at 254 'let mut package = unpack + "/ush-" + target'
+__ush_binding_254_package="${__ush_binding_251_unpack}"'/ush-'"${__ush_binding_226_target}"
 # shellcheck disable=SC2034
-package="${__ush_binding_263_package}"
-__ush_at 264 'if is_file (package + "/ush") == false && is_file (unpack + "/ush") {'
+package="${__ush_binding_254_package}"
+__ush_at 255 'if is_file (package + "/ush") == false && is_file (unpack + "/ush") {'
 if {
 {
-__ush_value_87="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_263_package}"'/ush')" || exit "$?"
+__ush_value_87="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_254_package}"'/ush')" || exit "$?"
 [ "$(if [ "${__ush_value_87}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 } && {
-__ush_value_88="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_260_unpack}"'/ush')" || exit "$?"
+__ush_value_88="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_251_unpack}"'/ush')" || exit "$?"
 [ "${__ush_value_88}" = 'true' ]
 }
 }; then
-  __ush_at 265 'package = unpack'
-  __ush_binding_263_package="${__ush_binding_260_unpack}"
+  __ush_at 256 'package = unpack'
+  __ush_binding_254_package="${__ush_binding_251_unpack}"
   # shellcheck disable=SC2034
-  package="${__ush_binding_263_package}"
+  package="${__ush_binding_254_package}"
 fi
-__ush_at 267 'if is_file (package + "/ush") == false {'
+__ush_at 258 'if is_file (package + "/ush") == false {'
 if {
-__ush_value_89="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_263_package}"'/ush')" || exit "$?"
+__ush_value_89="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_254_package}"'/ush')" || exit "$?"
 [ "$(if [ "${__ush_value_89}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 268 'fail 1 "install.sh: release archive did not contain ush"'
+  __ush_at 259 'fail 1 "install.sh: release archive did not contain ush"'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
   __ush_report "$__ush_status" 'install.sh: release archive did not contain ush'
   exit "$__ush_status"
 fi
-__ush_at 270 'mkdir_p $directory'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_194_directory}" )
-__ush_at 271 'install "-m" "755" (package + "/ush") (directory + "/ush")'
-command install '-m' '755' "${__ush_binding_263_package}"'/ush' "${__ush_binding_194_directory}"'/ush'
-__ush_at 272 'if is_file (package + "/ush_lsp") {'
+__ush_at 261 'mkdir_p $directory'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_189_directory}" )
+__ush_at 262 'install "-m" "755" (package + "/ush") (directory + "/ush")'
+command install '-m' '755' "${__ush_binding_254_package}"'/ush' "${__ush_binding_189_directory}"'/ush'
+__ush_at 263 'if is_file (package + "/ush_lsp") {'
 if {
-__ush_value_90="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_263_package}"'/ush_lsp')" || exit "$?"
+__ush_value_90="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_254_package}"'/ush_lsp')" || exit "$?"
 [ "${__ush_value_90}" = 'true' ]
 }; then
-  __ush_at 273 'install "-m" "755" (package + "/ush_lsp") (directory + "/ush_lsp")'
-  command install '-m' '755' "${__ush_binding_263_package}"'/ush_lsp' "${__ush_binding_194_directory}"'/ush_lsp'
-  __ush_at 274 'echo ("ush_lsp installed to " + directory + "/ush_lsp")'
-  printf '%s\n' 'ush_lsp installed to '"${__ush_binding_194_directory}"'/ush_lsp'
+  __ush_at 264 'install "-m" "755" (package + "/ush_lsp") (directory + "/ush_lsp")'
+  command install '-m' '755' "${__ush_binding_254_package}"'/ush_lsp' "${__ush_binding_189_directory}"'/ush_lsp'
+  __ush_at 265 'echo ("ush_lsp installed to " + directory + "/ush_lsp")'
+  printf '%s\n' 'ush_lsp installed to '"${__ush_binding_189_directory}"'/ush_lsp'
 fi
-__ush_at 276 'let path_status = ensure_path $directory (automatic != "0")?'
-__ush_value_91="$(__ush_return_path='' __ush_capture_return='1' ush_fn_ensure_path "${__ush_binding_194_directory}" "$(if [ "${__ush_binding_197_automatic}" != '0' ]; then printf '%s' true; else printf '%s' false; fi)" 4>&1 >&3)" || exit "$?"
-__ush_binding_276_path_status="${__ush_value_91}"
+__ush_at 267 'let path_status = ensure_path $directory (automatic != "0")?'
+__ush_value_91="$(__ush_return_path='' __ush_capture_return='1' ush_fn_ensure_path "${__ush_binding_189_directory}" "$(if [ "${__ush_binding_192_automatic}" != '0' ]; then printf '%s' true; else printf '%s' false; fi)" 4>&1 >&3)" || exit "$?"
+__ush_binding_267_path_status="${__ush_value_91}"
 # shellcheck disable=SC2034
-path_status="${__ush_binding_276_path_status}"
-__ush_at 277 'echo ("ush installed to " + directory + "/ush")'
-printf '%s\n' 'ush installed to '"${__ush_binding_194_directory}"'/ush'
-__ush_at 278 'if path_status == "ready" {'
+path_status="${__ush_binding_267_path_status}"
+__ush_at 268 'echo ("ush installed to " + directory + "/ush")'
+printf '%s\n' 'ush installed to '"${__ush_binding_189_directory}"'/ush'
+__ush_at 269 'if path_status == "ready" {'
 if {
-[ "$(if [ "${__ush_binding_276_path_status}" = 'ready' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_267_path_status}" = 'ready' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 279 'echo "ush is already on PATH. Try: ush --version"'
+  __ush_at 270 'echo "ush is already on PATH. Try: ush --version"'
   printf '%s\n' 'ush is already on PATH. Try: ush --version'
 else
-  __ush_at 281 'else if path_status == "manual" {'
+  __ush_at 271 '} else if path_status == "manual" {'
   if {
-  [ "$(if [ "${__ush_binding_276_path_status}" = 'manual' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_267_path_status}" = 'manual' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 282 'echo "add this to your shell config, then restart your shell:"'
+    __ush_at 272 'echo "add this to your shell config, then restart your shell:"'
     printf '%s\n' 'add this to your shell config, then restart your shell:'
-    __ush_at 283 'echo (path_line $directory)'
-    __ush_value_92="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_line "${__ush_binding_194_directory}" 4>&1 >&3)" || exit "$?"
+    __ush_at 273 'echo (path_line $directory)'
+    __ush_value_92="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_line "${__ush_binding_189_directory}" 4>&1 >&3)" || exit "$?"
     printf '%s\n' "${__ush_value_92}"
   else
-    __ush_at 286 'echo ("added " + directory + " to PATH in " + path_status)'
-    printf '%s\n' 'added '"${__ush_binding_194_directory}"' to PATH in '"${__ush_binding_276_path_status}"
-    __ush_at 287 'echo ("restart your shell or run: . \"" + path_status + "\"")'
-    printf '%s\n' 'restart your shell or run: . "'"${__ush_binding_276_path_status}"'"'
+    __ush_at 275 'echo ("added " + directory + " to PATH in " + path_status)'
+    printf '%s\n' 'added '"${__ush_binding_189_directory}"' to PATH in '"${__ush_binding_267_path_status}"
+    __ush_at 276 'echo ("restart your shell or run: . \"" + path_status + "\"")'
+    printf '%s\n' 'restart your shell or run: . "'"${__ush_binding_267_path_status}"'"'
   fi
 fi
-__ush_at 289 'echo ("quick check: " + directory + "/ush --version")'
-printf '%s\n' 'quick check: '"${__ush_binding_194_directory}"'/ush --version'
+__ush_at 278 'echo ("quick check: " + directory + "/ush --version")'
+printf '%s\n' 'quick check: '"${__ush_binding_189_directory}"'/ush --version'
