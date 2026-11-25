@@ -135,3 +135,22 @@ fn written_rows_may_name_imported_error_types() {
         .unwrap();
     assert_eq!(row(&report, "wrap"), "cfg::ConfigError");
 }
+
+#[test]
+fn assignments_contribute_to_the_inferred_row() {
+    let source = format!(
+        "use $bin::*\n{CONFIG}fn load(path: String) -> String {{\n  if path == \"\" {{\n    fail ConfigError::Missing\n  }}\n  path\n}}\nfn collect(paths: List<String>) -> String {{\n  let mut joined = \"\"\n  for path in paths {{\n    joined = joined + load path?\n  }}\n  joined\n}}\nfn stamp() -> String {{\n  let mut value = \"none\"\n  value = uname \"-s\"\n  value\n}}\n"
+    );
+    let report = report(&source);
+    assert_eq!(row(&report, "collect"), "ConfigError");
+    assert!(
+        row(&report, "stamp").starts_with("unknown, "),
+        "{}",
+        row(&report, "stamp")
+    );
+    assert!(row(&report, "stamp").ends_with("exec"));
+    assert_eq!(
+        support::run(&format!("{source}print collect [\"a\", \"b\"]\n")),
+        "ab\n"
+    );
+}
