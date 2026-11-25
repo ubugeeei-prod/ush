@@ -41,7 +41,7 @@ pub(crate) fn infer(
         Expr::Compare { lhs, op, rhs } => {
             infer_compare(lhs, rhs, *op, env, functions, impls, enums)
         }
-        Expr::Call(call) if call.name == "echo" => {
+        Expr::Call(call) if call.name == "std::io::echo" => {
             super::echo::infer(call, env, functions, impls, enums)
         }
         Expr::Call(call) if call.name == "format" => {

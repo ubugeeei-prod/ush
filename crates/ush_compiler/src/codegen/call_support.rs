@@ -74,7 +74,7 @@ pub(super) fn function_for_call<'a>(
 }
 
 pub(super) fn capture_fds(name: &str) -> &'static str {
-    if name == "echo"
+    if name == "std::io::echo"
         || (name != "std::terminal::is_tty"
             && (name.starts_with("std::") || name.starts_with("$bin::")))
     {

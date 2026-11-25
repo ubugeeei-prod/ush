@@ -102,8 +102,7 @@ impl Resolver<'_> {
             Expr::Var(name) if !scope.contains(name) => {
                 let mut target = name.clone();
                 self.name(&mut target);
-                if target == "echo"
-                    || self.known.contains(&target)
+                if self.known.contains(&target)
                     || target.starts_with("std::")
                     || crate::commands::lookup(&target).is_some()
                 {

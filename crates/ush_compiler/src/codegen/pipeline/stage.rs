@@ -127,7 +127,7 @@ fn classify_stage<'a>(
                     append,
                 });
             }
-            "echo" | "std::process::exec" | "std::process::output" => {
+            "std::io::echo" | "std::process::exec" | "std::process::output" => {
                 return Ok(StageKind::Command(call));
             }
             _ if crate::commands::lookup(&call.name).is_some() => {

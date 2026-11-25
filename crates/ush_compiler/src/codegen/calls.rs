@@ -40,7 +40,7 @@ pub(crate) fn compile_call(
         out,
     )?;
     if !call.asynchronous
-        && (call.name == "echo"
+        && (call.name == "std::io::echo"
             || stdlib::runs_in_parent(&call.name)
             || call.name.starts_with("$bin::"))
     {
@@ -87,7 +87,7 @@ pub(crate) fn compile_try_call(
         out,
     )?;
     if !call.asynchronous
-        && (call.name == "echo"
+        && (call.name == "std::io::echo"
             || stdlib::runs_in_parent(&call.name)
             || call.name.starts_with("$bin::"))
     {
@@ -121,7 +121,7 @@ pub(crate) fn rendered_call(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<String> {
-    if call.name == "echo" {
+    if call.name == "std::io::echo" {
         return super::echo::render(call, env, functions, impls, enums);
     }
     if call.name == "std::test::assert_eq" {
@@ -163,7 +163,7 @@ pub(crate) fn rendered_call(
 }
 
 pub(crate) fn call_return_type(name: &str, functions: &FunctionRegistry) -> Result<Option<Type>> {
-    if name == "echo" {
+    if name == "std::io::echo" {
         return Ok(Some(Type::String));
     }
     if let Some(command) = crate::commands::lookup(name) {

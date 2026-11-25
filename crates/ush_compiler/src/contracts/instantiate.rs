@@ -120,7 +120,7 @@ impl Checker {
             );
             return Ok(Ty::named("()"));
         }
-        if call.name == "echo" {
+        if call.name == "std::io::echo" {
             ensure!(
                 call.args.iter().all(|arg| arg.label.is_none()),
                 "echo arguments are positional"

@@ -177,7 +177,7 @@ pub(super) fn hoist_call(
 ) -> Result<Call> {
     let mut prepared = call.clone();
     for arg in &mut prepared.args {
-        if call.name == "echo"
+        if call.name == "std::io::echo"
             && super::infer(&arg.expr, env, functions, impls, enums)?.is_structured()
         {
             let format = Call {
