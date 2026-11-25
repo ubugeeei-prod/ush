@@ -1,242 +1,121 @@
-# Canonical source. Regenerate the adjacent .sh with ush compile --checked-in.
-shell """
-set -eu
+# Exercise the generated standalone installer in isolated homes.
+use $bin::*
+use std::env::{set, unset}
+use std::fs::{temp_dir, mkdir_p, write_text, read_text, sha256, is_file}
+use std::path::{source_root, resolve}
+use std::process::{redirect, output}
+use std::string::contains
+use std::test::{assert, assert_eq}
+use std::io::eprint
 
-# Clear CDPATH so the cd does not print a path; the trailing space
-# after '=' is intentional and POSIX, hence the disable.
-# shellcheck disable=SC1007
-ROOT_DIR="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
-INSTALL_SH="$ROOT_DIR/install.sh"
-
-need_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "test_install.sh: $1 is required" >&2
-    exit 1
-  fi
+fn target() -> String / unknown, exec, env, stderr {
+  let os = uname "-s"
+  let arch = uname "-m"
+  if os == "Linux" {
+    let os = "unknown-linux-gnu"
+  }
+  else if os == "Darwin" {
+    let os = "apple-darwin"
+  }
+  else {
+    fail 1 ("unsupported test OS: " + os)
+  }
+  if arch == "arm64" {
+    let arch = "aarch64"
+  }
+  else if arch == "amd64" {
+    let arch = "x86_64"
+  }
+  arch + "-" + os
 }
 
-detect_target() {
-  os="$(uname -s)"
-  arch="$(uname -m)"
-
-  case "$os" in
-    Linux) os="unknown-linux-gnu" ;;
-    Darwin) os="apple-darwin" ;;
-    *) echo "test_install.sh: unsupported os: $os" >&2; exit 1 ;;
-  esac
-
-  case "$arch" in
-    x86_64 | amd64) arch="x86_64" ;;
-    arm64 | aarch64) arch="aarch64" ;;
-    *) echo "test_install.sh: unsupported arch: $arch" >&2; exit 1 ;;
-  esac
-
-  printf '%s-%s\n' "$arch" "$os"
+fn archive(work: String, target: String) -> () / unknown, fs, exec, env, stdin, stdout, stderr, net {
+  let package = work + "/ush-" + target
+  mkdir_p package
+  # A real executable fixture, with no shell source hidden in this ush program.
+  cp "/usr/bin/true" (package + "/ush")
+  cp "/usr/bin/true" (package + "/ush_lsp")
+  tar "-czf" (work + "/ush.tar.gz") "-C" work ("ush-" + target)
+  write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tar.gz\n")
 }
 
-make_archive() {
-  tmpdir="$1"
-  target="$2"
-  pkg="$tmpdir/ush-$target"
-
-  mkdir -p "$pkg"
-  printf '#!/bin/sh\necho ush-test\n' > "$pkg/ush"
-  printf '#!/bin/sh\necho ush-lsp-test\n' > "$pkg/ush_lsp"
-  chmod +x "$pkg/ush" "$pkg/ush_lsp"
-  tar -czf "$tmpdir/ush.tar.gz" -C "$tmpdir" "ush-$target"
+let installer = resolve (source_root + "/../install.sh")
+let target = target
+for name in ["USH_PREFIX", "UBSH_PREFIX", "USH_BIN_DIR", "UBSH_BIN_DIR", "USH_VERSION", "UBSH_VERSION", "USH_BRANCH", "UBSH_BRANCH", "UBSH_AUTO_PATH"] {
+  unset name
 }
-
-compute_sha256() {
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$1" | awk '{print $1}'
-    return
-  fi
-
-  shasum -a 256 "$1" | awk '{print $1}'
+for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "checksum-name", "checksum-content", "profile-failure", "spaces"] {
+  let work = temp_dir
+  archive work target
+  let home = work + "/home"
+  if scenario == "spaces" {
+    let home = work + "/home with spaces '$value"
+  }
+  mkdir_p home
+  set "HOME" home
+  set "PATH" "/usr/bin:/bin"
+  set "SHELL" "/bin/zsh"
+  set "USH_AUTO_PATH" "1"
+  set "USH_DOWNLOAD_URL" ("file://" + work + "/ush.tar.gz")
+  set "USH_CHECKSUM_URL" ("file://" + work + "/sha256sums.txt")
+  let directory = home + "/.local/bin"
+  let arguments = [installer]
+  let expected = 0
+  if scenario == "existing" {
+    let directory = home + "/bin"
+    mkdir_p directory
+    set "PATH" (directory + ":/usr/bin:/bin")
+  }
+  else if scenario == "disabled" {
+    set "USH_AUTO_PATH" "0"
+  }
+  else if scenario == "flags" {
+    let directory = home + "/tools/bin"
+    let arguments = [installer, "--bin-dir", directory, "--no-modify-path", "--download-url", "file://" + work + "/ush.tar.gz", "--checksum-url", "file://" + work + "/sha256sums.txt"]
+  }
+  else if scenario == "prefix" {
+    let directory = home + "/prefix/bin"
+    let arguments = [installer, "--prefix", home + "/prefix", "--no-modify-path"]
+  }
+  else if scenario == "checksum-name" {
+    write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tarXgz\n")
+    let expected = 1
+  }
+  else if scenario == "checksum-content" {
+    write_text (work + "/sha256sums.txt") ("0000000000000000000000000000000000000000000000000000000000000000  ush-" + target + ".tar.gz\n")
+    let expected = 1
+  }
+  else if scenario == "profile-failure" {
+    mkdir_p (home + "/.zshrc")
+    let expected = 1
+  }
+  let code = redirect "sh" arguments (work + "/out") (work + "/err")
+  if code != expected {
+    eprint (read_text (work + "/out"))
+    eprint (read_text (work + "/err"))
+  }
+  assert_eq code expected
+  if expected == 0 {
+    assert (test "-x" (directory + "/ush"))
+    assert (test "-x" (directory + "/ush_lsp"))
+    assert (contains (read_text (work + "/out")) ("ush installed to " + directory + "/ush"))
+    if scenario == "automatic" || scenario == "spaces" {
+      assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/.local/bin:$PATH\"")
+      let original = read_text (home + "/.zshrc")
+      assert_eq (redirect "sh" arguments (work + "/out") (work + "/err")) 0
+      assert_eq (read_text (home + "/.zshrc")) original
+    }
+    else {
+      assert_eq (is_file (home + "/.zshrc")) false
+    }
+  }
+  else if scenario == "checksum-name" || scenario == "checksum-content" {
+    assert_eq (is_file (directory + "/ush")) false
+  }
+  print "installer: " + scenario + " passed"
 }
-
-write_checksums() {
-  tmpdir="$1"
-  target="$2"
-  archive="$tmpdir/ush.tar.gz"
-  checksum="$(compute_sha256 "$archive")"
-  printf '%s  %s\n' "$checksum" "ush-$target.tar.gz" > "$tmpdir/sha256sums.txt"
-}
-
-assert_contains() {
-  haystack="$1"
-  needle="$2"
-
-  case "$haystack" in
-    *"$needle"*) ;;
-    *)
-      echo "test_install.sh: expected output to contain: $needle" >&2
-      printf '%s\n' "$haystack" >&2
-      exit 1
-      ;;
-  esac
-}
-
-test_existing_path_dir() {
-  tmpdir="$(mktemp -d)"
-
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  write_checksums "$tmpdir" "$target"
-
-  home_dir="$tmpdir/home"
-  mkdir -p "$home_dir/bin"
-  output="$(
-    HOME="$home_dir" \
-    PATH="$home_dir/bin:/usr/bin:/bin" \
-    SHELL=/bin/zsh \
-    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
-    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
-    sh "$INSTALL_SH" 2>&1
-  )"
-
-  [ -x "$home_dir/bin/ush" ]
-  [ -x "$home_dir/bin/ush_lsp" ]
-  [ ! -e "$home_dir/.zshrc" ]
-  assert_contains "$output" "ush is already on PATH"
-  rm -rf "$tmpdir"
-}
-
-test_auto_path_update() {
-  tmpdir="$(mktemp -d)"
-
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  write_checksums "$tmpdir" "$target"
-
-  home_dir="$tmpdir/home"
-  mkdir -p "$home_dir"
-  output="$(
-    HOME="$home_dir" \
-    PATH="/usr/bin:/bin" \
-    SHELL=/bin/zsh \
-    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
-    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
-    sh "$INSTALL_SH" 2>&1
-  )"
-
-  [ -x "$home_dir/.local/bin/ush" ]
-  [ -x "$home_dir/.local/bin/ush_lsp" ]
-  grep -F 'export PATH="$HOME/.local/bin:$PATH"' "$home_dir/.zshrc" >/dev/null
-  assert_contains "$output" "added $home_dir/.local/bin to PATH"
-  rm -rf "$tmpdir"
-}
-
-test_auto_path_disabled() {
-  tmpdir="$(mktemp -d)"
-
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  write_checksums "$tmpdir" "$target"
-
-  home_dir="$tmpdir/home"
-  mkdir -p "$home_dir"
-  output="$(
-    HOME="$home_dir" \
-    PATH="/usr/bin:/bin" \
-    SHELL=/bin/zsh \
-    USH_AUTO_PATH=0 \
-    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
-    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
-    sh "$INSTALL_SH" 2>&1
-  )"
-
-  [ -x "$home_dir/.local/bin/ush" ]
-  [ ! -e "$home_dir/.zshrc" ]
-  assert_contains "$output" 'export PATH="'
-  rm -rf "$tmpdir"
-}
-
-test_cli_flags() {
-  tmpdir="$(mktemp -d)"
-
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  write_checksums "$tmpdir" "$target"
-
-  home_dir="$tmpdir/home"
-  bin_dir="$home_dir/tools/bin"
-  mkdir -p "$home_dir"
-  output="$(
-    HOME="$home_dir" \
-    PATH="/usr/bin:/bin" \
-    SHELL=/bin/zsh \
-    sh "$INSTALL_SH" \
-      --bin-dir "$bin_dir" \
-      --no-modify-path \
-      --download-url "file://$tmpdir/ush.tar.gz" \
-      --checksum-url "file://$tmpdir/sha256sums.txt" 2>&1
-  )"
-
-  [ -x "$bin_dir/ush" ]
-  [ -x "$bin_dir/ush_lsp" ]
-  [ ! -e "$home_dir/.zshrc" ]
-  assert_contains "$output" "ush installed to $bin_dir/ush"
-  rm -rf "$tmpdir"
-}
-
-test_checksum_lookup_requires_exact_asset_name() {
-  tmpdir="$(mktemp -d)"
-
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  archive="$tmpdir/ush.tar.gz"
-  checksum="$(compute_sha256 "$archive")"
-  printf '%s  %s\n' "$checksum" "ush-$target.tarXgz" > "$tmpdir/sha256sums.txt"
-
-  home_dir="$tmpdir/home"
-  output_file="$(mktemp "${TMPDIR:-/tmp}/ush_install_exact_checksum.XXXXXX")"
-  mkdir -p "$home_dir"
-  if HOME="$home_dir" \
-    PATH="/usr/bin:/bin" \
-    SHELL=/bin/zsh \
-    USH_DOWNLOAD_URL="file://$archive" \
-    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
-    sh "$INSTALL_SH" >"$output_file" 2>&1
-  then
-    echo "test_install.sh: installer accepted a near-miss checksum filename" >&2
-    cat "$output_file" >&2
-    rm -rf "$tmpdir" "$output_file"
-    exit 1
-  fi
-
-  rm -rf "$tmpdir" "$output_file"
-}
-
-test_profile_write_failure() {
-  tmpdir="$(mktemp -d)"
-  target="$(detect_target)"
-  make_archive "$tmpdir" "$target"
-  write_checksums "$tmpdir" "$target"
-  home_dir="$tmpdir/home"
-  mkdir -p "$home_dir/.zshrc"
-  if HOME="$home_dir" PATH="/usr/bin:/bin" SHELL=/bin/zsh \
-    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
-    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
-    sh "$INSTALL_SH" >"$tmpdir/output" 2>&1; then
-    cat "$tmpdir/output" >&2
-    echo "installer hid a profile-write failure" >&2
-    exit 1
-  fi
-  rm -rf "$tmpdir"
-}
-
-main() {
-  need_cmd mktemp
-  need_cmd tar
-  need_cmd install
-  test_existing_path_dir
-  test_auto_path_update
-  test_auto_path_disabled
-  test_cli_flags
-  test_profile_write_failure
-  test_checksum_lookup_requires_exact_asset_name
-}
-
-main "$@"
-"""
+let work = temp_dir
+assert_eq (redirect "sh" [installer, "--version"] (work + "/out") (work + "/err")) 1
+assert (contains (read_text (work + "/err")) "--version requires a value")
+assert_eq (redirect "sh" [installer, "--unknown"] (work + "/out") (work + "/err")) 1
+assert_eq (redirect "sh" [installer, "--help"] (work + "/out") (work + "/err")) 0

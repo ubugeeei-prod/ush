@@ -1,42 +1,44 @@
-# Canonical source. Regenerate the adjacent .sh with ush compile --checked-in.
-shell """
-set -eu
+# Validate generated programs with every supported shell.
+use $bin::*
+use std::env::{get, get_or, set}
+use std::fs::{temp_dir, read_text}
+use std::process::{exec, output, redirect}
+use std::string::{lines, contains}
+use std::test::{assert, assert_eq}
+use std::command::exists
 
-ush=${USH_BIN:-target/debug/ush}
-tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' 0
-ln -s "$(command -v busybox)" "$tmp/ash"
-PATH=$tmp:$PATH
-export PATH
-
-for target in sh bash zsh ash; do
-  sh scripts/test_task_await.sh "$ush" "$target"
-  for source in examples/*.ush; do
-    "$ush" compile "$source" --target "$target" -o "$tmp/script"
-    "$target" -n "$tmp/script"
-  done
-  "$ush" compile examples/contracts.ush --target "$target" -o "$tmp/script"
-  chmod +x "$tmp/script"
-  actual=$("$tmp/script")
-  [ "$actual" = "$(printf '%s\n' 2 20 ready 'done')" ]
-
-  "$ush" compile examples/collections.ush --target "$target" -o "$tmp/script"
-  actual=$("$target" "$tmp/script")
-  [ "$actual" = "$(printf '%s\n' 2 3 4 3)" ]
-  "$ush" compile examples/extern.ush --target "$target" -o "$tmp/script"
-  actual=$("$target" "$tmp/script")
-  [ "$actual" = "$(printf '%s\n' 'hello ush' 42)" ]
-  "$ush" --shell-target "$target" test examples/smoke_test.ush
-
-  "$ush" compile examples/error_streams.ush --target "$target" -o "$tmp/script"
-  code=0
-  "$tmp/script" >"$tmp/out" 2>"$tmp/err" || code=$?
-  [ "$code" -eq 1 ]
-  grep -F 'error_streams.ush:6: Problem::MissingConfig' "$tmp/err"
-done
-
-# Exercise the portable target explicitly with dash and check its shell dialect.
-"$ush" compile examples/contracts.ush -o "$tmp/script"
-dash "$tmp/script"
-shellcheck -s sh --severity=error "$tmp/script"
-"""
+let compiler = get_or "USH_BIN" "target/debug/ush"
+let work = temp_dir
+let targets = ["sh", "bash", "zsh"]
+if exists "busybox" {
+  let busybox = output "command" ["-v", "busybox"]
+  ln "-s" busybox (work + "/ash")
+  set "PATH" (work + ":" + get "PATH")
+  let targets = ["sh", "bash", "zsh", "ash"]
+}
+else if uname "-s" == "Linux" {
+  fail 1 "BusyBox is required to check the ash target on Linux"
+}
+for target in targets {
+  sh "scripts/test_task_await.sh" compiler target
+  for source in lines (find "examples" "-name" "*.ush" "-type" "f") {
+    exec compiler ["compile", source, "--target", target, "-o", work + "/script"]
+    exec target ["-n", work + "/script"]
+  }
+  exec compiler ["compile", "examples/contracts.ush", "--target", target, "-o", work + "/script"]
+  chmod "+x" (work + "/script")
+  assert_eq (output target [work + "/script"]) "2\n20\nready\ndone"
+  exec compiler ["compile", "examples/collections.ush", "--target", target, "-o", work + "/script"]
+  assert_eq (output target [work + "/script"]) "2\n3\n4\n3"
+  exec compiler ["compile", "examples/extern.ush", "--target", target, "-o", work + "/script"]
+  assert_eq (output target [work + "/script"]) "hello ush\n42"
+  exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush"]
+  exec compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]
+  assert_eq (redirect target [work + "/script"] (work + "/out") (work + "/err")) 1
+  assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")
+}
+exec compiler ["compile", "examples/contracts.ush", "-o", work + "/script"]
+if exists "dash" {
+  exec "dash" [work + "/script"]
+}
+exec "shellcheck" ["-s", "sh", "--severity=error", work + "/script"]

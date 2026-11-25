@@ -1,108 +1,138 @@
-# Paired benchmark orchestration, with Python for JSON/statistical processing.
-shell """
-python3 - "$@" <<'USH_BENCH_PY'
-"""Compare the PR to its merge base on the same machine. Times are nanoseconds."""
+# Alternate base/head runs on one machine; report geometric means in ns.
+# jq is the JSON/numeric boundary; build, sampling, comparison and policy are ush.
+use $bin::*
+use std::env::{get, set}
+use std::path::{cwd, resolve, from_cwd}
+use std::fs::{temp_dir, read_text, append_text, remove}
+use std::string::{lines, ends_with, trim_suffix, contains}
+use std::process::{arg, output, redirect, status}
+use std::io::eprint
 
-import json
-import math
-import os
-import shutil
-import subprocess
-import sys
-import tempfile
-from pathlib import Path
+fn report(text: String, summary: String) -> () {
+  print text
+  if summary != "" {
+    append_text summary (text + "\n")
+  }
+}
 
+fn build(checkout: String, package: String, suite: String, destination: String, target: String, work: String) -> String / unknown, exec, env, fs, stderr, stdin, stdout, net {
+  cd checkout
+  set "CARGO_TARGET_DIR" target
+  let log = work + "/cargo.jsonl"
+  let error_log = work + "/cargo.err"
+  let code = redirect "cargo" ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] log error_log
+  eprint (read_text error_log)
+  if code != 0 {
+    fail code ("benchmark build failed in " + checkout)
+  }
+  let binary = output "jq" ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?
+  cp binary destination
+  destination
+}
 
-SUITES = [("ush_shell", "parser"), ("ush_compiler", "compile")]
-MAX_RATIO = 1.25
+fn cases(binary: String) -> String / unknown, stderr, exec, env, fs, stdin, net {
+  let names = ""
+  for line in lines (output binary ["--list"]) {
+    if ends_with line ": benchmark" {
+      let names = names + trim_suffix line ": benchmark" + "\n"
+    }
+  }
+  if names == "" {
+    fail 1 ("No benchmarks in " + binary)
+  }
+  names
+}
 
+fn measure(binary: String, name: String) -> String / unknown, exec, env, fs, stderr, stdin, stdout, net {
+  let run = temp_dir
+  set "CRITERION_HOME" run
+  let code = redirect binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")
+  if code != 0 {
+    eprint (read_text (run + "/out"))
+    eprint (read_text (run + "/err"))
+    fail code ("benchmark failed: " + name)
+  }
+  let estimate = ""
+  let count = 0
+  for file in lines (find run "-path" "*/new/estimates.json") {
+    let estimate = file
+    let count = count + 1
+  }
+  if count != 1 {
+    fail 1 ("expected one Criterion estimate for " + name)
+  }
+  let value = output "jq" ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?
+  rm "-rf" run
+  value
+}
 
-def build_binary(checkout, package, suite, destination, target_dir):
-    command = ["cargo", "bench", "--locked", "--no-run", "-p", package,
-               "--bench", suite, "--message-format=json"]
-    output = subprocess.check_output(command, cwd=checkout, text=True,
-                                     env={**os.environ, "CARGO_TARGET_DIR": str(target_dir)})
-    artifacts = (json.loads(line) for line in output.splitlines())
-    binary, = [item["executable"] for item in artifacts
-               if item["reason"] == "compiler-artifact" and item.get("executable")
-               and item["target"]["name"] == suite]
-    shutil.copy2(binary, destination)
-    return destination
+fn geometric(first: String, second: String) -> String / unknown, exec, env, fs, stdin, stderr, net {
+  output "jq" ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]
+}
 
+fn compare(base: String, head: String, summary: String) -> Int / unknown, exec, env, fs, stderr, stdin, stdout, net {
+  let before_cases = cases base + "\n"
+  let after_cases = cases head + "\n"
+  let seen = "\n"
+  let failures = 0
+  for name in lines (before_cases + after_cases) {
+    let key = "\n" + name + "\n"
+    if contains seen key == false {
+      let seen = seen + name + "\n"
+      let in_base = contains ("\n" + before_cases) key
+      let in_head = contains ("\n" + after_cases) key
+      if in_base && in_head {
+        # B-H-H-B balances warmup and clock drift, preserving 100 samples each.
+        let b1 = measure base name
+        let h1 = measure head name
+        let h2 = measure head name
+        let b2 = measure base name
+        let before = geometric b1 b2
+        let after = geometric h1 h2
+        let ratio = output "jq" ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]
+        let row = printf "| %s | %.2f | %.2f | %.3f× |" name before after ratio
+        report row summary
+        if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {
+          let failures = failures + 1
+        }
+      }
+      else if in_head {
+        let value = measure head name
+        report (printf "| %s | — | %.2f | new |" name value) summary
+      }
+      else {
+        let value = measure base name
+        report (printf "| %s | %.2f | — | removed |" name value) summary
+      }
+    }
+  }
+  failures
+}
 
-def list_cases(binary):
-    suffix = ": benchmark"
-    output = subprocess.check_output([binary, "--list"], text=True)
-    cases = [line[:-len(suffix)] for line in output.splitlines() if line.endswith(suffix)]
-    if not cases:
-        raise ValueError(f"No benchmarks in {binary}")
-    return cases
-
-
-def measure(binary, name, directory):
-    # Two 50-sample runs per revision preserve 100 samples, 3 s of warmup
-    # and 5 s of measurement in total. Each run has its own Criterion output.
-    command = [binary, "--bench", "--exact", name, "--noplot",
-               "--sample-size", "50", "--warm-up-time", "1.5",
-               "--measurement-time", "2.5", "--nresamples", "10000"]
-    with tempfile.TemporaryDirectory(dir=directory) as run:
-        result = subprocess.run(command, env={**os.environ, "CRITERION_HOME": run},
-                                text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if result.returncode:
-            raise RuntimeError(result.stdout)
-        estimate_file, = Path(run).glob("**/new/estimates.json")
-        estimates = json.loads(estimate_file.read_text())
-        return (estimates["slope"] or estimates["mean"])["point_estimate"]
-
-
-def compare_suite(binaries, directory, report):
-    base, head = binaries
-    base_cases, head_cases = list_cases(base), list_cases(head)
-    failures = []
-    for name in dict.fromkeys(base_cases + head_cases):
-        if name not in base_cases or name not in head_cases:
-            is_new = name in head_cases
-            ns = measure(head if is_new else base, name, directory)
-            cells = f"| — | {ns:,.2f} | new" if is_new else f"| {ns:,.2f} | — | removed"
-            row = f"| {name} {cells} |"
-        else:
-            # Mirror the run order to balance warmup and clock-frequency drift.
-            b1, h1, h2, b2 = (measure(exe, name, directory) for exe in (base, head, head, base))
-            before, after = math.sqrt(b1 * b2), math.sqrt(h1 * h2)
-            ratio = after / before
-            row = f"| {name} | {before:,.2f} | {after:,.2f} | {ratio:.3f}× |"
-            if ratio > MAX_RATIO:
-                failures.append(name)
-        print(row, flush=True)
-        report.append(row)
-    return failures
-
-
-def main():
-    head = Path.cwd()
-    base = Path(sys.argv[1]).resolve()
-    report = ["## Paired Criterion measurements", "",
-              "Base and PR binaries run on the same runner. The regression threshold is 1.25×.", "",
-              "| Benchmark | Base (ns) | PR (ns) | Ratio |", "| --- | ---: | ---: | ---: |"]
-    failures = []
-    print("\n".join(report), flush=True)
-    with tempfile.TemporaryDirectory() as tmp:
-        directory = Path(tmp)
-        for package, suite in SUITES:
-            binaries = [
-                build_binary(base, package, suite, directory / f"base-{suite}", head / "target" / "bench-base"),
-                build_binary(head, package, suite, directory / f"head-{suite}", head / "target"),
-            ]
-            failures.extend(compare_suite(binaries, directory, report))
-    if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
-        with open(summary, "a", encoding="utf-8") as output:
-            output.write("\n".join(report) + "\n")
-    if failures:
-        sys.exit("Performance regression above 25%: " + ", ".join(failures))
-
-
-if __name__ == "__main__":
-    main()
-
-USH_BENCH_PY
-"""
+let base_arg = arg 0
+if base_arg == "" {
+  fail 1 "usage: compare_benchmarks.sh BASE_CHECKOUT"
+}
+let head = cwd
+let base = resolve (from_cwd base_arg)
+let summary = get "GITHUB_STEP_SUMMARY"
+report "## Paired Criterion measurements" summary
+report "" summary
+report "Base and PR binaries run on the same runner. The regression threshold is 1.25×." summary
+report "" summary
+report "| Benchmark | Base (ns) | PR (ns) | Ratio |" summary
+report "| --- | ---: | ---: | ---: |" summary
+let work = temp_dir
+let failures = 0
+for package in ["ush_shell", "ush_compiler"] {
+  let suite = "parser"
+  if package == "ush_compiler" {
+    let suite = "compile"
+  }
+  let before = build base package suite (work + "/base-" + suite) (head + "/target/bench-base") work
+  let after = build head package suite (work + "/head-" + suite) (head + "/target") work
+  let failures = failures + compare before after summary
+}
+if failures > 0 {
+  fail 1 ("Performance regression above 25% in " + failures + " benchmark(s)")
+}

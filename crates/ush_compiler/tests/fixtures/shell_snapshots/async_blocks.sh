@@ -31,7 +31,7 @@ __ush_jobs=''
 __ush_task_seq=0
 __ush_task_dir=$(
   umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
+  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
   __ush_base=$(pwd -P)
   __ush_n=0
   while [ "$__ush_n" -lt 1000 ]; do
@@ -157,9 +157,9 @@ ush_fn___ush_task_block_1() {
   prefix='work'
   __ush_at 9 'prefix + "bench"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" > "$__ush_return_path"
+    printf '%s' "${prefix}"'bench' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" >&4
+    printf '%s' "${prefix}"'bench' >&4
   fi
   return 0
 }

@@ -22,14 +22,11 @@ pub(crate) fn compile_string_expr(
     enums: &EnumRegistry,
 ) -> Result<String> {
     match expr {
-        Expr::Add(parts) => Ok(format!(
-            "\"$(printf '%s' {})\"",
-            parts
-                .iter()
-                .map(|part| compile_string_fragment(part, env, functions, impls, enums))
-                .collect::<Result<Vec<_>>>()?
-                .join(" ")
-        )),
+        Expr::Add(parts) => Ok(parts
+            .iter()
+            .map(|part| compile_string_fragment(part, env, functions, impls, enums))
+            .collect::<Result<Vec<_>>>()?
+            .join("")),
         _ => compile_string_fragment(expr, env, functions, impls, enums),
     }
 }
@@ -110,7 +107,7 @@ fn compile_string_fragment(
         Expr::FunctionRef(_) => bail!("function reference must be checked before lowering"),
         Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
         Expr::ShellCapture(command) => Ok(format!("\"$(\n{command}\n)\"")),
-        Expr::String(value) => Ok(super::super::util::shell_quote(value)),
+        Expr::String(value) => Ok(super::super::util::shell_value_quote(value)),
         Expr::Int(value) => Ok(super::super::util::shell_quote(&value.to_string())),
         Expr::Bool(value) => Ok(super::super::util::shell_quote(if *value {
             "true"

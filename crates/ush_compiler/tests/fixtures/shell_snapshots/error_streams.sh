@@ -31,7 +31,7 @@ __ush_jobs=''
 __ush_task_seq=0
 __ush_task_dir=$(
   umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
+  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
   __ush_base=$(pwd -P)
   __ush_n=0
   while [ "$__ush_n" -lt 1000 ]; do
@@ -142,9 +142,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }

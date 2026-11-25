@@ -28,6 +28,7 @@ pub(super) fn emit(
     context: SourceContext<'_>,
     target: crate::ShellTarget,
     tasks: bool,
+    literal_newlines: bool,
 ) {
     use crate::ShellTarget;
     if target == ShellTarget::Sh {
@@ -83,6 +84,9 @@ pub(super) fn emit(
         out.push_str("if [ -n \"${ZSH_VERSION:-}\" ] && [ \"$(emulate)\" != sh ]; then exec zsh --emulate sh \"$0\" \"$@\"; fi\n");
     }
     out.push_str("set -eu\n\n");
+    if literal_newlines {
+        out.push_str("__ush_lf='\n'\n");
+    }
     match context {
         SourceContext::None(_) => {
             out.push_str("__ush_source_dir=''\n__ush_source_path='<memory>'\n")

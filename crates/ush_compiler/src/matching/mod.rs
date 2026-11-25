@@ -150,7 +150,12 @@ pub(crate) fn emit_value_to_target(
                 out,
             )?;
             let temp = state.temp_var("packed");
-            out.push_str(&format!("{temp}=\"$(__ush_return_path='' __ush_capture_return=1 {command} 4>&1 >&3)\" || {} \"$?\"\n",if inside_function{"return"}else{"exit"}));
+            let fds = if call.name.starts_with("std::") {
+                ""
+            } else {
+                " 4>&1 >&3"
+            };
+            out.push_str(&format!("{temp}=\"$(__ush_return_path='' __ush_capture_return=1 {command}{fds})\" || {} \"$?\"\n",if inside_function{"return"}else{"exit"}));
             crate::codegen::wire::register(expected, state);
             crate::codegen::wire::decode(expected, target, &format!("\"${{{temp}}}\""), out);
             return Ok(());
@@ -168,6 +173,10 @@ pub(crate) fn emit_value_to_target(
                 inside_function,
                 out,
             )?;
+            // Aggregate cells are read indirectly by the wire-format helpers.
+            if target.contains("__") {
+                out.push_str("# shellcheck disable=SC2034\n");
+            }
             out.push_str(&format!("{target}={rendered}\n"));
         }
         Type::Adt(enum_name) => match expr {

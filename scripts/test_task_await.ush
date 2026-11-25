@@ -1,44 +1,48 @@
-# Canonical source. Regenerate the adjacent .sh with ush compile --checked-in.
-shell """
-set -eu
+# Check task status, repeated waits and standalone source diagnostics.
+use $bin::*
+use std::process::{arg, exec, redirect}
+use std::fs::{temp_dir, write_text, read_text, remove}
+use std::test::{assert_eq, assert}
 
-ush=${1:?compiler path required}
-target=${2:-sh}
-tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' 0
-
-compile() {
-  "$ush" compile "$tmp/job.ush" --target "$target" --checked-in -o "$tmp/job.sh"
-  chmod +x "$tmp/job.sh"
-  rm "$tmp/job.ush"
+fn compile(compiler: String, target: String, work: String) -> () / unknown, exec, env, fs, stderr, stdin, stdout, net {
+  exec compiler ["compile", work + "/job.ush", "--target", target, "--checked-in", "-o", work + "/job.sh"]
+  chmod "+x" (work + "/job.sh")
+  remove (work + "/job.ush")
 }
 
-cat > "$tmp/job.ush" <<'USH'
+let compiler = arg 0
+if compiler == "" {
+  fail 1 "compiler path required"
+}
+let target = arg 1
+if target == "" {
+  let target = "sh"
+}
+let work = temp_dir
+write_text (work + "/job.ush") """
 fn build() -> Int / unknown, stderr {
-  fail(23, "missing input")
+  fail 23 "missing input"
 }
-let job = async build()
+let job = async build
 print job.await
-USH
-compile
-status=0
-"$tmp/job.sh" >"$tmp/out" 2>"$tmp/err" || status=$?
-[ "$status" -eq 23 ]
-[ ! -s "$tmp/out" ]
-cat > "$tmp/expected" <<'EXPECTED'
+"""
+compile compiler target work
+assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23
+assert_eq (read_text (work + "/out")) ""
+assert_eq (read_text (work + "/err")) """
 job.ush:2: missing input (exit 23)
-  fail(23, "missing input")
+  fail 23 "missing input"
 job.ush:5: command failed (exit 23)
   print job.await
-EXPECTED
-diff -u "$tmp/expected" "$tmp/err"
+"""
 
-cat > "$tmp/job.ush" <<'USH'
-fn build() -> Int / unknown, stdin, stderr, fs, net, env, exec {
-  let pause = $(sleep 0.05 2>/dev/null || sleep 1)?
+write_text (work + "/job.ush") """
+use $bin::*
+fn build() -> Int / unknown, exec, stderr {
+  sleep "0.05"
   41
 }
-let job = async build()
+let job = async build
 let first = async {
   let value = job.await
   value + 1
@@ -51,36 +55,31 @@ print first.await
 print second.await
 print job.await
 print job.await
-USH
-compile
-"$tmp/job.sh" >"$tmp/out" 2>"$tmp/err"
-printf '%s\n' 42 43 41 41 > "$tmp/expected"
-diff -u "$tmp/expected" "$tmp/out"
-[ ! -s "$tmp/err" ]
+"""
+compile compiler target work
+assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 0
+assert_eq (read_text (work + "/out")) "42\n43\n41\n41"
+assert_eq (read_text (work + "/err")) ""
 
-cat > "$tmp/job.ush" <<'USH'
+write_text (work + "/job.ush") """
 fn build() -> Int / unknown, stderr {
-  fail(23, "missing input")
+  fail 23 "missing input"
 }
-let job = async build()
+let job = async build
 let sibling = async {
   let value = job.await
   value
 }
 print sibling.await
-USH
-compile
-status=0
-"$tmp/job.sh" >"$tmp/out" 2>"$tmp/err" || status=$?
-[ "$status" -eq 23 ]
-[ ! -s "$tmp/out" ]
-cat > "$tmp/expected" <<'EXPECTED'
+"""
+compile compiler target work
+assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23
+assert_eq (read_text (work + "/out")) ""
+assert_eq (read_text (work + "/err")) """
 job.ush:2: missing input (exit 23)
-  fail(23, "missing input")
+  fail 23 "missing input"
 job.ush:6: command failed (exit 23)
   let value = job.await
 job.ush:9: command failed (exit 23)
   print sibling.await
-EXPECTED
-diff -u "$tmp/expected" "$tmp/err"
 """

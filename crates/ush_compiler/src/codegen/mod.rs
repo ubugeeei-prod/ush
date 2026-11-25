@@ -130,21 +130,34 @@ pub(crate) fn compile_program(
     out.set_section(previous_section);
     let body = out;
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
-    let uses_tasks = body.as_str().contains("__ush_jobs=");
-    source_context::emit(&mut out, source_context, target, uses_tasks);
-    let previous_section = out.set_section(SourceMapSection::DocSupport);
-    docs::push_doc_support(
+    let uses_tasks =
+        body.as_str().contains("__ush_jobs=") || body.as_str().contains("ush_fn_std__fs__temp_dir");
+    source_context::emit(
         &mut out,
-        docs,
-        script_name.unwrap_or("script"),
-        &extra_completion,
+        source_context,
+        target,
+        uses_tasks,
+        body.as_str().contains("${__ush_lf}"),
     );
+    let previous_section = out.set_section(SourceMapSection::DocSupport);
+    // Programs that read argv own their CLI, including --help and --man.
+    if !body.as_str().contains("ush_fn_std__process__arg") {
+        docs::push_doc_support(
+            &mut out,
+            docs,
+            script_name.unwrap_or("script"),
+            &extra_completion,
+        );
+    }
     out.set_section(previous_section);
     if body.as_str().contains("4>&1 >&3") {
         out.push_str("exec 3>&1\n\n");
     }
     wire::emit(state.wire_types, &enums, &mut out)?;
     stdlib::emit_builtins(&mut out, body.as_str());
+    if body.as_str().contains("ush_fn_std__process__arg") {
+        out.push_str("__ush_argv=\"$(__ush_std_encode_args \"$@\")\"\n");
+    }
     out.append(body);
     out.finish();
     Ok(out)

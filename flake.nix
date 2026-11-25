@@ -17,11 +17,12 @@
       src = ./.;
       cargoLock.lockFile = ./Cargo.lock;
       cargoBuildFlags = [ "-p" "ush" "-p" "ush_lsp" ];
-      nativeCheckInputs = [ pkgs.python3 ];
+      nativeCheckInputs = [ pkgs.python3 pkgs.git pkgs.bash pkgs.zsh ];
+      preCheck = "export HOME=$TMPDIR/ush-test-home; mkdir -p $HOME";
       cargoTestFlags = [ "--workspace" ];
     };
     devShells.default = pkgs.mkShell {
-      packages = with pkgs; [ cargo rustc rustfmt clippy pkg-config nodejs shellcheck python3 bash zsh gh tynix.packages.${system}.default ];
+      packages = with pkgs; [ cargo rustc rustfmt clippy pkg-config nodejs shellcheck python3 jq bash zsh gh tynix.packages.${system}.default ];
     };
   });
 }

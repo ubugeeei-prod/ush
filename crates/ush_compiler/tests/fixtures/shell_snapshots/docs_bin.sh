@@ -179,9 +179,9 @@ ush_fn_greet() {
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" > "$__ush_return_path"
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" >&4
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" >&4
   fi
   return 0
 }

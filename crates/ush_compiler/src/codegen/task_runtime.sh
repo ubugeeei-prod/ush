@@ -3,7 +3,7 @@ __ush_jobs=''
 __ush_task_seq=0
 __ush_task_dir=$(
   umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
+  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
   __ush_base=$(pwd -P)
   __ush_n=0
   while [ "$__ush_n" -lt 1000 ]; do

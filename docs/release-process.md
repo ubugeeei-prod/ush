@@ -68,9 +68,11 @@ Each release publishes:
 The installer is maintained in `install.ush`. All scripts in `scripts/` are
 maintained as `.ush` sources; adjacent `.sh` files bootstrap CI and systems
 without an installed compiler. Run `sh scripts/check_generated.sh` to detect
-drift. POSIX platform operations and Python statistics are explicit foreign
-code blocks in these sources. `generated/benchmark_statistics.py` projects the
-foreign Python body for CodeQL; the same drift check verifies it. `flake.tynix` owns packaging and the dev shell;
+drift. Control flow, option parsing, checks and benchmark orchestration are native
+ush. External programs receive typed argv through `$bin::*` or `std::process`;
+`jq` supplies JSON decoding and floating-point arithmetic for repository checks.
+There are no embedded shell or Python programs in these sources.
+`flake.tynix` owns packaging and the dev shell;
 `tynix compile flake.tynix -o flake.nix` generates the Nix entrypoint.
 
 Each tarball contains the `ush` binary (including the offline editor extension), the `ush_lsp` binary,

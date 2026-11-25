@@ -64,9 +64,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -75,7 +75,9 @@ __ush_at 10 'alias ll = "ls -la"'
 alias ll='ls -la'
 __ush_at 12 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)"
@@ -88,7 +90,7 @@ if [ "${user__tag}" = 'User::User' ]; then
   name="${user__name-}"
   age="${user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
-  printf '%s\n' "$(printf '%s' "${name}" ':' "${age}")"
+  printf '%s\n' "${name}"':'"${age}"
 elif :; then
   __ush_at 17 '_ => print "fallback"'
   printf '%s\n' 'fallback'

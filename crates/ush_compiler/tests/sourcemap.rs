@@ -56,7 +56,7 @@ fn sourcemap_tracks_nested_function_body_lines() {
     );
     let return_line = generated_line(
         &compiled.shell,
-        "printf '%s' \"$(printf '%s' 'hi ' \"${__ush_fn_greet_arg_0}\")\"",
+        "printf '%s' 'hi '\"${__ush_fn_greet_arg_0}\"",
     );
 
     assert_eq!(compiled.sourcemap.source_line(header_line), Some(1));

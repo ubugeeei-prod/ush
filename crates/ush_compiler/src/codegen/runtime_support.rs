@@ -1,6 +1,3 @@
-use alloc::boxed::Box;
-use anyhow::Result;
-
 use super::{
     super::{
         ast::{Call, Expr},
@@ -12,13 +9,13 @@ use super::{
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
-
+use alloc::boxed::Box;
+use anyhow::Result;
 #[derive(Clone, Copy)]
 pub(super) enum FailureMode {
     Abort,
     Propagate,
 }
-
 #[allow(clippy::too_many_arguments)]
 pub(super) fn hoist_expr(
     expr: &Expr,
@@ -148,7 +145,6 @@ pub(super) fn hoist_expr(
         other => other.clone(),
     })
 }
-
 #[allow(clippy::too_many_arguments)]
 pub(super) fn hoist_call(
     call: &Call,
@@ -193,7 +189,6 @@ pub(super) fn hoist_call(
     }
     Ok(prepared)
 }
-
 #[allow(clippy::too_many_arguments)]
 fn hoist_call_capture(
     call: &Call,
@@ -230,6 +225,11 @@ fn hoist_call_capture(
     if matches!(mode, FailureMode::Propagate)
         || call.name.starts_with("std::test::")
         || call.name.starts_with("std::__extern::")
+        || call.name.starts_with("std::process::")
+        || matches!(
+            call.name.as_str(),
+            "std::string::to_int" | "std::fs::temp_dir"
+        )
     {
         out.push_str(" || ");
         out.push_str(if inside_function {

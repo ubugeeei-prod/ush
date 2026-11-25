@@ -73,7 +73,7 @@ __ush_jobs=''
 __ush_task_seq=0
 __ush_task_dir=$(
   umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
+  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
   __ush_base=$(pwd -P)
   __ush_n=0
   while [ "$__ush_n" -lt 1000 ]; do
@@ -199,9 +199,9 @@ ush_fn___ush_task_block_1() {
   prefix='work'
   __ush_at 9 'prefix + "bench"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" > "$__ush_return_path"
+    printf '%s' "${prefix}"'bench' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" >&4
+    printf '%s' "${prefix}"'bench' >&4
   fi
   return 0
 }
@@ -418,7 +418,9 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
 done
 __ush_at 16 'let items = [3, 4]'
 items__len='2'
+# shellcheck disable=SC2034
 items__0=3
+# shellcheck disable=SC2034
 items__1=4
 __ush_at 17 'for item in items {'
 __ush_match_2__len="${items__len}"
@@ -430,6 +432,7 @@ while [ "$__ush_copy_index_3" -lt "${items__len}" ]; do
 done
 __ush_for_list_index_5=0
 while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
+  __ush_for_value_6=''
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
@@ -438,7 +441,9 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
 done
 __ush_at 21 'let pair = (5, 6)'
 pair__len='2'
+# shellcheck disable=SC2034
 pair__0=5
+# shellcheck disable=SC2034
 pair__1=6
 __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
@@ -470,6 +475,7 @@ while :; do
 done
 __ush_at 42 'let maybe = Option::Some(7)'
 maybe__tag='Option::Some'
+# shellcheck disable=SC2034
 maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
@@ -582,9 +588,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 12 'message + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -595,9 +601,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 16 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }
@@ -605,6 +611,7 @@ ush_fn_wrap() {
 __ush_at 19 'let wrapped = Envelope::Wrap(Response::Ok("done"))'
 wrapped__tag='Envelope::Wrap'
 wrapped__0__tag='Response::Ok'
+# shellcheck disable=SC2034
 wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
 if [ "${wrapped__tag}" = 'Envelope::Wrap' ] && [ "${wrapped__0__tag}" = 'Response::Ok' ]; then
@@ -837,9 +844,9 @@ ush_fn_greet() {
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" > "$__ush_return_path"
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" >&4
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" >&4
   fi
   return 0
 }
@@ -932,7 +939,7 @@ __ush_jobs=''
 __ush_task_seq=0
 __ush_task_dir=$(
   umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
+  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
   __ush_base=$(pwd -P)
   __ush_n=0
   while [ "$__ush_n" -lt 1000 ]; do
@@ -1043,9 +1050,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }
@@ -1338,7 +1345,7 @@ __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path_
 cwd_file="${__ush_value_2}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
 __ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url="$(printf '%s' 'file://' "${__ush_value_3}")"
+url='file://'"${__ush_value_3}"
 __ush_at 8 'let copy = tmpfile()'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
 copy="${__ush_value_4}"
@@ -1407,6 +1414,8 @@ path.remove()
 # Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
+__ush_lf='
+'
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
 __ush_source_path='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
 __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
@@ -1616,9 +1625,7 @@ ush_fn_std__string__replace() {
 }
 
 __ush_at 7 'let page = """'
-page='<div>
-  hello
-</div>'
+page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
 __ush_at 13 'env_set "USH_STD_IMPORT" "ready"'
 ush_fn_std__env__set 'USH_STD_IMPORT' 'ready'
 __ush_at 14 'let path = tmpfile()'
@@ -1661,7 +1668,7 @@ __ush_at 32 'print $ starts_with "ush" "u"'
 __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')"
 printf '%s\n' "${__ush_value_8}"
 __ush_at 33 'print $ capture "printf '"'"'%s\n'"'"' hello"'
-__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s\n'"'"' hello')"
+__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s'"${__ush_lf}"''"'"' hello')"
 printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
 __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')"
@@ -1673,7 +1680,8 @@ __ush_at 36 'print $ path.read_text()'
 __ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
 printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
-printf '%s\n' from-shell
+printf '%s
+' from-shell
 __ush_at 38 'path.remove()'
 __ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")
 ```
@@ -1938,7 +1946,9 @@ ush_fn_std__read_cell() {
 
 __ush_at 22 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 23 'print user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
@@ -1946,9 +1956,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" >&4
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" >&4
 fi
 return 0
 }
@@ -1960,9 +1970,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" >&4
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" >&4
 fi
 return 0
 }
@@ -1976,9 +1986,9 @@ __ush_prefix_12='id'
 __ush_method_13() {
 __ush_at 18 'prefix + ":" + self.name'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" > "$__ush_return_path"
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" >&4
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" >&4
 fi
 return 0
 }
@@ -2081,9 +2091,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -2092,7 +2102,9 @@ __ush_at 10 'alias ll = "ls -la"'
 alias ll='ls -la'
 __ush_at 12 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)"
@@ -2105,7 +2117,7 @@ if [ "${user__tag}" = 'User::User' ]; then
   name="${user__name-}"
   age="${user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
-  printf '%s\n' "$(printf '%s' "${name}" ':' "${age}")"
+  printf '%s\n' "${name}"':'"${age}"
 elif :; then
   __ush_at 17 '_ => print "fallback"'
   printf '%s\n' 'fallback'

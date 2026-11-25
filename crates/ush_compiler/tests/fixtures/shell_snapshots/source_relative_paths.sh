@@ -200,7 +200,7 @@ __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path_
 cwd_file="${__ush_value_2}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
 __ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url="$(printf '%s' 'file://' "${__ush_value_3}")"
+url='file://'"${__ush_value_3}"
 __ush_at 8 'let copy = tmpfile()'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
 copy="${__ush_value_4}"

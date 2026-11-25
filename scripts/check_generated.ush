@@ -1,29 +1,23 @@
-# Verify bootstrap artifacts without rewriting the checkout.
-shell """
-set -eu
-if [ -z "${USH_COMPILER:-}" ]; then
-  cargo build --locked -p ush
-  USH_COMPILER=target/debug/ush
-fi
-work=$(mktemp -d)
-trap 'rm -rf "$work"' 0
-for source in install.ush scripts/*.ush; do
-  name=${source##*/}
-  artifact=${source%.ush}.sh
-  cp "$source" "$work/$name"
-  "$USH_COMPILER" compile "$work/$name" --checked-in -o "$work/${name%.ush}.sh"
-  if ! cmp -s "$artifact" "$work/${name%.ush}.sh"; then
-    printf 'stale artifact: %s; regenerate from %s\n' "$artifact" "$source" >&2
-    exit 1
-  fi
-done
-# Expose the real foreign Python body to CodeQL, keeping .ush as the only editable source.
-{
-  printf '%s\n' '# Generated from ../scripts/compare_benchmarks.ush. DO NOT EDIT MANUALLY.'
-  awk '/^python3 - / { body=1; next } /^USH_BENCH_PY$/ { body=0 } body { print }' scripts/compare_benchmarks.ush
-} > "$work/benchmark_statistics.py"
-if ! cmp -s generated/benchmark_statistics.py "$work/benchmark_statistics.py"; then
-  printf '%s\n' 'generated/benchmark_statistics.py is stale; regenerate from scripts/compare_benchmarks.ush' >&2
-  exit 1
-fi
-"""
+# Verify every generated bootstrap artifact without changing the checkout.
+use $bin::*
+use std::env::get_or
+use std::fs::temp_dir
+use std::process::{exec, status}
+use std::string::{lines, trim_suffix}
+use std::path::basename
+let compiler = get_or "USH_COMPILER" ""
+if compiler == "" {
+  cargo "build" "--locked" "-p" "ush"
+  let compiler = "target/debug/ush"
+}
+let work = temp_dir
+for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {
+  let name = basename source
+  let artifact = trim_suffix source ".ush" + ".sh"
+  let generated = work + "/" + trim_suffix name ".ush" + ".sh"
+  cp source (work + "/" + name)
+  exec compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]
+  if status "cmp" ["-s", artifact, generated] != 0 {
+    fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)
+  }
+}

@@ -227,7 +227,7 @@ fn compile_list_for(
         push_output(out, &element, 2);
     } else {
         out.push_str(&format!(
-            "  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n  {name}=\"${{{value}}}\"\n"
+            "  {value}=''\n  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n  {name}=\"${{{value}}}\"\n"
         ));
     }
     let mut body_env = bind_loop_var(name, item_ty, env);

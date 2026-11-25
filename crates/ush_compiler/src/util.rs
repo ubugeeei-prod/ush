@@ -204,6 +204,11 @@ pub(crate) fn shell_quote(value: &str) -> OutputString {
     format!("'{}'", value.replace('\'', r#"'"'"'"#))
 }
 
+/// Keep literal line feeds out of indented generated statements.
+pub(crate) fn shell_value_quote(value: &str) -> OutputString {
+    shell_quote(value).replace('\n', "'\"${__ush_lf}\"'")
+}
+
 fn tuple_type_body(source: &str) -> Option<&str> {
     let inner = parse_paren_body(source)?;
     (inner.0.is_empty()).then_some(inner.1)
