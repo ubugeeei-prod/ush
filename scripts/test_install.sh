@@ -9,7 +9,7 @@ set -eu
 __ush_entrypoint=$0
 case $__ush_entrypoint in
   */*) ;;
-  *) __ush_entrypoint=$(command -v "$__ush_entrypoint") ;;
+  *) if [ -f "$__ush_entrypoint" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v "$__ush_entrypoint"); fi ;;
 esac
 __ush_source_dir=$(CDPATH='' cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
 __ush_source_path=$__ush_source_dir/'test_install.ush'
@@ -268,6 +268,24 @@ test_checksum_lookup_requires_exact_asset_name() {
   rm -rf "$tmpdir" "$output_file"
 }
 
+test_profile_write_failure() {
+  tmpdir="$(mktemp -d)"
+  target="$(detect_target)"
+  make_archive "$tmpdir" "$target"
+  write_checksums "$tmpdir" "$target"
+  home_dir="$tmpdir/home"
+  mkdir -p "$home_dir/.zshrc"
+  if HOME="$home_dir" PATH="/usr/bin:/bin" SHELL=/bin/zsh \
+    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
+    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
+    sh "$INSTALL_SH" >"$tmpdir/output" 2>&1; then
+    cat "$tmpdir/output" >&2
+    echo "installer hid a profile-write failure" >&2
+    exit 1
+  fi
+  rm -rf "$tmpdir"
+}
+
 main() {
   need_cmd mktemp
   need_cmd tar
@@ -276,6 +294,7 @@ main() {
   test_auto_path_update
   test_auto_path_disabled
   test_cli_flags
+  test_profile_write_failure
   test_checksum_lookup_requires_exact_asset_name
 }
 

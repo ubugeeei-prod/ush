@@ -26,7 +26,7 @@ shell "RUSTDOCFLAGS='-D warnings' cargo doc --locked --workspace --no-deps --doc
 banner "shell targets"
 sh "scripts/test_targets.sh"
 banner "editor"
-shell "cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build"
+shell "(cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build)"
 banner "bench builds"
 cargo "bench" "--locked" "-p" "ush_shell" "--no-run"
 cargo "bench" "--locked" "-p" "ush_compiler" "--no-run"

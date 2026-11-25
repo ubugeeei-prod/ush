@@ -55,3 +55,29 @@ fn multiline_foreign_code_maps_to_its_actual_source_line() {
         .unwrap();
     assert_eq!(line.source_line, Some(3));
 }
+
+#[test]
+fn whitespace_after_multiline_opener_preserves_source_line() {
+    let compiled = UshCompiler
+        .compile_source_with_sourcemap("shell \"\"\" \nprintf ok\n\"\"\"\n")
+        .unwrap();
+    let line = compiled
+        .sourcemap
+        .lines
+        .iter()
+        .find(|l| l.generated_text == "printf ok")
+        .unwrap();
+    assert_eq!(line.source_line, Some(2));
+}
+
+#[test]
+fn effect_defaults_register_the_builtins_they_use() {
+    let source = r#"effect log(#[default(std::env::get("HOME"))] message: String) -> ()
+try {
+  do log()
+} with log(message) {
+  print message
+}
+"#;
+    UshCompiler.compile_source(source).unwrap();
+}

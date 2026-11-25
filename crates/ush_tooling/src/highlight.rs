@@ -32,16 +32,22 @@ pub enum HighlightKind {
 /// Returns an empty `Vec` when the cursor is not on an identifier or
 /// the identifier appears only once.
 pub fn document_highlights(source: &str, line: u32, character: u32) -> Vec<Highlight> {
-    let declaration = crate::references::definition(source, line, character);
-    crate::references::references(source, line, character)
-        .into_iter()
-        .map(|r| Highlight {
+    let index = crate::scope::Index::new(source);
+    let Some(decl) = index.at(line, character).and_then(|i| index.resolved[i]) else {
+        return Vec::new();
+    };
+    index
+        .tokens
+        .iter()
+        .enumerate()
+        .filter(|(i, _)| index.resolved[*i] == Some(decl))
+        .map(|(i, r)| Highlight {
             line: r.line,
             start: r.start,
             length: r.length,
             kind: if r.line == line && r.start <= character && character < r.start + r.length {
                 HighlightKind::Text
-            } else if declaration == Some(r) {
+            } else if i == decl {
                 HighlightKind::Write
             } else {
                 HighlightKind::Read

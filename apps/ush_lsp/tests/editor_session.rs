@@ -4,6 +4,7 @@
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::sync::mpsc::{self, Receiver};
 use std::time::{Duration, Instant};
 
 fn ush_lsp() -> Command {
@@ -18,7 +19,7 @@ fn send(stdin: &mut ChildStdin, body: &str) {
 }
 
 fn recv_with_id(
-    reader: &mut BufReader<ChildStdout>,
+    reader: &Receiver<serde_json::Value>,
     deadline: Instant,
     wanted_id: u64,
 ) -> serde_json::Value {
@@ -30,33 +31,57 @@ fn recv_with_id(
     }
 }
 
-fn recv(reader: &mut BufReader<ChildStdout>, deadline: Instant) -> serde_json::Value {
-    let mut content_length: Option<usize> = None;
-    loop {
-        if Instant::now() > deadline {
-            panic!("timed out waiting for an LSP header");
+fn recv(reader: &Receiver<serde_json::Value>, deadline: Instant) -> serde_json::Value {
+    reader
+        .recv_timeout(deadline.saturating_duration_since(Instant::now()))
+        .expect("timed out or LSP output ended")
+}
+
+fn reader(stdout: ChildStdout) -> Receiver<serde_json::Value> {
+    let (tx, rx) = mpsc::channel();
+    std::thread::spawn(move || {
+        let mut reader = BufReader::new(stdout);
+        loop {
+            let mut length = None;
+            loop {
+                let mut line = String::new();
+                if reader.read_line(&mut line).unwrap_or(0) == 0 {
+                    return;
+                }
+                if line == "\r\n" {
+                    break;
+                }
+                if let Some(rest) = line.strip_prefix("Content-Length:") {
+                    length = rest.trim().parse::<usize>().ok();
+                }
+            }
+            let Some(length) = length else {
+                return;
+            };
+            let mut body = vec![0; length];
+            if reader.read_exact(&mut body).is_err() {
+                return;
+            }
+            let Ok(body) = serde_json::from_slice(&body) else {
+                return;
+            };
+            if tx.send(body).is_err() {
+                return;
+            }
         }
-        let mut line = String::new();
-        reader.read_line(&mut line).expect("read header line");
-        if line == "\r\n" {
-            break;
-        }
-        if let Some(rest) = line.strip_prefix("Content-Length:") {
-            content_length = rest.trim().parse().ok();
-        }
+    });
+    rx
+}
+
+struct ChildGuard(Child);
+impl Drop for ChildGuard {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
     }
-    let len = content_length.expect("Content-Length header");
-    let mut buf = vec![0u8; len];
-    reader.read_exact(&mut buf).expect("read body");
-    serde_json::from_slice(&buf).expect("parse JSON-RPC body")
 }
 
-fn kill_child(child: &mut Child) {
-    let _ = child.kill();
-    let _ = child.wait();
-}
-
-fn shake_hands(stdin: &mut ChildStdin, reader: &mut BufReader<ChildStdout>, deadline: Instant) {
+fn shake_hands(stdin: &mut ChildStdin, reader: &Receiver<serde_json::Value>, deadline: Instant) {
     send(
         stdin,
         r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"processId":null,"rootUri":null,"capabilities":{}}}"#,
@@ -87,19 +112,21 @@ fn open_document(stdin: &mut ChildStdin, uri: &str, text: &str) {
 
 #[test]
 fn unicode_incremental_changes_close_and_invalid_requests_do_not_break_the_session() {
-    let mut child = ush_lsp()
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null())
-        .spawn()
-        .unwrap();
-    let mut stdin = child.stdin.take().unwrap();
-    let mut reader = BufReader::new(child.stdout.take().unwrap());
+    let mut child = ChildGuard(
+        ush_lsp()
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .unwrap(),
+    );
+    let mut stdin = child.0.stdin.take().unwrap();
+    let reader = reader(child.0.stdout.take().unwrap());
     let deadline = Instant::now() + Duration::from_secs(20);
-    shake_hands(&mut stdin, &mut reader, deadline);
+    shake_hands(&mut stdin, &reader, deadline);
     let uri = "file:///tmp/session.ush";
     open_document(&mut stdin, uri, "let value = 1\nprint \"😀\" + value\n");
-    let diagnostic = recv(&mut reader, deadline);
+    let diagnostic = recv(&reader, deadline);
     assert_eq!(diagnostic["params"]["version"], 1);
     let req = |id, method: &str, params: serde_json::Value| {
         serde_json::json!({"jsonrpc":"2.0","id":id,"method":method,"params":params}).to_string()
@@ -113,7 +140,7 @@ fn unicode_incremental_changes_close_and_invalid_requests_do_not_break_the_sessi
         ),
     );
     assert_eq!(
-        recv_with_id(&mut reader, deadline, 2)["result"]["range"]["start"]["character"],
+        recv_with_id(&reader, deadline, 2)["result"]["range"]["start"]["character"],
         4
     );
     send(
@@ -124,24 +151,21 @@ fn unicode_incremental_changes_close_and_invalid_requests_do_not_break_the_sessi
             serde_json::json!({"textDocument":{"uri":uri},"position":{"line":1,"character":13},"newName":"answer"}),
         ),
     );
-    let renamed = recv_with_id(&mut reader, deadline, 3);
+    let renamed = recv_with_id(&reader, deadline, 3);
     assert_eq!(
         renamed["result"]["changes"][uri][1]["range"]["start"]["character"],
         13
     );
     send(&mut stdin,&serde_json::json!({"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":uri,"version":2},"contentChanges":[{"range":{"start":{"line":0,"character":12},"end":{"line":0,"character":13}},"text":"2"}]}}).to_string());
-    assert_eq!(recv(&mut reader, deadline)["params"]["version"], 2);
+    assert_eq!(recv(&reader, deadline)["params"]["version"], 2);
     send(
         &mut stdin,
         &req(4, "textDocument/hover", serde_json::json!({})),
     );
-    assert_eq!(
-        recv_with_id(&mut reader, deadline, 4)["error"]["code"],
-        -32602
-    );
+    assert_eq!(recv_with_id(&reader, deadline, 4)["error"]["code"], -32602);
     send(&mut stdin,&serde_json::json!({"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":uri}}}).to_string());
     assert_eq!(
-        recv(&mut reader, deadline)["params"]["diagnostics"],
+        recv(&reader, deadline)["params"]["diagnostics"],
         serde_json::json!([])
     );
     send(
@@ -152,19 +176,10 @@ fn unicode_incremental_changes_close_and_invalid_requests_do_not_break_the_sessi
             serde_json::json!({"textDocument":{"uri":uri},"position":{"line":0,"character":5}}),
         ),
     );
-    assert!(
-        recv_with_id(&mut reader, deadline, 5)
-            .get("error")
-            .is_some()
-    );
+    assert!(recv_with_id(&reader, deadline, 5).get("error").is_some());
     send(&mut stdin, &req(6, "shutdown", serde_json::Value::Null));
-    assert!(
-        recv_with_id(&mut reader, deadline, 6)
-            .get("result")
-            .is_some()
-    );
+    assert!(recv_with_id(&reader, deadline, 6).get("result").is_some());
     send(&mut stdin, r#"{"jsonrpc":"2.0","method":"exit"}"#);
     drop(stdin);
-    assert!(child.wait().unwrap().success());
-    kill_child(&mut child);
+    assert!(child.0.wait().unwrap().success());
 }

@@ -1,6 +1,4 @@
-let
-  packageVersion = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
-in {
+{
   description = "ush - ubugeeei shell";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -8,6 +6,7 @@ in {
     flake-utils.url = "github:numtide/flake-utils";
   };
   outputs = { self, nixpkgs, flake-utils, tynix }: flake-utils.lib.eachDefaultSystem (system: let
+    packageVersion = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
     pkgs = import nixpkgs {
       inherit system;
     };

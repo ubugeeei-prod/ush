@@ -19,7 +19,10 @@ pub fn function_signatures(source: &str) -> Vec<FunctionSignature> {
             continue;
         }
         let name = index.names[i + 1];
-        let Some(open) = (i + 2..index.names.len()).find(|&j| index.names[j] == "(") else {
+        let Some(open) = (i + 2..index.names.len())
+            .take_while(|&j| !matches!(index.names[j], "fn" | "{" | "}" | ";"))
+            .find(|&j| index.names[j] == "(")
+        else {
             continue;
         };
         let Some(close) = scan::closing(&index.names, open) else {

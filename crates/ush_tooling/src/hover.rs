@@ -99,10 +99,14 @@ pub fn hover(source: &str, line: u32, character: u32) -> Option<Hover> {
 
     let body = if let Some(decl) = crate::references::definition(source, line, character) {
         let snippet = lines.get(decl.line as usize).copied().unwrap_or("").trim();
-        let role = if snippet.starts_with("fn ") {
-            "function"
-        } else {
-            "variable"
+        let role = match tokens
+            .iter()
+            .find(|t| t.line == decl.line && t.start == decl.start)
+            .map(|t| t.kind)
+        {
+            Some(SemanticTokenKind::Function) => "function",
+            Some(SemanticTokenKind::Type) => "type",
+            _ => "variable",
         };
         format!("**{role}** `{text}`\n\n```ush\n{snippet}\n```")
     } else {

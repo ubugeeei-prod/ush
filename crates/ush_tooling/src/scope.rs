@@ -8,6 +8,7 @@ pub(crate) struct Index<'a> {
     pub tokens: Vec<SemanticToken>,
     pub names: Vec<&'a str>,
     pub resolved: Vec<Option<usize>>,
+    pub external: Vec<bool>,
 }
 
 impl<'a> Index<'a> {
@@ -125,12 +126,21 @@ impl<'a> Index<'a> {
             }
         }
         let mut resolved = vec![None; tokens.len()];
+        let mut external = vec![false; tokens.len()];
+        let mut by_name = std::collections::HashMap::<_, Vec<_>>::new();
+        for &(decl, scope, visible) in &declarations {
+            resolved[decl] = Some(decl);
+            by_name
+                .entry((scope, names[decl]))
+                .or_default()
+                .push((decl, visible));
+            external[decl] |= modules.contains_key(&scope);
+        }
         for i in 0..tokens.len() {
             if !identifier(tokens[i].kind) {
                 continue;
             }
-            if declarations.iter().any(|&(decl, _, _)| decl == i) {
-                resolved[i] = Some(i);
+            if resolved[i].is_some() {
                 continue;
             }
             // Qualified members must never resolve to an unrelated unqualified local.
@@ -147,14 +157,11 @@ impl<'a> Index<'a> {
             }
             let mut scope = scopes[i];
             loop {
-                if let Some(&(decl, _, _)) =
-                    declarations.iter().rev().find(|&&(decl, s, visible)| {
-                        s == scope
-                            && names[decl] == names[i]
-                            && visible <= i
-                            && !excluded.get(&decl).is_some_and(|range| range.contains(&i))
+                if let Some(&(decl, _)) = by_name.get(&(scope, names[i])).and_then(|ds| {
+                    ds.iter().rev().find(|&&(decl, visible)| {
+                        visible <= i && !excluded.get(&decl).is_some_and(|range| range.contains(&i))
                     })
-                {
+                }) {
                     resolved[i] = Some(decl);
                     break;
                 }
@@ -168,6 +175,7 @@ impl<'a> Index<'a> {
             tokens,
             names,
             resolved,
+            external,
         }
     }
 

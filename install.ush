@@ -201,11 +201,11 @@ ensure_path() {
     return
   fi
 
-  touch "$profile"
+  touch "$profile" || return "$?"
   {
     printf '\n# Added by ush install.sh\n'
     printf '%s\n' "$line"
-  } >> "$profile"
+  } >> "$profile" || return "$?"
   printf '%s\n' "$profile"
 }
 

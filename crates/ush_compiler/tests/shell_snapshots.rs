@@ -32,7 +32,19 @@ fn workspace_roots() -> Vec<String> {
 fn normalize_shell(shell: &str, workspace_roots: &[String]) -> String {
     let mut normalized = shell.to_owned();
     for root in workspace_roots {
-        normalized = normalized.replace(root, "$WORKSPACE");
+        let encoded: String = root
+            .bytes()
+            .map(|b| {
+                if b.is_ascii_alphanumeric() || b"/-_.~".contains(&b) {
+                    (b as char).to_string()
+                } else {
+                    format!("%{b:02X}")
+                }
+            })
+            .collect();
+        normalized = normalized
+            .replace(&encoded, "$WORKSPACE")
+            .replace(root, "$WORKSPACE");
     }
     normalized
 }
@@ -147,4 +159,12 @@ fn compiled_shell_snapshots_are_listed_in_catalog() {
         fs::write(catalog_path, &catalog).expect("write snapshot catalog");
     }
     assert_eq!(catalog, include_str!("fixtures/shell_snapshots_catalog.md"));
+}
+
+#[test]
+fn source_uri_normalization_handles_spaces() {
+    assert_eq!(
+        normalize_shell("file:///a%20b/demo.ush '/a b/demo.ush'", &["/a b".into()]),
+        "file://$WORKSPACE/demo.ush '$WORKSPACE/demo.ush'"
+    );
 }

@@ -93,3 +93,71 @@ fn rename_does_not_speculate_about_pattern_binding_capture() {
     let source = "let x = 1\nmatch value {\n  Some(x) => print x\n}\nprint x\n";
     assert!(rename_locations(source, 0, 4, "y").is_err());
 }
+
+#[test]
+fn extern_renames_preserve_foreign_bindings() {
+    let source = "extern \"helpers.sh\" as helpers {\n  fn hello(name: String) -> String\n}\nuse helpers::*\nprint hello \"x\"\n";
+    assert!(ush_tooling::prepare_rename(source, 4, 7).is_none());
+    assert!(rename_locations(source, 4, 7, "greet").is_err());
+}
+
+#[test]
+fn parameter_hover_uses_its_declaration_role() {
+    let source = "fn f(x: Int) -> Int {\n  x\n}\n";
+    assert!(
+        ush_tooling::hover(source, 1, 2)
+            .unwrap()
+            .contents
+            .starts_with("**variable**")
+    );
+    assert!(
+        ush_tooling::hover(source, 0, 3)
+            .unwrap()
+            .contents
+            .starts_with("**function**")
+    );
+}
+
+#[test]
+fn signature_recovery_and_nested_calls_do_not_invent_arguments() {
+    let declarations = "fn broken\nfn outer(x: Int, y: Int, z: Int) {}\nfn inner(x: Int) {}\n";
+    let signatures = ush_tooling::function_signatures(declarations);
+    assert_eq!(
+        signatures
+            .iter()
+            .map(|s| s.name.as_str())
+            .collect::<Vec<_>>(),
+        ["outer", "inner"]
+    );
+    for (call, expected) in [
+        ("outer(inner(42), ", Some(("outer", 1))),
+        ("outer(inner(", Some(("inner", 0))),
+        ("outer(unknown(", None),
+        ("outer(unknown(42), ", Some(("outer", 1))),
+    ] {
+        let source = format!("{declarations}{call}");
+        let help = signature_help(&source, 3, call.len() as u32);
+        assert_eq!(
+            help.as_ref()
+                .map(|h| (h.signature.name.as_str(), h.active_parameter)),
+            expected,
+            "{call}"
+        );
+    }
+    let source = format!("{declarations}outer(\"\"\"\n,\n\"\"\", ");
+    assert_eq!(signature_help(&source, 5, 5).unwrap().active_parameter, 1);
+}
+
+#[test]
+fn callback_reference_is_one_shell_argument() {
+    let declarations = "fn apply<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {\n}\n";
+    for call in ["apply [1, 2] &iden", "apply [1, 2] &identity"] {
+        let source = format!("{declarations}{call}");
+        assert_eq!(
+            signature_help(&source, 2, call.len() as u32)
+                .unwrap()
+                .active_parameter,
+            1
+        );
+    }
+}

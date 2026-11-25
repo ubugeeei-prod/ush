@@ -42,9 +42,11 @@ pub fn semantic_tokens(source: &str, items: &[UshToken]) -> SemanticTokens {
     let mut prev_start = 0u32;
     let mut data = Vec::new();
 
+    let lines: Vec<_> = source.lines().collect();
     for item in items {
-        let start = utf16_column(source, item.line, item.start);
-        let end = utf16_column(source, item.line, item.start + item.length);
+        let line = lines.get(item.line as usize).copied().unwrap_or("");
+        let start = utf16_column(line, 0, item.start);
+        let end = utf16_column(line, 0, item.start + item.length);
         let delta_line = item.line - prev_line;
         let delta_start = if delta_line == 0 {
             start - prev_start

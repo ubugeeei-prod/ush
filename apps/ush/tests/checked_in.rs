@@ -99,3 +99,26 @@ fn source_and_output_must_be_adjacent() {
             .contains("checked-in source and output must be in the same directory")
     );
 }
+
+#[test]
+fn relative_script_filename_does_not_require_current_directory_on_path() {
+    let dir = tempdir().unwrap();
+    fs::write(dir.path().join("local.ush"), "print \"local\"\n").unwrap();
+    assert!(
+        compile(&dir.path().join("local.ush"), &dir.path().join("local.sh"))
+            .status
+            .success()
+    );
+    let output = Command::new("sh")
+        .arg("local.sh")
+        .current_dir(dir.path())
+        .env("PATH", "/usr/bin:/bin")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(output.stdout, b"local\n");
+}

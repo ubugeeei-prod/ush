@@ -31,7 +31,7 @@ pub(crate) struct CodegenState {
 impl CodegenState {
     pub(crate) fn new(source: &str, mapped: bool) -> Self {
         Self {
-            source_lines: source.lines().map(|s| s.trim().into()).collect(),
+            source_lines: source.lines().map(|s| s.trim_start().into()).collect(),
             next_id: 0,
             mapped,
             wire_types: Default::default(),

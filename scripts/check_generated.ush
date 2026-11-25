@@ -1,9 +1,9 @@
 # Verify bootstrap artifacts without rewriting the checkout.
 shell """
 set -eu
-USH_COMPILER=${USH_COMPILER:-target/debug/ush}
-if [ ! -x "$USH_COMPILER" ]; then
+if [ -z "${USH_COMPILER:-}" ]; then
   cargo build --locked -p ush
+  USH_COMPILER=target/debug/ush
 fi
 work=$(mktemp -d)
 trap 'rm -rf "$work"' 0

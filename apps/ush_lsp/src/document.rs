@@ -17,7 +17,7 @@ impl DocumentStore {
         self.docs.insert(
             uri,
             Document {
-                text: text.into(),
+                text: normalize_newlines(&text).into(),
                 version,
                 tokens: None,
             },
@@ -48,9 +48,9 @@ impl DocumentStore {
                 let start = offset(&text, range.start)?;
                 let end = offset(&text, range.end)?;
                 ensure!(start <= end, "reversed document change range");
-                text.replace_range(start..end, &change.text);
+                text.replace_range(start..end, &normalize_newlines(&change.text));
             } else {
-                text = change.text;
+                text = normalize_newlines(&change.text);
             }
         }
         doc.text = text.into();
@@ -74,6 +74,11 @@ impl DocumentStore {
             .get_or_insert_with(|| ush_tooling::semantic_tokens(&doc.text))
             .clone())
     }
+}
+// Protocol positions count CR, CRLF and LF as one line break. Keep a canonical
+// LF representation so compiler/tooling byte positions share the same line model.
+fn normalize_newlines(text: &str) -> String {
+    text.replace("\r\n", "\n").replace('\r', "\n")
 }
 fn offset(source: &str, p: lsp_types::Position) -> Result<usize> {
     let mut start = 0;
@@ -119,5 +124,31 @@ mod tests {
         assert!(!docs.update(&uri, 1, vec![edit(7, 9, "old")]).unwrap());
         docs.close(&uri);
         assert!(docs.read(&uri).is_err());
+    }
+}
+
+#[cfg(test)]
+mod newline_tests {
+    use super::*;
+    use lsp_types::{Position, Range};
+    #[test]
+    fn all_protocol_line_endings_support_incremental_edits() {
+        for ending in ["\r", "\r\n", "\n"] {
+            let uri: Uri = "file:///tmp/newlines.ush".parse().unwrap();
+            let mut docs = DocumentStore::default();
+            docs.open(uri.clone(), format!("print 1{ending}print 2"), 1);
+            docs.update(
+                &uri,
+                2,
+                vec![TextDocumentContentChangeEvent {
+                    range: Some(Range::new(Position::new(1, 6), Position::new(1, 7))),
+                    range_length: None,
+                    text: "3\rprint 4".into(),
+                }],
+            )
+            .unwrap();
+            assert_eq!(&*docs.read(&uri).unwrap(), "print 1\nprint 3\nprint 4");
+            assert_eq!(docs.tokens(&uri).unwrap().last().unwrap().line, 2);
+        }
     }
 }

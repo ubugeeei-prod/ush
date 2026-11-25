@@ -1,8 +1,5 @@
 # Package and developer environment source. Generate flake.nix with tynix compile.
-let
-  packageVersion :: String;
-  packageVersion = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
-in {
+{
   description = "ush - ubugeeei shell";
 
   inputs = {
@@ -14,6 +11,8 @@ in {
   outputs = { self, nixpkgs, flake-utils, tynix }:
     flake-utils.lib.eachDefaultSystem (system:
       let
+        packageVersion :: String;
+        packageVersion = (builtins.fromTOML (builtins.readFile ./Cargo.toml)).workspace.package.version;
         pkgs = import nixpkgs { inherit system; };
       in
       {

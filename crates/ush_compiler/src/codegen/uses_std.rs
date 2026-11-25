@@ -8,7 +8,10 @@ fn statement(s: &Statement) -> bool {
         S::Function(f) => {
             references(&f.body) || f.params.iter().filter_map(|p| p.default.as_ref()).any(expr)
         }
-        S::Impl(i) => i.methods.iter().any(|f| references(&f.body)),
+        S::Impl(i) => i.methods.iter().any(|f| {
+            references(&f.body) || f.params.iter().filter_map(|p| p.default.as_ref()).any(expr)
+        }),
+        S::Effect(e) => e.params.iter().filter_map(|p| p.default.as_ref()).any(expr),
         S::Handle { body, handlers } => {
             references(body) || handlers.iter().any(|h| references(&h.body))
         }

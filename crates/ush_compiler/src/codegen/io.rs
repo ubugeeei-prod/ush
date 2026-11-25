@@ -133,7 +133,7 @@ pub(super) fn track_statement(
         out.push_str(&format!(
             "__ush_at {} {}\n",
             statement.line,
-            crate::util::shell_quote(text)
+            crate::util::shell_quote(text.trim_end())
         ));
     }
 }
@@ -207,7 +207,7 @@ pub(super) fn track_shell_body(
     ) && state
         .source_lines
         .get(statement.line.saturating_sub(1))
-        .is_some_and(|line| matches!(line.trim(), "shell \"\"\""))
+        .is_some_and(|line| matches!(line.trim_start(), "shell \"\"\""))
     {
         out.set_origin(Some(statement.line + 1));
     }

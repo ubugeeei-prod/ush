@@ -9,7 +9,7 @@ set -eu
 __ush_entrypoint=$0
 case $__ush_entrypoint in
   */*) ;;
-  *) __ush_entrypoint=$(command -v "$__ush_entrypoint") ;;
+  *) if [ -f "$__ush_entrypoint" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v "$__ush_entrypoint"); fi ;;
 esac
 __ush_source_dir=$(CDPATH='' cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
 __ush_source_path=$__ush_source_dir/'preflight.ush'
@@ -113,8 +113,8 @@ __ush_at 27 'sh "scripts/test_targets.sh"'
 command sh 'scripts/test_targets.sh'
 __ush_at 28 'banner "editor"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'editor' )
-__ush_at 29 'shell "cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build"'
-cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build
+__ush_at 29 'shell "(cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build)"'
+(cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build)
 __ush_at 30 'banner "bench builds"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'bench builds' )
 __ush_at 31 'cargo "bench" "--locked" "-p" "ush_shell" "--no-run"'

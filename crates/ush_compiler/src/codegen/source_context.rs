@@ -99,7 +99,7 @@ pub(super) fn emit(
         }
         #[cfg(feature = "std")]
         SourceContext::CheckedIn { source_name, .. } => {
-            out.push_str("__ush_entrypoint=$0\ncase $__ush_entrypoint in\n  */*) ;;\n  *) __ush_entrypoint=$(command -v \"$__ush_entrypoint\") ;;\nesac\n__ush_source_dir=$(CDPATH='' cd -P \"$(dirname \"$__ush_entrypoint\")\" && pwd -P)\n");
+            out.push_str("__ush_entrypoint=$0\ncase $__ush_entrypoint in\n  */*) ;;\n  *) if [ -f \"$__ush_entrypoint\" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v \"$__ush_entrypoint\"); fi ;;\nesac\n__ush_source_dir=$(CDPATH='' cd -P \"$(dirname \"$__ush_entrypoint\")\" && pwd -P)\n");
             out.push_str(&format!(
                 "__ush_source_path=$__ush_source_dir/{}\n",
                 shell_quote(source_name)

@@ -37,7 +37,10 @@ pub fn definition(source: &str, line: u32, character: u32) -> Option<Reference> 
 pub fn prepare_rename(source: &str, line: u32, character: u32) -> Option<Reference> {
     let index = Index::new(source);
     let i = index.at(line, character)?;
-    index.resolved[i]?;
+    let decl = index.resolved[i]?;
+    if index.external[decl] {
+        return None;
+    }
     Some(location(&index, i))
 }
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -45,12 +48,16 @@ pub enum RenameError {
     InvalidName,
     Conflict,
     PatternBindings,
+    ExternalBinding,
 }
 impl std::fmt::Display for RenameError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
             Self::InvalidName => "use a non-keyword identifier",
             Self::Conflict => "that name is already bound in this document",
+            Self::ExternalBinding => {
+                "extern names are bound to shell functions; rename the shell declaration manually"
+            }
             Self::PatternBindings => "safe rename of pattern bindings is not supported yet",
         })
     }
@@ -81,6 +88,9 @@ pub fn rename_locations(
     let Some(i) = index.at(line, character) else {
         return Ok(Vec::new());
     };
+    if index.resolved[i].is_some_and(|decl| index.external[decl]) {
+        return Err(RenameError::ExternalBinding);
+    }
     if new_name != index.names[i]
         && index
             .names

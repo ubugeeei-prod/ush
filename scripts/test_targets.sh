@@ -9,7 +9,7 @@ set -eu
 __ush_entrypoint=$0
 case $__ush_entrypoint in
   */*) ;;
-  *) __ush_entrypoint=$(command -v "$__ush_entrypoint") ;;
+  *) if [ -f "$__ush_entrypoint" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v "$__ush_entrypoint"); fi ;;
 esac
 __ush_source_dir=$(CDPATH='' cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
 __ush_source_path=$__ush_source_dir/'test_targets.ush'
