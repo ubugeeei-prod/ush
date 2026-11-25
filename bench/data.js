@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795603155510,
+  "lastUpdate": 1795604992257,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -3773,6 +3773,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 117495,
             "range": "± 3603",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "08e072d01f66ad6e50a6cc0d32001b2638643e3a",
+          "message": "feat: local modules, relocatable checked-in output and compile --check (#173)\n\n* feat(compiler): link local modules and relocate checked-in output\n\n`mod \"lib/gh.ush\" as gh` imports a declarations-only `.ush` file relative\nto the importing file. Its `pub` items are reachable as `gh::item` or with\n`use gh::{item}` / `use gh::*`; private items and top-level statements in a\nmodule are diagnosed.\n\nThe linker lives in the no_std core behind a `ModuleLoader`. Each file is\nresolved against its own imports, its items move into a namespace\n(`gh::run` -> `ush_fn_gh__run`) and modules are inlined dependencies-first,\nso later passes see one program. Only reachable module functions are kept,\nshared modules link once and import cycles name every file.\n\nStatement lines now index one source space: the root keeps its numbering\nand modules follow at offsets. Errors render as\n`line R: lib/gh.ush: line N: ...`, `__ush_at` passes the module file so\nruntime failures name it, and sourcemap lines carry `source_file`. Codegen\nand the effect passes attach statement lines to errors.\n\n`--checked-in` output may now sit in any directory: the header names the\nsource relative to the output, and the script resolves source-relative\npaths from the recorded location. Adjacent outputs are unchanged.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat(cli): compile many scripts, check freshness, follow modules in tools\n\n`ush compile` takes several inputs with `--out-dir DIR` (relative to each\ninput's directory) and leaves unchanged outputs untouched. `--check`\ncompiles in memory and exits 1 with a short diff when an output is stale\nor missing, after processing every input.\n\n`ush check`, `ush explain`, the sourcemap JSON and the language server\nread a script's modules from disk; tooling knows the `mod` and `pub`\nkeywords and lists modules in the outline.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* docs: describe local modules and relocatable checked-in output\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* fix(compiler): report conflicting wildcard type imports like function ones\n\nTwo `use m::*` imports that offer different types under one name are now\nan error unless the file declares or imports that name explicitly, matching\nthe existing rule for functions.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* docs: index local modules and checked-in output\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* test(compiler): run module functions as pipeline stages\n\nModule functions returning `()` work as pipeline stages, qualified or\nimported, and may hold pipelines themselves. Top-level `extern` and\n`test` parsing moves into parse/items.rs to keep parse_block under the\nline cap after the pipeline dispatch landed.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-25T19:59:36+09:00",
+          "tree_id": "cdbd9cbb6734b86b44322b83bdadca3e22652867",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/08e072d01f66ad6e50a6cc0d32001b2638643e3a"
+        },
+        "date": 1795604990971,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1496,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 246,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 576,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1226,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1217,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1128,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 199,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 123,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 231,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 108,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1323,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1174,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1111,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 821,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2542,
+            "range": "± 44",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 17,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1975,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 8836,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 29178,
+            "range": "± 616",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 9530654,
+            "range": "± 59043",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 185866,
+            "range": "± 2542",
             "unit": "ns/iter"
           }
         ]
