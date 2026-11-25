@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795617110907,
+  "lastUpdate": 1795618331743,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -4973,6 +4973,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 157394,
             "range": "± 898",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6ef717b49676d25e500285d92d255349506edc5a",
+          "message": "feat(lang): interpolating strings, $env:: reads, a List API and glob patterns (#182)\n\n* fix(parse): stop panicking on a `)` before the first `(`\n\n`parse_paren_body` sliced its result eagerly with `then_some`, so a part\nwhose first `)` comes before its first `(` panicked with a backwards byte\nrange instead of falling through to a parse error. Slice lazily, as\n`parse_brace_body` already does.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat(lang): interpolating strings, $env:: reads, a List API and glob patterns\n\n- `$\"…\"` and the dedented `$\"\"\"…\"\"\"` read `$name` and `${name}` the way\n  CLI-style words do, `$env::NAME` from the environment, and any String,\n  Int or Bool expression in `${…}`; `\\$` writes a dollar sign. `\"…\"`,\n  `'…'` and `\"\"\"…\"\"\"` stay literal. Holes are hoisted into variables and\n  the string lowers to quoted text and parameter expansions, never `eval`.\n  `shell` and `alias` reject interpolating strings, whose values would run\n  as code, and malformed holes are reported by name.\n- `$env::NAME` reads a required environment variable in expressions,\n  words (`--dir=$env::RUNNER_TEMP`) and interpolating strings. Unset or\n  empty stops the program with the variable's name and source line; reads\n  infer `env` and `unknown` and cannot name a ush binding in scope.\n- Lists gain `len`, `is_empty`, `contains`, `first`, `last`, `join` and\n  `enumerate`, bounds-checked `xs[i]`, `xs + ys`, `for (i, x) in …`\n  destructuring and `pair.0` tuple access. `xs = xs + ys` on a `let mut`\n  list appends in place, and the contracts checker rejects indexes it can\n  prove out of range.\n- `glob \"*.ts\"` patterns and `a | b` alternatives. A String `match` over\n  literals, globs, `_` and bindings lowers to one POSIX `case`, and ranges\n  such as `[a-z]` expand to ASCII characters so every locale agrees.\n- Add examples/text_and_data.ush, run on every target by\n  scripts/test_targets.ush, a text_and_data shell snapshot, and regenerate\n  the checked-in scripts.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat(tooling): highlight interpolating strings and globs, format around holes\n\nSemantic tokens split `$\"…\"` and `$\"\"\"…\"\"\"` into string text, `$name` and\n`$env::NAME` variables, `${`/`}` operators and the hole's own code; plain\nstrings stay one token, and `glob` is a keyword. The formatter ignores\nbraces inside `${…}` holes, and the TextMate grammar scopes interpolating\nstrings and templates.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* docs: document interpolating strings, $env:: reads, lists and glob patterns\n\nAdd the language guide sections, their lowering and types notes, the std,\neffects and native-scripting cross-references, the README feature list and\nthe changelog entries.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-25T23:46:55+09:00",
+          "tree_id": "537cbba0a132c6bddd30607cba815f30d5adcbea",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/6ef717b49676d25e500285d92d255349506edc5a"
+        },
+        "date": 1795618330479,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1174,
+            "range": "± 41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 178,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 441,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1019,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 972,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 922,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 157,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 100,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 189,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 92,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1069,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 944,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 889,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 602,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1992,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 11,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1441,
+            "range": "± 82",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 8051,
+            "range": "± 637",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 26339,
+            "range": "± 644",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 8651475,
+            "range": "± 462910",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 175158,
+            "range": "± 8336",
             "unit": "ns/iter"
           }
         ]
