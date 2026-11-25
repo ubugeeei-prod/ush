@@ -55,8 +55,8 @@ fn generic_shell_calls_track_arguments_without_splitting_nested_values() {
 
 #[test]
 fn extern_qualified_calls_and_wildcards_resolve_to_the_declared_function() {
-    let source="extern \"helpers.sh\" as helpers {\n  fn hello(name: String) -> String\n}\nuse helpers::*\nprint helpers::hello \"x\"\nprint hello \"y\"\n";
-    assert_eq!(definition(source,4,16).unwrap().line,1);
-    assert_eq!(definition(source,5,7).unwrap().line,1);
-    assert_eq!(references(source,1,6).len(),3);
+    let source = "extern \"helpers.sh\" as helpers {\n  fn hello(name: String) -> String\n}\nuse helpers::*\nprint helpers::hello \"x\"\nprint hello \"y\"\n";
+    assert_eq!(definition(source, 4, 16).unwrap().line, 1);
+    assert_eq!(definition(source, 5, 7).unwrap().line, 1);
+    assert_eq!(references(source, 1, 6).len(), 3);
 }
