@@ -79,3 +79,17 @@ fn outline_includes_named_tests_and_extern_modules() {
         ["helpers", "test 日本語😀", "test"]
     );
 }
+
+#[test]
+fn braces_and_keywords_in_multiline_strings_do_not_change_binding_scopes() {
+    let source =
+        "let x = 1\nfn f(x: Int) -> Int {\n  let text = \"\"\"\n}\nfn\n\"\"\"\n  x\n}\nprint x\n";
+    assert_eq!(definition(source, 6, 2).unwrap().line, 1);
+    assert_eq!(references(source, 0, 4).len(), 2);
+}
+
+#[test]
+fn rename_does_not_speculate_about_pattern_binding_capture() {
+    let source = "let x = 1\nmatch value {\n  Some(x) => print x\n}\nprint x\n";
+    assert!(rename_locations(source, 0, 4, "y").is_err());
+}

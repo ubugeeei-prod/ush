@@ -16,7 +16,18 @@ impl<'a> Index<'a> {
         let lines: Vec<_> = source.lines().collect();
         let names: Vec<_> = tokens
             .iter()
-            .map(|t| &lines[t.line as usize][t.start as usize..(t.start + t.length) as usize])
+            .map(|t| {
+                if matches!(
+                    t.kind,
+                    SemanticTokenKind::String
+                        | SemanticTokenKind::Comment
+                        | SemanticTokenKind::Decorator
+                ) {
+                    ""
+                } else {
+                    &lines[t.line as usize][t.start as usize..(t.start + t.length) as usize]
+                }
+            })
             .collect();
         let mut parents = vec![0];
         let mut scopes = Vec::with_capacity(tokens.len());

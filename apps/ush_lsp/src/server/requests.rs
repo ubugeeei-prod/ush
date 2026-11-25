@@ -228,7 +228,7 @@ pub(super) fn rename(
             connection.sender.send(Message::Response(Response::new_err(
                 request.id,
                 -32602,
-                format!("cannot rename to `{}`: {error:?}", params.new_name),
+                format!("cannot rename to `{}`: {error}", params.new_name),
             )))?;
             Ok(())
         }

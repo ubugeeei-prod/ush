@@ -32,7 +32,8 @@ requests return JSON-RPC errors without terminating the server.
 
 Navigation distinguishes lexical bindings, function parameters, nested blocks
 and comprehensions. Renaming rejects keywords and existing bound names to avoid
-capture. `includeDeclaration` is honored for references. Signature help handles
+capture. Rename in documents containing `match` or `if let` patterns is conservatively
+rejected until pattern binding resolution is available. `includeDeclaration` is honored for references. Signature help handles
 generics, nested parameter types, parentheses and shell-style consecutive arguments.
 
 The index is deliberately tolerant of incomplete programs. It currently works

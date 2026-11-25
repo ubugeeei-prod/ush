@@ -44,7 +44,18 @@ pub fn prepare_rename(source: &str, line: u32, character: u32) -> Option<Referen
 pub enum RenameError {
     InvalidName,
     Conflict,
+    PatternBindings,
 }
+impl std::fmt::Display for RenameError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::InvalidName => "use a non-keyword identifier",
+            Self::Conflict => "that name is already bound in this document",
+            Self::PatternBindings => "safe rename of pattern bindings is not supported yet",
+        })
+    }
+}
+
 pub fn rename_locations(
     source: &str,
     line: u32,
@@ -63,6 +74,10 @@ pub fn rename_locations(
         return Err(RenameError::InvalidName);
     }
     let index = Index::new(source);
+    // The tolerant index cannot yet prove capture safety for destructuring patterns.
+    if index.names.contains(&"match") || index.names.windows(2).any(|p| p == ["if", "let"]) {
+        return Err(RenameError::PatternBindings);
+    }
     let Some(i) = index.at(line, character) else {
         return Ok(Vec::new());
     };
