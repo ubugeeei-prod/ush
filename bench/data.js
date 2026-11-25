@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795595566267,
+  "lastUpdate": 1795595883038,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -3173,6 +3173,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 75536,
             "range": "± 2202",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "793b11aecfbb7dc0d0249de19c7c09e60cdfeb51",
+          "message": "ci(deps): bump the actions group across 1 directory with 11 updates (#159)\n\nBumps the actions group with 11 updates in the / directory:\n\n| Package | From | To |\n| --- | --- | --- |\n| [actions/checkout](https://github.com/actions/checkout) | `6.0.2` | `7.0.1` |\n| [Swatinem/rust-cache](https://github.com/swatinem/rust-cache) | `42dc69e1aa15d09112580998cf2ef0119e2e91ae` | `eedcf2fb1c22f010a0eb66b92f378c110977f266` |\n| [benchmark-action/github-action-benchmark](https://github.com/benchmark-action/github-action-benchmark) | `1.22.1` | `1.22.2` |\n| [github/codeql-action/init](https://github.com/github/codeql-action) | `7c1e4cf0b20d7c1872b26569c00ba908797a59bf` | `776237d428f23fefc3d9e0fe1962921cbcd53e17` |\n| [github/codeql-action/autobuild](https://github.com/github/codeql-action) | `7c1e4cf0b20d7c1872b26569c00ba908797a59bf` | `776237d428f23fefc3d9e0fe1962921cbcd53e17` |\n| [github/codeql-action/analyze](https://github.com/github/codeql-action) | `7c1e4cf0b20d7c1872b26569c00ba908797a59bf` | `776237d428f23fefc3d9e0fe1962921cbcd53e17` |\n| [actions/labeler](https://github.com/actions/labeler) | `6.1.0` | `7.0.0` |\n| [actions/upload-artifact](https://github.com/actions/upload-artifact) | `7.0.1` | `7.0.2` |\n| [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance) | `b3e506e8c389afc651c5bacf2b8f2a1ea0557215` | `9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad` |\n| [actions/download-artifact](https://github.com/actions/download-artifact) | `8.0.1` | `8.0.2` |\n| [softprops/action-gh-release](https://github.com/softprops/action-gh-release) | `3.0.0` | `3.0.4` |\n\n\n\nUpdates `actions/checkout` from 6.0.2 to 7.0.1\n- [Release notes](https://github.com/actions/checkout/releases)\n- [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/actions/checkout/compare/de0fac2e4500dabe0009e67214ff5f5447ce83dd...3d3c42e5aac5ba805825da76410c181273ba90b1)\n\nUpdates `Swatinem/rust-cache` from 42dc69e1aa15d09112580998cf2ef0119e2e91ae to eedcf2fb1c22f010a0eb66b92f378c110977f266\n- [Release notes](https://github.com/swatinem/rust-cache/releases)\n- [Changelog](https://github.com/Swatinem/rust-cache/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/swatinem/rust-cache/compare/42dc69e1aa15d09112580998cf2ef0119e2e91ae...eedcf2fb1c22f010a0eb66b92f378c110977f266)\n\nUpdates `benchmark-action/github-action-benchmark` from 1.22.1 to 1.22.2\n- [Release notes](https://github.com/benchmark-action/github-action-benchmark/releases)\n- [Changelog](https://github.com/benchmark-action/github-action-benchmark/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/benchmark-action/github-action-benchmark/compare/52576c92bccf6ac60c8223ec7eb2565637cae9ba...4322e5726e6334590d251fc4f92bec0efafc45dc)\n\nUpdates `github/codeql-action/init` from 7c1e4cf0b20d7c1872b26569c00ba908797a59bf to 776237d428f23fefc3d9e0fe1962921cbcd53e17\n- [Release notes](https://github.com/github/codeql-action/releases)\n- [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/github/codeql-action/compare/7c1e4cf0b20d7c1872b26569c00ba908797a59bf...776237d428f23fefc3d9e0fe1962921cbcd53e17)\n\nUpdates `github/codeql-action/autobuild` from 7c1e4cf0b20d7c1872b26569c00ba908797a59bf to 776237d428f23fefc3d9e0fe1962921cbcd53e17\n- [Release notes](https://github.com/github/codeql-action/releases)\n- [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/github/codeql-action/compare/7c1e4cf0b20d7c1872b26569c00ba908797a59bf...776237d428f23fefc3d9e0fe1962921cbcd53e17)\n\nUpdates `github/codeql-action/analyze` from 7c1e4cf0b20d7c1872b26569c00ba908797a59bf to 776237d428f23fefc3d9e0fe1962921cbcd53e17\n- [Release notes](https://github.com/github/codeql-action/releases)\n- [Changelog](https://github.com/github/codeql-action/blob/main/CHANGELOG.md)\n- [Commits](https://github.com/github/codeql-action/compare/7c1e4cf0b20d7c1872b26569c00ba908797a59bf...776237d428f23fefc3d9e0fe1962921cbcd53e17)\n\nUpdates `actions/labeler` from 6.1.0 to 7.0.0\n- [Release notes](https://github.com/actions/labeler/releases)\n- [Commits](https://github.com/actions/labeler/compare/f27b608878404679385c85cfa523b85ccb86e213...bf12e9b00b37c5c0ca2b87b79b2daf7891dbda13)\n\nUpdates `actions/upload-artifact` from 7.0.1 to 7.0.2\n- [Release notes](https://github.com/actions/upload-artifact/releases)\n- [Commits](https://github.com/actions/upload-artifact/compare/043fb46d1a93c77aae656e7c1c64a875d1fc6a0a...cf430e030ddbb5b0abf93d22962f4752f3646cd9)\n\nUpdates `actions/attest-build-provenance` from b3e506e8c389afc651c5bacf2b8f2a1ea0557215 to 9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad\n- [Release notes](https://github.com/actions/attest-build-provenance/releases)\n- [Changelog](https://github.com/actions/attest-build-provenance/blob/main/RELEASE.md)\n- [Commits](https://github.com/actions/attest-build-provenance/compare/b3e506e8c389afc651c5bacf2b8f2a1ea0557215...9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad)\n\nUpdates `actions/download-artifact` from 8.0.1 to 8.0.2\n- [Release notes](https://github.com/actions/download-artifact/releases)\n- [Commits](https://github.com/actions/download-artifact/compare/3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c...9000827ccba6bdab643e8b6fd33ac0654aef8333)\n\nUpdates `softprops/action-gh-release` from 3.0.0 to 3.0.4\n- [Release notes](https://github.com/softprops/action-gh-release/releases)\n- [Changelog](https://github.com/softprops/action-gh-release/blob/master/CHANGELOG.md)\n- [Commits](https://github.com/softprops/action-gh-release/compare/b4309332981a82ec1c5618f44dd2e27cc8bfbfda...8a0cd651e5b2365bd640854a3fa5dfc70e4875f3)\n\n---\nupdated-dependencies:\n- dependency-name: actions/attest-build-provenance\n  dependency-version: 9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad\n  dependency-type: direct:production\n  dependency-group: actions\n- dependency-name: actions/checkout\n  dependency-version: 7.0.1\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: actions\n- dependency-name: actions/download-artifact\n  dependency-version: 8.0.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: actions\n- dependency-name: actions/labeler\n  dependency-version: 7.0.0\n  dependency-type: direct:production\n  update-type: version-update:semver-major\n  dependency-group: actions\n- dependency-name: actions/upload-artifact\n  dependency-version: 7.0.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: actions\n- dependency-name: benchmark-action/github-action-benchmark\n  dependency-version: 1.22.2\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: actions\n- dependency-name: github/codeql-action/analyze\n  dependency-version: 38112626f97ac1fd7acf3df7ebca51f4677c1b38\n  dependency-type: direct:production\n  dependency-group: actions\n- dependency-name: github/codeql-action/autobuild\n  dependency-version: 38112626f97ac1fd7acf3df7ebca51f4677c1b38\n  dependency-type: direct:production\n  dependency-group: actions\n- dependency-name: github/codeql-action/init\n  dependency-version: 38112626f97ac1fd7acf3df7ebca51f4677c1b38\n  dependency-type: direct:production\n  dependency-group: actions\n- dependency-name: softprops/action-gh-release\n  dependency-version: 3.0.4\n  dependency-type: direct:production\n  update-type: version-update:semver-patch\n  dependency-group: actions\n- dependency-name: Swatinem/rust-cache\n  dependency-version: eedcf2fb1c22f010a0eb66b92f378c110977f266\n  dependency-type: direct:production\n  dependency-group: actions\n...\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-25T17:31:59+09:00",
+          "tree_id": "b6972c1bf7c9e6048c6004c8115d57bcd30dad3b",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/793b11aecfbb7dc0d0249de19c7c09e60cdfeb51"
+        },
+        "date": 1795595882598,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1047,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 154,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 385,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 940,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 940,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 870,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 163,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 100,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 182,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 90,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1046,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 895,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 796,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 536,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1860,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 10,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1193,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 5730,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 19271,
+            "range": "± 88",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 6551580,
+            "range": "± 199134",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 127229,
+            "range": "± 1185",
             "unit": "ns/iter"
           }
         ]
