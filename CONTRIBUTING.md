@@ -37,7 +37,8 @@ RUSTDOCFLAGS="-D warnings" cargo doc --locked --workspace \
 sh scripts/check_rs_line_limit.sh                            # 250-line file cap
 sh scripts/check_rustyline_upstream.sh                       # vendored rustyline drift
 sh scripts/test_install.sh                                   # installer flow
-shellcheck --severity=warning install.sh scripts/*.sh        # shell-script lint
+sh scripts/test_rustc_wrapper.sh                             # Cargo's rustc wrapper
+shellcheck --severity=warning install.sh scripts/*.sh scripts/launchers/*.sh # shell-script lint
 ```
 
 For `.ush` files specifically (when changing the formatter or the
@@ -96,6 +97,47 @@ checks above in the same order CI runs them:
 ```bash
 sh scripts/preflight.sh
 ```
+
+### Rust build accelerators
+
+`nix develop` speeds up local Rust builds on the same stable compiler. Cargo
+runs every `rustc` call through `scripts/launchers/rustc.sh`
+(`RUSTC_WRAPPER`), which:
+
+- compiles this checkout's crates with rustc's parallel frontend
+  (`USH_RUSTC_FRONTEND_JOBS`, default 8). It passes
+  `-Zunstable-options --jobs-frontend=N` and sets `RUSTC_BOOTSTRAP` to that
+  one crate's name. Registry dependencies, build-script probes and Cargo's
+  `-vV`/`--print` queries reach `rustc` unchanged: a crate-wide or
+  workspace-wide `RUSTC_BOOTSTRAP=1` would let dependency build scripts
+  detect "nightly" and change what they compile. `RUSTFLAGS` is not used
+  because Cargo hashes it into every crate's metadata, so changing the
+  thread count would rebuild everything.
+- hands the call to [kache](https://github.com/kunobi-ninja/kache) 2.3.1
+  (`USH_KACHE`). kache shares compiled crates across every worktree and
+  target directory on the machine and clones them on copy-on-write
+  filesystems instead of storing them again. `kache stats` reports hits and
+  the store size, and `kache clean` frees space.
+
+To turn either off, enter the shell with `USH_RUSTC_FRONTEND_JOBS=1` or
+`USH_KACHE=` (empty), for example while measuring compile times or
+benchmarks. kache rewrites the paths in debug information, so release
+artifacts are never built through it.
+
+CI does not use the wrapper. On CI's runners, rustc 1.100.0 with a warm
+dependency cache gave these p50 wall times over three rotated rounds. The
+workspace crates were rebuilt with `clippy --workspace --all-targets --no-deps`
+and with `test --workspace --no-run`:
+
+| Runner | `clippy` j1 / j4 / j8 | test build j1 / j4 / j8 |
+| --- | --- | --- |
+| `ubuntu-latest` (4 vCPU) | 2.7 / 3.2 / 3.3 s | 10.7 / 11.8 / 11.9 s |
+| `macos-15` (3 vCPU) | 8.1 / 7.3 / 7.4 s | 25.8 / 24.4 / 29.3 s |
+
+On so few cores, Cargo's crate-level parallelism already keeps every core
+busy. Extra frontend threads cost time on Linux and only add noise on
+macOS. Revisit this if CI moves to larger runners. The MSRV job also could
+not use the wrapper: rustc 1.89 has no `--jobs-frontend`.
 
 ## Workspace layout
 

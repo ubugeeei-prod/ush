@@ -46,4 +46,4 @@ jobs:
         # the existing scripts have been tightened up.
         run: |
           shellcheck --severity=warning install.sh
-          shellcheck --severity=warning scripts/*.sh
+          shellcheck --severity=warning scripts/*.sh scripts/launchers/*.sh
