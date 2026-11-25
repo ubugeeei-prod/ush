@@ -10,10 +10,10 @@ use self::scan::{
 use crate::token::{SemanticToken, SemanticTokenKind};
 
 const KEYWORDS: &[&str] = &[
-    "alias", "async", "const", "do", "fail", "using", "unit", "where", "effect", "enum", "extern",
-    "test", "fn", "impl", "let", "match", "print", "raise", "return", "shell", "trait", "try",
-    "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop", "break", "continue",
-    "true", "false", "await", "spawn",
+    "alias", "async", "const", "do", "export", "fail", "using", "unit", "where", "effect", "enum",
+    "extern", "test", "fn", "impl", "let", "match", "print", "raise", "return", "shell", "trait",
+    "try", "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop", "break",
+    "continue", "true", "false", "await", "spawn",
 ];
 
 #[derive(Clone, Copy)]
