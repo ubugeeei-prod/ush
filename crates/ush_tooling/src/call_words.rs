@@ -95,7 +95,18 @@ fn visit(text: &str, base: usize, ranges: &mut Vec<(usize, usize)>) {
     }
     if matches!(
         head,
-        "return" | "print" | "raise" | "if" | "while" | "match" | "async" | "do"
+        "return"
+            | "print"
+            | "raise"
+            | "if"
+            | "while"
+            | "match"
+            | "async"
+            | "do"
+            | "spawn"
+            | "defer"
+            | "allow_fail"
+            | "status_of"
     ) {
         visit(text[head.len()..].trim_end_matches('{'), base, ranges);
         return;

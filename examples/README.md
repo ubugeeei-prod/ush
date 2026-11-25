@@ -97,3 +97,5 @@ cargo run -p ush -- -c 'printf "a\nb\n" | fzip(["1", "2"]) | snd'
 cargo run -p ush -- --config examples/config.pkl
 cargo run -p ush -- test examples/smoke_test.ush
 ```
+
+- `cli_arguments.ush`: bare words, explicit variables, interpolation, and grouped expressions.
