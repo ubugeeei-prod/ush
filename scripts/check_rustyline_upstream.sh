@@ -35,19 +35,24 @@ __ush_report() {
 
 __ush_jobs=''
 __ush_task_seq=0
-__ush_task_dir=$(
-  umask 077
-  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
-  __ush_base=$(pwd -P)
-  __ush_n=0
-  while [ "$__ush_n" -lt 1000 ]; do
-    __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
-    if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
-    __ush_n=$((__ush_n + 1))
-  done
-  printf '%s\n' 'ush: cannot create private task directory' >&2
-  exit 1
-)
+__ush_task_dir=''
+__ush_task_init() {
+  [ -z "$__ush_task_dir" ] || return 0
+  __ush_task_dir=$(
+    umask 077
+    CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
+    __ush_base=$(pwd -P)
+    __ush_n=0
+    while [ "$__ush_n" -lt 1000 ]; do
+      __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
+      if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
+      __ush_n=$((__ush_n + 1))
+    done
+    printf '%s\n' 'ush: cannot create private task directory' >&2
+    exit 1
+  )
+}
+
 __ush_task_slot() {
   while :; do
     __ush_task_seq=$((__ush_task_seq + 1))
@@ -100,7 +105,7 @@ __ush_end_scope() {
 }
 __ush_finish() {
   __ush_join "$1"
-  rm -rf "$__ush_task_dir"
+  [ -z "$__ush_task_dir" ] || rm -rf "$__ush_task_dir"
   exit "$__ush_exit"
 }
 trap '__ush_finish "$?"' 0
@@ -302,7 +307,7 @@ ush_fn_value() {
   # shellcheck disable=SC2034
   key="${__ush_fn_value_arg_1}"
   __ush_at 8 'for line in lines (read_text file) {'
-  __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_fn_value_arg_0}")"
+  __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_fn_value_arg_0}")" || return "$?"
   __ush_packed_2="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_1}")" || return "$?"
   __ush_match_0__len=0
   ush_fn_std__unpack __ush_match_0 "${__ush_packed_2}"
@@ -314,12 +319,12 @@ ush_fn_value() {
     __ush_for_list_index_3=$((__ush_for_list_index_3 + 1))
     __ush_at 9 'if starts_with line key {'
     if {
-    __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${line}" "${__ush_fn_value_arg_1}")"
+    __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${line}" "${__ush_fn_value_arg_1}")" || return "$?"
     [ "${__ush_value_5}" = 'true' ]
     }; then
       __ush_at 10 'return trim (trim_prefix line key)'
-      __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${line}" "${__ush_fn_value_arg_1}")"
-      __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")"
+      __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${line}" "${__ush_fn_value_arg_1}")" || return "$?"
+      __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || return "$?"
       if [ -n "${__ush_return_path:-}" ]; then
         printf '%s' "${__ush_value_7}" > "$__ush_return_path"
       elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -373,19 +378,21 @@ ush_fn_first() {
 }
 
 __ush_at 21 'let pinned = trim_prefix (value "vendor/rustyline/UPSTREAM" "tag:") "v"'
-__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'tag:' 4>&1 >&3)"
-__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_12}" 'v')"
+__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'tag:' 4>&1 >&3)" || exit "$?"
+__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_12}" 'v')" || exit "$?"
 pinned="${__ush_value_13}"
 __ush_at 22 'let vendored = std::string::trim_suffix (trim_prefix (value "vendor/rustyline/Cargo.toml" "version =") "\"") "\""'
-__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/Cargo.toml' 'version =' 4>&1 >&3)"
-__ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_14}" '"')"
-__ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_value_15}" '"')"
+__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/Cargo.toml' 'version =' 4>&1 >&3)" || exit "$?"
+__ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_14}" '"')" || exit "$?"
+__ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_value_15}" '"')" || exit "$?"
 vendored="${__ush_value_16}"
 __ush_at 23 'if pinned == "" || vendored != pinned {'
 if {
+{
 [ "$(if [ "${pinned}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 } || {
 [ "$(if [ "${vendored}" != "${pinned}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
 }; then
   __ush_at 24 'fail 1 "check_rustyline_upstream: UPSTREAM tag and vendored Cargo.toml version must agree"'
   __ush_status=1
@@ -393,6 +400,8 @@ if {
   __ush_report "$__ush_status" 'check_rustyline_upstream: UPSTREAM tag and vendored Cargo.toml version must agree'
   exit "$__ush_status"
 fi
+__ush_at 26 'let work = temp_dir'
+__ush_task_init
 __ush_at 26 'let work = temp_dir'
 __ush_value_17="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
 work="${__ush_value_17}"
@@ -415,7 +424,7 @@ latest=''
 __ush_at 32 'let patch = ""'
 patch=''
 __ush_at 33 'let major = first pinned "."'
-__ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${pinned}" '.' 4>&1 >&3)"
+__ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${pinned}" '.' 4>&1 >&3)" || exit "$?"
 major="${__ush_value_21}"
 __ush_at 34 'for version in lines versions {'
 __ush_packed_23="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${versions}")" || exit "$?"
@@ -431,7 +440,7 @@ while [ "${__ush_for_list_index_24}" -lt "${__ush_match_22__len}" ]; do
   latest="${version}"
   __ush_at 36 'if first version "." == major {'
   if {
-  __ush_value_26="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${version}" '.' 4>&1 >&3)"
+  __ush_value_26="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${version}" '.' 4>&1 >&3)" || exit "$?"
   [ "$(if [ "${__ush_value_26}" = "${major}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 37 'let patch = version'
@@ -440,9 +449,11 @@ while [ "${__ush_for_list_index_24}" -lt "${__ush_match_22__len}" ]; do
 done
 __ush_at 40 'if latest == "" || patch == "" {'
 if {
+{
 [ "$(if [ "${latest}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 } || {
 [ "$(if [ "${patch}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
 }; then
   __ush_at 41 'fail 1 "check_rustyline_upstream: registry returned no stable versions"'
   __ush_status=1
@@ -451,17 +462,21 @@ if {
   exit "$__ush_status"
 fi
 __ush_at 43 'let reviewed = value "vendor/rustyline/UPSTREAM" "reviewed:"'
-__ush_value_27="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'reviewed:' 4>&1 >&3)"
+__ush_value_27="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'reviewed:' 4>&1 >&3)" || exit "$?"
 reviewed="${__ush_value_27}"
 __ush_at 44 'print "pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest'
 printf '%s\n' 'pinned: '"${pinned}"', latest in major: '"${patch}"', latest overall: '"${latest}"
 __ush_at 45 'if pinned != patch || pinned != latest && reviewed != "v" + latest {'
 if {
+{
 [ "$(if [ "${pinned}" != "${patch}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 } || {
+{
 [ "$(if [ "${pinned}" != "${latest}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 } && {
 [ "$(if [ "${reviewed}" != 'v'"${latest}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
+}
 }; then
   __ush_at 46 'fail 1 ("vendored rustyline is behind upstream; review https://github.com/kkawakam/rustyline/releases/tag/v" + latest + " and update vendor/rustyline/UPSTREAM")'
   __ush_status=1

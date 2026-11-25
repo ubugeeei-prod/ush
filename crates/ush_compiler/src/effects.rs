@@ -119,6 +119,8 @@ fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
         || matches!(
             name,
             "std::process::exec"
+                | "std::process::arg"
+                | "std::process::exit"
                 | "std::process::output"
                 | "std::string::split"
                 | "std::string::to_int"

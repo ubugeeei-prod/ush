@@ -8,7 +8,15 @@ use std::string::{split, lines, starts_with, trim_prefix, trim_suffix, replace, 
 use std::io::eprint
 
 fn option(name: String, legacy: String, fallback: String) -> String {
-  get_or name (get_or legacy fallback)
+  let value = get name
+  if value != "" {
+    return value
+  }
+  let value = get legacy
+  if value != "" {
+    return value
+  }
+  fallback
 }
 
 fn usage() -> () {
@@ -127,7 +135,19 @@ fn ensure_path(directory: String, automatic: Bool) -> String / unknown, fs, env,
 
 fn fetch(url: String, output: String) -> () / unknown, exec, fs, net, stderr, stdin, stdout, env {
   if starts_with url "file://" {
-    cp (trim_prefix url "file://") output
+    if exists "curl" {
+      curl "-fsSL" "--proto" "=file" url "-o" output
+    }
+    else {
+      let local_path = trim_prefix url "file://"
+      if starts_with local_path "localhost/" {
+        let local_path = trim_prefix local_path "localhost"
+      }
+      if starts_with local_path "/" == false || contains local_path "%" {
+        fail 1 "install.sh: encoded or nonlocal file URLs require curl"
+      }
+      cp local_path output
+    }
   }
   else if exists "curl" {
     curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" url "-o" output
@@ -207,13 +227,16 @@ for value in args {
 if pending != "" {
   fail 1 ("install.sh: " + pending + " requires a value")
 }
-if get_or "USH_BRANCH" "__unset__" != "__unset__" || get_or "UBSH_BRANCH" "__unset__" != "__unset__" {
+if std::env::contains "USH_BRANCH" || std::env::contains "UBSH_BRANCH" {
   fail 1 "install.sh: USH_BRANCH/UBSH_BRANCH is no longer supported; use USH_VERSION or build from source"
 }
 need "tar"
 need "install"
 let target = target
 let directory = bin_directory directory prefix
+if starts_with directory "/" == false {
+  let directory = std::path::cwd + "/" + directory
+}
 let asset = "ush-" + target + ".tar.gz"
 if download_url == "" {
   let download_url = release_url repo version asset

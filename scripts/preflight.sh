@@ -207,7 +207,7 @@ command sh 'scripts/test_targets.sh'
 __ush_at 35 'banner "editor"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'editor' )
 __ush_at 36 'let root = cwd'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
 root="${__ush_value_0}"
 __ush_at 37 'cd "editors/vscode"'
 command cd 'editors/vscode'
@@ -232,7 +232,7 @@ command sh 'scripts/check_rustyline_upstream.sh'
 __ush_at 47 'banner "examples and shellcheck"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'examples and shellcheck' )
 __ush_at 48 'for example in lines (find "examples" "-name" "*.ush" "-type" "f") {'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')" || exit "$?"
 __ush_packed_3="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_2}")" || exit "$?"
 __ush_match_1__len=0
 ush_fn_std__unpack __ush_match_1 "${__ush_packed_3}"
@@ -242,46 +242,34 @@ while [ "${__ush_for_list_index_4}" -lt "${__ush_match_1__len}" ]; do
   eval "__ush_for_value_5=\"\${__ush_match_1__${__ush_for_list_index_4}}\""
   example="${__ush_for_value_5}"
   __ush_for_list_index_4=$((__ush_for_list_index_4 + 1))
-  __ush_at 49 'exec "target/debug/ush" ["check", example]'
-  __ush_match_6__len='2'
-  # shellcheck disable=SC2034
-  __ush_match_6__0='check'
-  # shellcheck disable=SC2034
-  __ush_match_6__1="${example}"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'target/debug/ush' "$(ush_fn_std__pack __ush_match_6)" )
-  __ush_at 50 'exec "target/debug/ush" ["format", "--check", example]'
-  __ush_match_8__len='3'
-  # shellcheck disable=SC2034
-  __ush_match_8__0='format'
-  # shellcheck disable=SC2034
-  __ush_match_8__1='--check'
-  # shellcheck disable=SC2034
-  __ush_match_8__2="${example}"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'target/debug/ush' "$(ush_fn_std__pack __ush_match_8)" )
+  __ush_at 49 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" example'
+  command cargo 'run' '--locked' '-p' 'ush' '--quiet' '--' 'check' "${example}"
+  __ush_at 50 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" example'
+  command cargo 'run' '--locked' '-p' 'ush' '--quiet' '--' 'format' '--check' "${example}"
 done
 __ush_at 52 'if exists "shellcheck" {'
 if {
-__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'shellcheck')"
-[ "${__ush_value_10}" = 'true' ]
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'shellcheck')" || exit "$?"
+[ "${__ush_value_6}" = 'true' ]
 }; then
   __ush_at 53 'for artifact in lines (find "install.sh" "scripts" "-name" "*.sh" "-type" "f") {'
-  __ush_value_12="$(__ush_return_path='' __ush_capture_return='1' command find 'install.sh' 'scripts' '-name' '*.sh' '-type' 'f')"
-  __ush_packed_13="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_12}")" || exit "$?"
-  __ush_match_11__len=0
-  ush_fn_std__unpack __ush_match_11 "${__ush_packed_13}"
-  __ush_for_list_index_14=0
-  while [ "${__ush_for_list_index_14}" -lt "${__ush_match_11__len}" ]; do
-    __ush_for_value_15=''
-    eval "__ush_for_value_15=\"\${__ush_match_11__${__ush_for_list_index_14}}\""
-    artifact="${__ush_for_value_15}"
-    __ush_for_list_index_14=$((__ush_for_list_index_14 + 1))
+  __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' command find 'install.sh' 'scripts' '-name' '*.sh' '-type' 'f')" || exit "$?"
+  __ush_packed_9="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_8}")" || exit "$?"
+  __ush_match_7__len=0
+  ush_fn_std__unpack __ush_match_7 "${__ush_packed_9}"
+  __ush_for_list_index_10=0
+  while [ "${__ush_for_list_index_10}" -lt "${__ush_match_7__len}" ]; do
+    __ush_for_value_11=''
+    eval "__ush_for_value_11=\"\${__ush_match_7__${__ush_for_list_index_10}}\""
+    artifact="${__ush_for_value_11}"
+    __ush_for_list_index_10=$((__ush_for_list_index_10 + 1))
     __ush_at 54 'exec "shellcheck" ["--severity=warning", artifact]'
-    __ush_match_16__len='2'
+    __ush_match_12__len='2'
     # shellcheck disable=SC2034
-    __ush_match_16__0='--severity=warning'
+    __ush_match_12__0='--severity=warning'
     # shellcheck disable=SC2034
-    __ush_match_16__1="${artifact}"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'shellcheck' "$(ush_fn_std__pack __ush_match_16)" )
+    __ush_match_12__1="${artifact}"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'shellcheck' "$(ush_fn_std__pack __ush_match_12)" )
   done
 fi
 __ush_at 57 'banner "preflight passed"'

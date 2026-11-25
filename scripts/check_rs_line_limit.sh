@@ -162,7 +162,7 @@ ush_fn_std__string__to_int() {
 __ush_at 7 'let failed = 0'
 failed=0
 __ush_at 8 'for file in lines (find "apps" "crates" "-type" "f" "-name" "*.rs") {'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' command find 'apps' 'crates' '-type' 'f' '-name' '*.rs')"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' command find 'apps' 'crates' '-type' 'f' '-name' '*.rs')" || exit "$?"
 __ush_packed_2="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_1}")" || exit "$?"
 __ush_match_0__len=0
 ush_fn_std__unpack __ush_match_0 "${__ush_packed_2}"
@@ -175,8 +175,8 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   __ush_at 9 'let count = ""'
   count=''
   __ush_at 10 'for word in split (trim (wc "-l" file)) " " {'
-  __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' command wc '-l' "${file}")"
-  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")"
+  __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' command wc '-l' "${file}")" || exit "$?"
+  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || exit "$?"
   __ush_packed_8="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_value_7}" ' ')" || exit "$?"
   __ush_match_5__len=0
   ush_fn_std__unpack __ush_match_5 "${__ush_packed_8}"

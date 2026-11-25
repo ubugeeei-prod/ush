@@ -12,6 +12,13 @@ ush_fn_std__env__get() {
   eval "printf '%s' \"\${$1-}\""
 }
 
+ush_fn_std__env__contains() {
+  __ush_std_env_validate "$1" || return "$?"
+  __ush_present=''
+  eval "__ush_present=\${$1+x}"
+  if [ "$__ush_present" = x ]; then printf true; else printf false; fi
+}
+
 ush_fn_std__env__get_or() {
   __ush_std_env_validate "$1" || return "$?"
   __ush_default=$2

@@ -37,19 +37,24 @@ __ush_report() {
 
 __ush_jobs=''
 __ush_task_seq=0
-__ush_task_dir=$(
-  umask 077
-  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
-  __ush_base=$(pwd -P)
-  __ush_n=0
-  while [ "$__ush_n" -lt 1000 ]; do
-    __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
-    if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
-    __ush_n=$((__ush_n + 1))
-  done
-  printf '%s\n' 'ush: cannot create private task directory' >&2
-  exit 1
-)
+__ush_task_dir=''
+__ush_task_init() {
+  [ -z "$__ush_task_dir" ] || return 0
+  __ush_task_dir=$(
+    umask 077
+    CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
+    __ush_base=$(pwd -P)
+    __ush_n=0
+    while [ "$__ush_n" -lt 1000 ]; do
+      __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
+      if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
+      __ush_n=$((__ush_n + 1))
+    done
+    printf '%s\n' 'ush: cannot create private task directory' >&2
+    exit 1
+  )
+}
+
 __ush_task_slot() {
   while :; do
     __ush_task_seq=$((__ush_task_seq + 1))
@@ -102,7 +107,7 @@ __ush_end_scope() {
 }
 __ush_finish() {
   __ush_join "$1"
-  rm -rf "$__ush_task_dir"
+  [ -z "$__ush_task_dir" ] || rm -rf "$__ush_task_dir"
   exit "$__ush_exit"
 }
 trap '__ush_finish "$?"' 0
@@ -311,8 +316,10 @@ ush_fn_std__string__contains() {
 }
 
 __ush_at 10 'let compiler = get_or "USH_BIN" "target/debug/ush"'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_BIN' 'target/debug/ush')"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_BIN' 'target/debug/ush')" || exit "$?"
 compiler="${__ush_value_0}"
+__ush_at 11 'let work = temp_dir'
+__ush_task_init
 __ush_at 11 'let work = temp_dir'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
 work="${__ush_value_1}"
@@ -326,7 +333,7 @@ targets__1='bash'
 targets__2='zsh'
 __ush_at 13 'if exists "busybox" {'
 if {
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'busybox')"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'busybox')" || exit "$?"
 [ "${__ush_value_2}" = 'true' ]
 }; then
   __ush_at 14 'let busybox = output "command" ["-v", "busybox"]'
@@ -340,7 +347,7 @@ __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__comma
   __ush_at 15 'ln "-s" busybox (work + "/ash")'
   command ln '-s' "${busybox}" "${work}"'/ash'
   __ush_at 16 'set "PATH" (work + ":" + get "PATH")'
-  __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')"
+  __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')" || exit "$?"
   ush_fn_std__env__set 'PATH' "${work}"':'"${__ush_value_6}"
   __ush_at 17 'let targets = ["sh", "bash", "zsh", "ash"]'
   targets__len='4'
@@ -355,7 +362,7 @@ __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__comma
 else
   __ush_at 19 'else if uname "-s" == "Linux" {'
   if {
-  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' command uname '-s')"
+  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' command uname '-s')" || exit "$?"
   [ "$(if [ "${__ush_value_7}" = 'Linux' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 20 'fail 1 "BusyBox is required to check the ash target on Linux"'
@@ -382,7 +389,7 @@ while [ "${__ush_for_list_index_11}" -lt "${__ush_match_8__len}" ]; do
   __ush_at 23 'sh "scripts/test_task_await.sh" compiler target'
   command sh 'scripts/test_task_await.sh' "${compiler}" "${target}"
   __ush_at 24 'for source in lines (find "examples" "-name" "*.ush" "-type" "f") {'
-  __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')"
+  __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')" || exit "$?"
   __ush_packed_15="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_14}")" || exit "$?"
   __ush_match_13__len=0
   ush_fn_std__unpack __ush_match_13 "${__ush_packed_15}"
@@ -513,8 +520,8 @@ while [ "${__ush_for_list_index_11}" -lt "${__ush_match_8__len}" ]; do
   __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_41)" "${work}"'/out' "${work}"'/err')" || exit "$?"
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq $((__ush_value_43)) 1 )
   __ush_at 38 'assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")'
-  __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')"
-  __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_44}" 'error_streams.ush:6: Problem::MissingConfig')"
+  __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+  __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_44}" 'error_streams.ush:6: Problem::MissingConfig')" || exit "$?"
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_45}" )
 done
 __ush_at 40 'exec compiler ["compile", "examples/contracts.ush", "-o", work + "/script"]'
@@ -530,7 +537,7 @@ __ush_match_46__3="${work}"'/script'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_46)" )
 __ush_at 41 'if exists "dash" {'
 if {
-__ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'dash')"
+__ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'dash')" || exit "$?"
 [ "${__ush_value_48}" = 'true' ]
 }; then
   __ush_at 42 'exec "dash" [work + "/script"]'

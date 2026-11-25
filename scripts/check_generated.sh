@@ -35,19 +35,24 @@ __ush_report() {
 
 __ush_jobs=''
 __ush_task_seq=0
-__ush_task_dir=$(
-  umask 077
-  CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
-  __ush_base=$(pwd -P)
-  __ush_n=0
-  while [ "$__ush_n" -lt 1000 ]; do
-    __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
-    if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
-    __ush_n=$((__ush_n + 1))
-  done
-  printf '%s\n' 'ush: cannot create private task directory' >&2
-  exit 1
-)
+__ush_task_dir=''
+__ush_task_init() {
+  [ -z "$__ush_task_dir" ] || return 0
+  __ush_task_dir=$(
+    umask 077
+    CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
+    __ush_base=$(pwd -P)
+    __ush_n=0
+    while [ "$__ush_n" -lt 1000 ]; do
+      __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
+      if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
+      __ush_n=$((__ush_n + 1))
+    done
+    printf '%s\n' 'ush: cannot create private task directory' >&2
+    exit 1
+  )
+}
+
 __ush_task_slot() {
   while :; do
     __ush_task_seq=$((__ush_task_seq + 1))
@@ -100,7 +105,7 @@ __ush_end_scope() {
 }
 __ush_finish() {
   __ush_join "$1"
-  rm -rf "$__ush_task_dir"
+  [ -z "$__ush_task_dir" ] || rm -rf "$__ush_task_dir"
   exit "$__ush_exit"
 }
 trap '__ush_finish "$?"' 0
@@ -274,7 +279,7 @@ ush_fn_std__string__lines() {
 }
 
 __ush_at 8 'let compiler = get_or "USH_COMPILER" ""'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_COMPILER' '')"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_COMPILER' '')" || exit "$?"
 compiler="${__ush_value_0}"
 __ush_at 9 'if compiler == "" {'
 if {
@@ -286,10 +291,12 @@ if {
   compiler='target/debug/ush'
 fi
 __ush_at 13 'let work = temp_dir'
+__ush_task_init
+__ush_at 13 'let work = temp_dir'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
 work="${__ush_value_1}"
 __ush_at 14 'for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {'
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' command find 'install.ush' 'scripts' '-name' '*.ush' '-type' 'f')"
+__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' command find 'install.ush' 'scripts' '-name' '*.ush' '-type' 'f')" || exit "$?"
 __ush_packed_4="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_3}")" || exit "$?"
 __ush_match_2__len=0
 ush_fn_std__unpack __ush_match_2 "${__ush_packed_4}"
@@ -300,13 +307,13 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   source="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
   __ush_at 15 'let name = basename source'
-  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__basename "${source}")"
+  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__basename "${source}")" || exit "$?"
   name="${__ush_value_7}"
   __ush_at 16 'let artifact = trim_suffix source ".ush" + ".sh"'
-  __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${source}" '.ush')"
+  __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${source}" '.ush')" || exit "$?"
   artifact="${__ush_value_8}"'.sh'
   __ush_at 17 'let generated = work + "/" + trim_suffix name ".ush" + ".sh"'
-  __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${name}" '.ush')"
+  __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${name}" '.ush')" || exit "$?"
   generated="${work}"'/'"${__ush_value_9}"'.sh'
   __ush_at 18 'cp source (work + "/" + name)'
   command cp "${source}" "${work}"'/'"${name}"

@@ -80,10 +80,10 @@ user__name='ush'
 # shellcheck disable=SC2034
 user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
 __ush_at 14 'print $ greet name: "mini"'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"
 __ush_at 15 'match user {'
 if [ "${user__tag}" = 'User::User' ]; then

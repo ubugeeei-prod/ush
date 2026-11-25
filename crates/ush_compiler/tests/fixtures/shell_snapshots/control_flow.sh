@@ -82,7 +82,7 @@ ush_fn_pick() {
 }
 
 __ush_at 10 'print $ pick true'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
 __ush_at 12 'for item in 0..3 {'
 __ush_for_index_1=0
@@ -155,10 +155,12 @@ maybe__tag='Option::Some'
 maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
+{
 it="${maybe__0-}"
 [ "${maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
 }; then
   __ush_at 44 'print it'
   printf '%s\n' $((it))

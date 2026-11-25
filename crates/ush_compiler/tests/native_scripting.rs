@@ -5,6 +5,7 @@ use ush_compiler::{ShellTarget, UshCompiler};
 
 #[test]
 fn argv_and_process_calls_preserve_literal_bytes_on_every_available_shell() {
+    let mut ran = 0;
     for (shell, target) in [
         ("sh", ShellTarget::Sh),
         ("bash", ShellTarget::Bash),
@@ -13,6 +14,7 @@ fn argv_and_process_calls_preserve_literal_bytes_on_every_available_shell() {
         if Command::new(shell).arg("--version").output().is_err() {
             continue;
         }
+        ran += 1;
         let dir = tempdir().unwrap();
         let script = dir.path().join("program.sh");
         let source = r#"
@@ -68,15 +70,21 @@ print "passed"
         );
         assert_eq!(String::from_utf8_lossy(&result.stdout), "passed\n");
     }
+    assert!(ran > 0, "no supported shell was available");
 }
 
 #[test]
 fn temporary_directories_are_removed_on_success_and_failure() {
     for tail in ["print \"ok\"", "fail 23 \"expected failure\""] {
-        let (status, stdout, _) =
+        let (status, stdout, stderr) =
             support::try_run(&format!("use std::fs::temp_dir\nprint temp_dir\n{tail}\n"));
         assert_eq!(status, if tail.starts_with("fail") { 23 } else { 0 });
-        let path = std::path::Path::new(stdout.lines().next().unwrap());
+        let path = std::path::Path::new(
+            stdout
+                .lines()
+                .next()
+                .unwrap_or_else(|| panic!("missing temporary path: {stderr}")),
+        );
         assert!(!path.exists());
         assert!(!path.parent().unwrap().exists());
     }

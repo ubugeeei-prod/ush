@@ -46,8 +46,8 @@ banner "vendored dependency"
 sh "scripts/check_rustyline_upstream.sh"
 banner "examples and shellcheck"
 for example in lines (find "examples" "-name" "*.ush" "-type" "f") {
-  exec "target/debug/ush" ["check", example]
-  exec "target/debug/ush" ["format", "--check", example]
+  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" example
+  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" example
 }
 if exists "shellcheck" {
   for artifact in lines (find "install.sh" "scripts" "-name" "*.sh" "-type" "f") {

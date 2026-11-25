@@ -1,10 +1,10 @@
 # Exercise the generated standalone installer in isolated homes.
 use $bin::*
-use std::env::{set, unset}
+use std::env::{get, set, unset}
 use std::fs::{temp_dir, mkdir_p, write_text, read_text, sha256, is_file}
 use std::path::{source_root, resolve}
 use std::process::{redirect, output}
-use std::string::contains
+use std::string::{contains, split}
 use std::test::{assert, assert_eq}
 use std::io::eprint
 
@@ -29,33 +29,47 @@ fn target() -> String / unknown, exec, env, stderr {
   arch + "-" + os
 }
 
-fn archive(work: String, target: String) -> () / unknown, fs, exec, env, stdin, stdout, stderr, net {
+fn fixture_binary() -> String / unknown, env, exec, fs, stderr {
+  for directory in split (get "PATH") ":" {
+    let candidate = directory + "/true"
+    if test "-f" candidate && test "-x" candidate {
+      return candidate
+    }
+  }
+  fail 1 "test_install: the external true utility is required on PATH"
+}
+
+fn archive(work: String, target: String, fixture: String) -> () / unknown, fs, exec, env, stdin, stdout, stderr, net {
   let package = work + "/ush-" + target
   mkdir_p package
   # A real executable fixture, with no shell source hidden in this ush program.
-  cp "/usr/bin/true" (package + "/ush")
-  cp "/usr/bin/true" (package + "/ush_lsp")
+  cp fixture (package + "/ush")
+  cp fixture (package + "/ush_lsp")
   tar "-czf" (work + "/ush.tar.gz") "-C" work ("ush-" + target)
   write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tar.gz\n")
 }
 
 let installer = resolve (source_root + "/../install.sh")
 let target = target
+let tools_path = get "PATH"
+let fixture = fixture_binary
+let root = std::path::cwd
 for name in ["USH_PREFIX", "UBSH_PREFIX", "USH_BIN_DIR", "UBSH_BIN_DIR", "USH_VERSION", "UBSH_VERSION", "USH_BRANCH", "UBSH_BRANCH", "UBSH_AUTO_PATH"] {
   unset name
 }
-for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "checksum-name", "checksum-content", "profile-failure", "spaces"] {
+for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relative-prefix", "empty-env", "localhost", "checksum-name", "checksum-content", "profile-failure", "spaces"] {
   let work = temp_dir
-  archive work target
+  archive work target fixture
   let home = work + "/home"
   if scenario == "spaces" {
     let home = work + "/home with spaces '$value"
   }
   mkdir_p home
   set "HOME" home
-  set "PATH" "/usr/bin:/bin"
+  set "PATH" tools_path
   set "SHELL" "/bin/zsh"
   set "USH_AUTO_PATH" "1"
+  unset "UBSH_AUTO_PATH"
   set "USH_DOWNLOAD_URL" ("file://" + work + "/ush.tar.gz")
   set "USH_CHECKSUM_URL" ("file://" + work + "/sha256sums.txt")
   let directory = home + "/.local/bin"
@@ -64,18 +78,33 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "checks
   if scenario == "existing" {
     let directory = home + "/bin"
     mkdir_p directory
-    set "PATH" (directory + ":/usr/bin:/bin")
+    set "PATH" (directory + ":" + tools_path)
   }
   else if scenario == "disabled" {
     set "USH_AUTO_PATH" "0"
   }
   else if scenario == "flags" {
+    set "USH_DOWNLOAD_URL" ("file://" + work + "/missing-archive")
+    set "USH_CHECKSUM_URL" ("file://" + work + "/missing-sums")
     let directory = home + "/tools/bin"
     let arguments = [installer, "--bin-dir", directory, "--no-modify-path", "--download-url", "file://" + work + "/ush.tar.gz", "--checksum-url", "file://" + work + "/sha256sums.txt"]
   }
   else if scenario == "prefix" {
     let directory = home + "/prefix/bin"
     let arguments = [installer, "--prefix", home + "/prefix", "--no-modify-path"]
+  }
+  else if scenario == "relative-prefix" {
+    cd home
+    let directory = home + "/tools/bin"
+    let arguments = [installer, "--prefix", "tools"]
+  }
+  else if scenario == "empty-env" {
+    set "USH_AUTO_PATH" ""
+    set "UBSH_AUTO_PATH" "0"
+  }
+  else if scenario == "localhost" {
+    set "USH_DOWNLOAD_URL" ("file://localhost" + work + "/ush.tar.gz")
+    let arguments = [installer, "--no-modify-path"]
   }
   else if scenario == "checksum-name" {
     write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tarXgz\n")
@@ -105,6 +134,9 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "checks
       assert_eq (redirect "sh" arguments (work + "/out") (work + "/err")) 0
       assert_eq (read_text (home + "/.zshrc")) original
     }
+    else if scenario == "relative-prefix" {
+      assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/tools/bin:$PATH\"")
+    }
     else {
       assert_eq (is_file (home + "/.zshrc")) false
     }
@@ -113,9 +145,17 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "checks
     assert_eq (is_file (directory + "/ush")) false
   }
   print "installer: " + scenario + " passed"
+  cd root
 }
 let work = temp_dir
 assert_eq (redirect "sh" [installer, "--version"] (work + "/out") (work + "/err")) 1
 assert (contains (read_text (work + "/err")) "--version requires a value")
 assert_eq (redirect "sh" [installer, "--unknown"] (work + "/out") (work + "/err")) 1
+for branch in ["", "__unset__"] {
+  set "USH_BRANCH" branch
+  assert_eq (redirect "sh" [installer] (work + "/out") (work + "/err")) 1
+  assert (contains (read_text (work + "/err")) "USH_BRANCH/UBSH_BRANCH is no longer supported")
+}
+unset "USH_BRANCH"
+set "TMPDIR" (work + "/does-not-exist")
 assert_eq (redirect "sh" [installer, "--help"] (work + "/out") (work + "/err")) 0

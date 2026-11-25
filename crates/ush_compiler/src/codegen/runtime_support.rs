@@ -222,22 +222,14 @@ fn hoist_call_capture(
     out.push_str(&rendered);
     out.push_str(super::call_support::capture_fds(&prepared.name));
     out.push_str(")\"");
-    if matches!(mode, FailureMode::Propagate)
-        || call.name.starts_with("std::test::")
-        || call.name.starts_with("std::__extern::")
-        || call.name.starts_with("std::process::")
-        || matches!(
-            call.name.as_str(),
-            "std::string::to_int" | "std::fs::temp_dir"
-        )
-    {
-        out.push_str(" || ");
-        out.push_str(if inside_function {
-            "return \"$?\""
-        } else {
-            "exit \"$?\""
-        });
-    }
+    // Bash clears errexit in command substitutions. Never rely on it to
+    // propagate a failed value-producing call through a captured function.
+    out.push_str(" || ");
+    out.push_str(if inside_function {
+        "return \"$?\""
+    } else {
+        "exit \"$?\""
+    });
     out.push('\n');
     env.insert(
         temp.clone(),

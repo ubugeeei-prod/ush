@@ -95,7 +95,7 @@ ush_fn_run() {
   __ush_at 14 'trace();'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_trace ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 15 'choose true'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_value_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -105,5 +105,5 @@ ush_fn_run() {
 }
 
 __ush_at 18 'print $ run ()'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"

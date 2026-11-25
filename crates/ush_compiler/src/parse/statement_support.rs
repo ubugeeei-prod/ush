@@ -119,14 +119,14 @@ pub(super) fn parse_failure(source: &str) -> Result<Option<StatementKind>> {
     if source == "fail ()" {
         return Ok(None);
     }
-    if source.starts_with("fail ") {
-        let call = super::signature::parse_call(source, false)?;
-        if let [status, message] = call.args.as_slice() {
-            return Ok(Some(StatementKind::Fail {
-                status: status.expr.clone(),
-                message: message.expr.clone(),
-            }));
-        }
+    if source.starts_with("fail ")
+        && let Ok(call) = super::signature::parse_call(source, false)
+        && let [status, message] = call.args.as_slice()
+    {
+        return Ok(Some(StatementKind::Fail {
+            status: status.expr.clone(),
+            message: message.expr.clone(),
+        }));
     }
     if let Some(rest) = source
         .strip_prefix("fail ")

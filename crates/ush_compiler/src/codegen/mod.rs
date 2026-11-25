@@ -27,6 +27,7 @@ mod statement;
 mod statement_control;
 mod stdlib;
 mod task_block;
+mod task_init;
 mod tasks;
 mod uses_std;
 pub(crate) mod wire;
@@ -105,9 +106,16 @@ pub(crate) fn compile_program(
     // the same way an undeclared raise is.
     effects::analyze_function_effects(program)?;
     let previous_section = out.set_section(SourceMapSection::UserCode);
+    let needs_tasks = task_init::present(program, &functions);
+    let mut initialized_tasks = false;
     for statement in program {
         if matches!(statement.kind, StatementKind::Enum(_)) {
             continue;
+        }
+        if needs_tasks && !initialized_tasks && task_init::needs(statement, &functions) {
+            io::track_statement(statement, &state, &mut out);
+            out.push_str("__ush_task_init\n");
+            initialized_tasks = true;
         }
         statement::compile_statement(
             statement,
@@ -125,13 +133,16 @@ pub(crate) fn compile_program(
         )?;
     }
     if let Some(def) = bin_entry {
+        if needs_tasks && !initialized_tasks {
+            out.push_str("__ush_task_init\n");
+        }
         bin::push_bin_entry(&mut out, def, &globals, &functions, &trait_impls, &enums)?;
     }
     out.set_section(previous_section);
     let body = out;
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
     let uses_tasks =
-        body.as_str().contains("__ush_jobs=") || body.as_str().contains("ush_fn_std__fs__temp_dir");
+        body.as_str().contains("__ush_jobs=") || body.as_str().contains("__ush_task_init");
     source_context::emit(
         &mut out,
         source_context,

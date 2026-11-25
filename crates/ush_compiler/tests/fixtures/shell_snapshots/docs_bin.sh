@@ -197,7 +197,7 @@ ush_fn_bin() {
   # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
   __ush_at 20 'print $ greet name'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)" || return "$?"
   printf '%s\n' "${__ush_value_0}"
   __ush_at 21 'print count'
   printf '%s\n' $((__ush_fn_bin_arg_1))
