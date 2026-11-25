@@ -99,11 +99,13 @@ fn parse_statement(
     if let Some(kind) = super::scoped::parse(trimmed, lines, cursor)? {
         return Ok(Statement::new(line_no, kind));
     }
-    if let Some(rest) = trimmed.strip_prefix("let ") {
-        return Ok(Statement::new(
+    if let Some((binding, rest)) = super::statement_support::binding_source(trimmed) {
+        let mut statement = Statement::new(
             line_no,
             control::parse_let_binding_block(rest, lines, cursor)?,
-        ));
+        );
+        statement.binding = binding;
+        return Ok(statement);
     }
     if trimmed.starts_with("if ") {
         return Ok(Statement::new(

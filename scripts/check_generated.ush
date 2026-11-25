@@ -5,10 +5,11 @@ use std::fs::temp_dir
 use std::process::{exec, status}
 use std::string::{lines, trim_suffix}
 use std::path::basename
-let compiler = get_or "USH_COMPILER" ""
+
+let mut compiler = get_or "USH_COMPILER" ""
 if compiler == "" {
   cargo "build" "--locked" "-p" "ush"
-  let compiler = "target/debug/ush"
+  compiler = "target/debug/ush"
 }
 let work = temp_dir
 for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {

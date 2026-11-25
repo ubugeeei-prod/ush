@@ -62,6 +62,7 @@ pub(super) fn parse_let_binding_block(
 ) -> Result<StatementKind> {
     let (name, expr) = super::statement_support::split_assignment(source)
         .ok_or_else(|| anyhow!("invalid let binding"))?;
+    super::path::parse_identifier(name)?;
     if expr != "async {" {
         return parse_let_binding(source);
     }

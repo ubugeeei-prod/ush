@@ -17,7 +17,10 @@ fn sourcemap_tracks_top_level_statements() {
         .expect("compile");
 
     let assign_line = generated_line(&compiled.shell, "greeting='hello'");
-    let print_line = generated_line(&compiled.shell, "printf '%s\\n' \"${greeting}\"");
+    let print_line = generated_line(
+        &compiled.shell,
+        "printf '%s\\n' \"${__ush_binding_1_greeting}\"",
+    );
 
     assert_eq!(compiled.sourcemap.source_line(1), None);
     assert_eq!(compiled.sourcemap.source_line(assign_line), Some(1));
@@ -34,7 +37,7 @@ fn sourcemap_tracks_top_level_statements() {
             .sourcemap
             .line(print_line)
             .map(|line| line.generated_text.as_str()),
-        Some("printf '%s\\n' \"${greeting}\"")
+        Some("printf '%s\\n' \"${__ush_binding_1_greeting}\"")
     );
 }
 

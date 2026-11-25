@@ -74,11 +74,11 @@ ush_fn_greet() {
 __ush_at 10 'alias ll = "ls -la"'
 alias ll='ls -la'
 __ush_at 12 'let user = User { name: "ush", age: 7 }'
-user__tag='User::User'
+__ush_binding_12_user__tag='User::User'
 # shellcheck disable=SC2034
-user__name='ush'
+__ush_binding_12_user__name='ush'
 # shellcheck disable=SC2034
-user__age=7
+__ush_binding_12_user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
@@ -86,9 +86,9 @@ __ush_at 14 'print $ greet name: "mini"'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"
 __ush_at 15 'match user {'
-if [ "${user__tag}" = 'User::User' ]; then
-  name="${user__name-}"
-  age="${user__age-}"
+if [ "${__ush_binding_12_user__tag}" = 'User::User' ]; then
+  name="${__ush_binding_12_user__name-}"
+  age="${__ush_binding_12_user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
   printf '%s\n' "${name}"':'"${age}"
 elif :; then

@@ -25,10 +25,10 @@ test "literal filesystem paths links and permissions" {
   assert_eq (is_fifo "hard") false
   std::process::exec "mkfifo" ["pipe"]
   assert (is_fifo "pipe")
-  let count = 0
+  let mut count = 0
   for entry in read_dir "." {
     assert_eq entry (std::path::join "." (std::path::basename entry))
-    let count = count + 1
+    count = count + 1
   }
   assert_eq count 7
   mkdir "empty"

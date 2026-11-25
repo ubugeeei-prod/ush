@@ -138,9 +138,9 @@ pub(super) fn compile_body(
     Ok(out)
 }
 
-pub(super) fn bind_loop_var(name: &str, ty: &Type, env: &Env) -> Env {
+pub(super) fn bind_loop_var(name: &str, storage: &str, ty: &Type, env: &Env) -> Env {
     let mut body_env = env.clone();
-    body_env.insert(name.into(), binding_for_name(name, ty.clone()));
+    body_env.insert(name.into(), binding_for_name(storage, ty.clone()));
     body_env
 }
 
@@ -179,4 +179,16 @@ fn block_script_with_lines(buffer: OutputBuffer, lines: &[String], condition: &s
     out.push_str(condition);
     out.push_str("\n}");
     out
+}
+
+pub(super) fn loop_storage(
+    name: &str,
+    env: &Env,
+    state: &mut crate::env::CodegenState,
+) -> crate::types::AstString {
+    if env.contains_key(name) {
+        state.temp_var("loop_binding")
+    } else {
+        name.into()
+    }
 }

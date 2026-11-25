@@ -69,10 +69,10 @@ fn for_in_supports_ranges_lists_and_tuples() {
 fn while_and_loop_support_break() {
     let output = run_program(
         r#"
-        let count = 0
+        let mut count = 0
         while count < 3 {
           print count
-          let count = count + 1
+          count = count + 1
           if count == 3 {
             break
           }

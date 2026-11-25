@@ -134,10 +134,11 @@ pub(crate) fn compile_handle(
         installed.push((variable, saved));
     }
 
+    let mut body_env = env.clone();
     for statement in body {
         compile_statement(
             statement,
-            env,
+            &mut body_env,
             globals,
             functions,
             impls,

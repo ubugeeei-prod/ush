@@ -233,7 +233,7 @@ fn try_statements_propagate_call_and_shell_failures() {
     "#,
     );
 
-    assert!(compiled.contains("eval \"${command}\"\n"));
+    assert!(compiled.contains("eval \"${__ush_binding_3_command}\"\n"));
     // The last line of a `-> ()` function is a statement, not a value.
     assert!(compiled.contains(
         "( __ush_capture_return='0' __ush_return_path=''; ush_fn_helper ) || return \"$?\""

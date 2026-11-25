@@ -85,13 +85,13 @@ ush_fn_wrap() {
 }
 
 __ush_at 19 'let wrapped = Envelope::Wrap(Response::Ok("done"))'
-wrapped__tag='Envelope::Wrap'
-wrapped__0__tag='Response::Ok'
+__ush_binding_19_wrapped__tag='Envelope::Wrap'
+__ush_binding_19_wrapped__0__tag='Response::Ok'
 # shellcheck disable=SC2034
-wrapped__0__0='done'
+__ush_binding_19_wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
-if [ "${wrapped__tag}" = 'Envelope::Wrap' ] && [ "${wrapped__0__tag}" = 'Response::Ok' ]; then
-  message="${wrapped__0__0-}"
+if [ "${__ush_binding_19_wrapped__tag}" = 'Envelope::Wrap' ] && [ "${__ush_binding_19_wrapped__0__tag}" = 'Response::Ok' ]; then
+  message="${__ush_binding_19_wrapped__0__0-}"
   __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
@@ -101,9 +101,11 @@ elif :; then
 fi
 __ush_at 25 'let value = greet "hello" 2'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)" || exit "$?"
-value="${__ush_value_1}"
+__ush_binding_25_value="${__ush_value_1}"
+# shellcheck disable=SC2034
+value="${__ush_binding_25_value}"
 __ush_at 26 'print value'
-printf '%s\n' "${value}"
+printf '%s\n' "${__ush_binding_25_value}"
 __ush_at 27 'print $ wrap (greet "team" 3)'
 __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)" || exit "$?"
 __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)" || exit "$?"

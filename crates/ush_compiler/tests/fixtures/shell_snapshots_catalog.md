@@ -202,15 +202,20 @@ __ush_task_0__result=$__ush_slot/result
 __ush_task_0__pid=$!
 __ush_task_0__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_6_task__pid="${__ush_task_0__pid}"
+__ush_binding_6_task__result="${__ush_task_0__result}"
+__ush_binding_6_task__awaited="${__ush_task_0__awaited}"
 __ush_at 7 'let block = async {'
 ush_fn___ush_task_block_1() {
   __ush_at 8 'let prefix = "work"'
-  prefix='work'
+  __ush_binding_8_prefix='work'
+  # shellcheck disable=SC2034
+  prefix="${__ush_binding_8_prefix}"
   __ush_at 9 'prefix + "bench"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${prefix}"'bench' > "$__ush_return_path"
+    printf '%s' "${__ush_binding_8_prefix}"'bench' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${prefix}"'bench' >&4
+    printf '%s' "${__ush_binding_8_prefix}"'bench' >&4
   fi
   return 0
 }
@@ -222,6 +227,9 @@ __ush_task_2__result=$__ush_slot/result
 __ush_task_2__pid=$!
 __ush_task_2__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_7_block__pid="${__ush_task_2__pid}"
+__ush_binding_7_block__result="${__ush_task_2__result}"
+__ush_binding_7_block__awaited="${__ush_task_2__awaited}"
 __ush_at 11 'let number = async {'
 ush_fn___ush_task_block_3() {
   __ush_at 12 'if true {'
@@ -252,32 +260,41 @@ __ush_task_4__result=$__ush_slot/result
 __ush_task_4__pid=$!
 __ush_task_4__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_11_number__pid="${__ush_task_4__pid}"
+__ush_binding_11_number__result="${__ush_task_4__result}"
+__ush_binding_11_number__awaited="${__ush_task_4__awaited}"
 __ush_at 17 'print "after"'
 printf '%s\n' 'after'
 __ush_at 18 'let result = task.await'
-if [ "${__ush_task_0__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_0__pid}" "${__ush_task_0__result}.status" || exit "$?"
-  __ush_task_0__awaited='1'
+if [ "${__ush_binding_6_task__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_6_task__pid}" "${__ush_binding_6_task__result}.status" || exit "$?"
+  __ush_binding_6_task__awaited='1'
 fi
-result="$(cat "${__ush_task_0__result}")"
+__ush_binding_18_result="$(cat "${__ush_binding_6_task__result}")"
+# shellcheck disable=SC2034
+result="${__ush_binding_18_result}"
 __ush_at 19 'let next = block.await'
-if [ "${__ush_task_2__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_2__pid}" "${__ush_task_2__result}.status" || exit "$?"
-  __ush_task_2__awaited='1'
+if [ "${__ush_binding_7_block__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_7_block__pid}" "${__ush_binding_7_block__result}.status" || exit "$?"
+  __ush_binding_7_block__awaited='1'
 fi
-next="$(cat "${__ush_task_2__result}")"
+__ush_binding_19_next="$(cat "${__ush_binding_7_block__result}")"
+# shellcheck disable=SC2034
+next="${__ush_binding_19_next}"
 __ush_at 20 'let value = number.await'
-if [ "${__ush_task_4__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_4__pid}" "${__ush_task_4__result}.status" || exit "$?"
-  __ush_task_4__awaited='1'
+if [ "${__ush_binding_11_number__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_11_number__pid}" "${__ush_binding_11_number__result}.status" || exit "$?"
+  __ush_binding_11_number__awaited='1'
 fi
-value="$(cat "${__ush_task_4__result}")"
+__ush_binding_20_value="$(cat "${__ush_binding_11_number__result}")"
+# shellcheck disable=SC2034
+value="${__ush_binding_20_value}"
 __ush_at 21 'print result'
-printf '%s\n' "${result}"
+printf '%s\n' "${__ush_binding_18_result}"
 __ush_at 22 'print next'
-printf '%s\n' "${next}"
+printf '%s\n' "${__ush_binding_19_next}"
 __ush_at 23 'print value + 2'
-printf '%s\n' $((value + 2))
+printf '%s\n' $((__ush_binding_20_value + 2))
 ```
 
 ## `control_flow.ush` -> `control_flow.sh`
@@ -308,10 +325,10 @@ for item in pair {
   print item
 }
 
-let count = 0
+let mut count = 0
 while count < 2 {
   print count
-  let count = count + 1
+  count = count + 1
 }
 
 loop {
@@ -426,16 +443,16 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
   printf '%s\n' "${item}"
 done
 __ush_at 16 'let items = [3, 4]'
-items__len='2'
+__ush_binding_16_items__len='2'
 # shellcheck disable=SC2034
-items__0=3
+__ush_binding_16_items__0=3
 # shellcheck disable=SC2034
-items__1=4
+__ush_binding_16_items__1=4
 __ush_at 17 'for item in items {'
-__ush_match_2__len="${items__len}"
+__ush_match_2__len="${__ush_binding_16_items__len}"
 __ush_copy_index_3=0
-while [ "$__ush_copy_index_3" -lt "${items__len}" ]; do
-  eval "__ush_copy_value_4=\"\${items__$__ush_copy_index_3}\""
+while [ "$__ush_copy_index_3" -lt "${__ush_binding_16_items__len}" ]; do
+  eval "__ush_copy_value_4=\"\${__ush_binding_16_items__$__ush_copy_index_3}\""
   eval "__ush_match_2__${__ush_copy_index_3}=\$__ush_copy_value_4"
   __ush_copy_index_3=$((__ush_copy_index_3 + 1))
 done
@@ -449,31 +466,35 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   printf '%s\n' "${item}"
 done
 __ush_at 21 'let pair = (5, 6)'
-pair__len='2'
+__ush_binding_21_pair__len='2'
 # shellcheck disable=SC2034
-pair__0=5
+__ush_binding_21_pair__0=5
 # shellcheck disable=SC2034
-pair__1=6
+__ush_binding_21_pair__1=6
 __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
-__ush_match_7__0="${pair__0}"
-__ush_match_7__1="${pair__1}"
+__ush_match_7__0="${__ush_binding_21_pair__0}"
+__ush_match_7__1="${__ush_binding_21_pair__1}"
 item="${__ush_match_7__0}"
 __ush_at 23 'print item'
 printf '%s\n' "${item}"
 item="${__ush_match_7__1}"
 __ush_at 23 'print item'
 printf '%s\n' "${item}"
-__ush_at 26 'let count = 0'
-count=0
+__ush_at 26 'let mut count = 0'
+__ush_binding_26_count=0
+# shellcheck disable=SC2034
+count="${__ush_binding_26_count}"
 __ush_at 27 'while count < 2 {'
 while {
-[ "$(if [ "${count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_26_count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; do
   __ush_at 28 'print count'
-  printf '%s\n' "${count}"
-  __ush_at 29 'let count = count + 1'
-  count=$((count + 1))
+  printf '%s\n' "${__ush_binding_26_count}"
+  __ush_at 29 'count = count + 1'
+  __ush_binding_26_count=$((__ush_binding_26_count + 1))
+  # shellcheck disable=SC2034
+  count="${__ush_binding_26_count}"
 done
 __ush_at 32 'loop {'
 while :; do
@@ -483,14 +504,14 @@ while :; do
   break
 done
 __ush_at 42 'let maybe = Option::Some(7)'
-maybe__tag='Option::Some'
+__ush_binding_42_maybe__tag='Option::Some'
 # shellcheck disable=SC2034
-maybe__0=7
+__ush_binding_42_maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
 {
-it="${maybe__0-}"
-[ "${maybe__tag}" = 'Option::Some' ]
+it="${__ush_binding_42_maybe__0-}"
+[ "${__ush_binding_42_maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ "${it}" -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }
@@ -620,13 +641,13 @@ ush_fn_wrap() {
 }
 
 __ush_at 19 'let wrapped = Envelope::Wrap(Response::Ok("done"))'
-wrapped__tag='Envelope::Wrap'
-wrapped__0__tag='Response::Ok'
+__ush_binding_19_wrapped__tag='Envelope::Wrap'
+__ush_binding_19_wrapped__0__tag='Response::Ok'
 # shellcheck disable=SC2034
-wrapped__0__0='done'
+__ush_binding_19_wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
-if [ "${wrapped__tag}" = 'Envelope::Wrap' ] && [ "${wrapped__0__tag}" = 'Response::Ok' ]; then
-  message="${wrapped__0__0-}"
+if [ "${__ush_binding_19_wrapped__tag}" = 'Envelope::Wrap' ] && [ "${__ush_binding_19_wrapped__0__tag}" = 'Response::Ok' ]; then
+  message="${__ush_binding_19_wrapped__0__0-}"
   __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
@@ -636,9 +657,11 @@ elif :; then
 fi
 __ush_at 25 'let value = greet "hello" 2'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)" || exit "$?"
-value="${__ush_value_1}"
+__ush_binding_25_value="${__ush_value_1}"
+# shellcheck disable=SC2034
+value="${__ush_binding_25_value}"
 __ush_at 26 'print value'
-printf '%s\n' "${value}"
+printf '%s\n' "${__ush_binding_25_value}"
 __ush_at 27 'print $ wrap (greet "team" 3)'
 __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)" || exit "$?"
 __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)" || exit "$?"
@@ -1077,12 +1100,14 @@ ush_fn_wrap() {
 ush_fn_outer() {
   __ush_at 14 'let value = fail()?'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_fail 4>&1 >&3)" || return "$?"
-  value="${__ush_value_0}"
+  __ush_binding_14_value="${__ush_value_0}"
+  # shellcheck disable=SC2034
+  value="${__ush_binding_14_value}"
   __ush_at 15 'value'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${value}" > "$__ush_return_path"
+    printf '%s' "${__ush_binding_14_value}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${value}" >&4
+    printf '%s' "${__ush_binding_14_value}" >&4
   fi
   return 0
 }
@@ -1117,17 +1142,22 @@ ush_fn_awaited() {
     __ush_task_3__pid=$!
     __ush_task_3__awaited=0
     __ush_jobs="${__ush_jobs} $!"
+    __ush_binding_24_task__pid="${__ush_task_3__pid}"
+    __ush_binding_24_task__result="${__ush_task_3__result}"
+    __ush_binding_24_task__awaited="${__ush_task_3__awaited}"
     __ush_at 25 'let value = task.await'
-    if [ "${__ush_task_3__awaited}" = '0' ]; then
-      __ush_wait_job "${__ush_task_3__pid}" "${__ush_task_3__result}.status" || exit "$?"
-      __ush_task_3__awaited='1'
+    if [ "${__ush_binding_24_task__awaited}" = '0' ]; then
+      __ush_wait_job "${__ush_binding_24_task__pid}" "${__ush_binding_24_task__result}.status" || exit "$?"
+      __ush_binding_24_task__awaited='1'
     fi
-    value="$(cat "${__ush_task_3__result}")"
+    __ush_binding_25_value="$(cat "${__ush_binding_24_task__result}")"
+    # shellcheck disable=SC2034
+    value="${__ush_binding_25_value}"
     __ush_at 26 'value'
     if [ -n "${__ush_return_path:-}" ]; then
-      printf '%s' "${value}" > "$__ush_return_path"
+      printf '%s' "${__ush_binding_25_value}" > "$__ush_return_path"
     elif [ "${__ush_capture_return:-0}" = '1' ]; then
-      printf '%s' "${value}" >&4
+      printf '%s' "${__ush_binding_25_value}" >&4
     fi
     return 0
   )
@@ -1332,7 +1362,9 @@ __ush_value_2="$(
   ); } 8>&1
   __ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: git "branch" "--show-current"' 'pipeline stage 2 failed: tr "a-z" "A-Z"'
 )" || { __ush_status=$?; __ush_line=''; exit "$__ush_status"; }
-branch="${__ush_value_2}"
+__ush_binding_9_branch="${__ush_value_2}"
+# shellcheck disable=SC2034
+branch="${__ush_binding_9_branch}"
 __ush_at 10 'cargo "build" |& tee "build.log"'
 { __ush_pipe=$(
   exec 7>&1 >&8 8>&-
@@ -1357,7 +1389,7 @@ __ush_at 12 'from_file "notes.txt" | sort | to_file "sorted.txt"'
 ); } 8>&1
 __ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: from_file "notes.txt" | sort | to_file "sorted.txt"' || exit "$?"
 __ush_at 13 'printf "done\n" |'
-__ush_std_fs_path "${branch}"'.log' || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+__ush_std_fs_path "${__ush_binding_9_branch}"'.log' || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
 __ush_path_3=$__ush_path
 { __ush_pipe=$(
   exec 7>&1 >&8 8>&-
@@ -1757,31 +1789,41 @@ ush_fn_std__path__join() {
 
 __ush_at 4 'let source_root = from_source "."'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')" || exit "$?"
-source_root="${__ush_value_0}"
+__ush_binding_4_source_root="${__ush_value_0}"
+# shellcheck disable=SC2034
+source_root="${__ush_binding_4_source_root}"
 __ush_at 5 'let payload = source_root.join("payload.txt")'
-__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${source_root}" 'payload.txt')
-payload="${__ush_value_1}"
+__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${__ush_binding_4_source_root}" 'payload.txt')
+__ush_binding_5_payload="${__ush_value_1}"
+# shellcheck disable=SC2034
+payload="${__ush_binding_5_payload}"
 __ush_at 6 'let cwd_file = from_cwd "notes.txt"'
 __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')" || exit "$?"
-cwd_file="${__ush_value_2}"
+__ush_binding_6_cwd_file="${__ush_value_2}"
+# shellcheck disable=SC2034
+cwd_file="${__ush_binding_6_cwd_file}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
-__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url='file://'"${__ush_value_3}"
+__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_5_payload}")
+__ush_binding_7_url='file://'"${__ush_value_3}"
+# shellcheck disable=SC2034
+url="${__ush_binding_7_url}"
 __ush_at 8 'let copy = tmpfile()'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
-copy="${__ush_value_4}"
+__ush_binding_8_copy="${__ush_value_4}"
+# shellcheck disable=SC2034
+copy="${__ush_binding_8_copy}"
 __ush_at 10 'print payload'
-printf '%s\n' "${payload}"
+printf '%s\n' "${__ush_binding_5_payload}"
 __ush_at 11 'print $ cwd_file.resolve()'
-__ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${cwd_file}")
+__ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_6_cwd_file}")
 printf '%s\n' "${__ush_value_5}"
 __ush_at 12 'print $ get url'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")" || exit "$?"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${__ush_binding_7_url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 13 'download url copy'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${url}" "${copy}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${__ush_binding_7_url}" "${__ush_binding_8_copy}" )
 __ush_at 14 'copy.remove()'
-__ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${copy}")
+__ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_8_copy}")
 ```
 
 ## `stdlib_and_shell.ush` -> `stdlib_and_shell.sh`
@@ -2046,22 +2088,28 @@ ush_fn_std__string__replace() {
 }
 
 __ush_at 7 'let page = """'
-page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
+__ush_binding_7_page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
+# shellcheck disable=SC2034
+page="${__ush_binding_7_page}"
 __ush_at 13 'env_set "USH_STD_IMPORT" "ready"'
 ush_fn_std__env__set 'USH_STD_IMPORT' 'ready'
 __ush_at 14 'let path = tmpfile()'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
-path="${__ush_value_0}"
+__ush_binding_14_path="${__ush_value_0}"
+# shellcheck disable=SC2034
+path="${__ush_binding_14_path}"
 __ush_at 15 'path.write_text("alpha")'
-__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${path}" 'alpha')
+__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${__ush_binding_14_path}" 'alpha')
 __ush_at 16 'path.append_text(":beta")'
-__ush_value_2=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__append_text "${path}" ':beta')
+__ush_value_2=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__append_text "${__ush_binding_14_path}" ':beta')
 __ush_at 18 'let greeting = "hello"'
-greeting='hello'
+__ush_binding_18_greeting='hello'
+# shellcheck disable=SC2034
+greeting="${__ush_binding_18_greeting}"
 __ush_at 19 '$ printf '"'"'%s\n'"'"' "$greeting"'
 printf '%s\n' "$greeting"
 __ush_at 21 'match greeting {'
-if [ "${greeting}" = 'hello' ]; then
+if [ "${__ush_binding_18_greeting}" = 'hello' ]; then
   __ush_at 22 '"hello" => $ printf '"'"'%s\n'"'"' matched'
 printf '%s\n' matched
 elif :; then
@@ -2069,12 +2117,12 @@ elif :; then
   printf '%s\n' 'fallback'
 fi
 __ush_at 26 'print page'
-printf '%s\n' "${page}"
+printf '%s\n' "${__ush_binding_7_page}"
 __ush_at 27 'print $ page.starts_with("<div>")'
-__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${page}" '<div>')
+__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_7_page}" '<div>')
 printf '%s\n' "${__ush_value_3}"
 __ush_at 28 'print $ page.ends_with("</div>")'
-__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
+__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${__ush_binding_7_page}" '</div>')
 printf '%s\n' "${__ush_value_4}"
 __ush_at 29 'print $ get_or "USH_STD_IMPORT" "fallback"'
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')" || exit "$?"
@@ -2098,13 +2146,13 @@ __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
 __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"
 __ush_at 36 'print $ path.read_text()'
-__ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
+__ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_14_path}")
 printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
 printf '%s
 ' from-shell
 __ush_at 38 'path.remove()'
-__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")
+__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_14_path}")
 ```
 
 ## `tail_expressions.ush` -> `tail_expressions.sh`
@@ -2366,13 +2414,13 @@ ush_fn_std__read_cell() {
 }
 
 __ush_at 22 'let user = User { name: "ush", age: 7 }'
-user__tag='User::User'
+__ush_binding_22_user__tag='User::User'
 # shellcheck disable=SC2034
-user__name='ush'
+__ush_binding_22_user__name='ush'
 # shellcheck disable=SC2034
-user__age=7
+__ush_binding_22_user__age=7
 __ush_at 23 'print user'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
@@ -2386,7 +2434,7 @@ return 0
 __ush_value_4="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
 printf '%s\n' "${__ush_value_4}"
 __ush_at 24 'print format user'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
@@ -2401,7 +2449,7 @@ __ush_value_9="$(__ush_capture_return='1' __ush_return_path='' __ush_method_6 4>
 __ush_value_10="${__ush_value_9}"
 printf '%s\n' "${__ush_value_10}"
 __ush_at 25 'print user.prefixed("id")'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_11
 __ush_prefix_12='id'
 __ush_method_13() {
@@ -2522,11 +2570,11 @@ ush_fn_greet() {
 __ush_at 10 'alias ll = "ls -la"'
 alias ll='ls -la'
 __ush_at 12 'let user = User { name: "ush", age: 7 }'
-user__tag='User::User'
+__ush_binding_12_user__tag='User::User'
 # shellcheck disable=SC2034
-user__name='ush'
+__ush_binding_12_user__name='ush'
 # shellcheck disable=SC2034
-user__age=7
+__ush_binding_12_user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
@@ -2534,9 +2582,9 @@ __ush_at 14 'print $ greet name: "mini"'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"
 __ush_at 15 'match user {'
-if [ "${user__tag}" = 'User::User' ]; then
-  name="${user__name-}"
-  age="${user__age-}"
+if [ "${__ush_binding_12_user__tag}" = 'User::User' ]; then
+  name="${__ush_binding_12_user__name-}"
+  age="${__ush_binding_12_user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
   printf '%s\n' "${name}"':'"${age}"
 elif :; then

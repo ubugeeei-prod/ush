@@ -19,12 +19,25 @@ pub(crate) use ty::{CompareOp, Type};
 pub(crate) struct Statement {
     pub line: usize,
     pub kind: StatementKind,
+    /// Binding intent for Let, Spawn, and Await; ignored on other statements.
+    pub binding: BindingMode,
 }
 
 impl Statement {
     pub(crate) fn new(line: usize, kind: StatementKind) -> Self {
-        Self { line, kind }
+        Self {
+            line,
+            kind,
+            binding: BindingMode::Immutable,
+        }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum BindingMode {
+    Immutable,
+    Mutable,
+    Assign,
 }
 
 #[derive(Debug, Clone)]

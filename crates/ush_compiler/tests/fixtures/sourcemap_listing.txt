@@ -1,27 +1,31 @@
 summary:
-  generated_line_count: 59
-  mapped_line_count: 4
+  generated_line_count: 61
+  mapped_line_count: 6
   unmapped_line_count: 55
   source_line_count: 2
   first_mapped_generated_line: 56
-  last_mapped_generated_line: 59
+  last_mapped_generated_line: 61
 sections:
   runtime-support: generated=30 mapped=0
   doc-support: generated=25 mapped=0
-  user-code: generated=4 mapped=4
+  user-code: generated=6 mapped=6
 sources:
-  S0001 -> G0056, G0057 | let greeting = "hello"
-  S0002 -> G0058, G0059 | print greeting
+  S0001 -> G0056, G0057, G0058, G0059 | let greeting = "hello"
+  S0002 -> G0060, G0061 | print greeting
 
 mapped listing:
-mapped 4 / 59 generated lines across 2 source lines
-mapped span G0056..G0059
+mapped 6 / 61 generated lines across 2 source lines
+mapped span G0056..G0061
 -- user-code --
 G0056 -> S0001 | __ush_at 1 'let greeting = "hello"'
              <= let greeting = "hello"
-G0057 -> S0001 | greeting='hello'
+G0057 -> S0001 | __ush_binding_1_greeting='hello'
              <= let greeting = "hello"
-G0058 -> S0002 | __ush_at 2 'print greeting'
+G0058 -> S0001 | # shellcheck disable=SC2034
+             <= let greeting = "hello"
+G0059 -> S0001 | greeting="${__ush_binding_1_greeting}"
+             <= let greeting = "hello"
+G0060 -> S0002 | __ush_at 2 'print greeting'
              <= print greeting
-G0059 -> S0002 | printf '%s\n' "${greeting}"
+G0061 -> S0002 | printf '%s\n' "${__ush_binding_1_greeting}"
              <= print greeting

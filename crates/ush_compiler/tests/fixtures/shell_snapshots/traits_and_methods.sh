@@ -89,13 +89,13 @@ ush_fn_std__read_cell() {
 }
 
 __ush_at 22 'let user = User { name: "ush", age: 7 }'
-user__tag='User::User'
+__ush_binding_22_user__tag='User::User'
 # shellcheck disable=SC2034
-user__name='ush'
+__ush_binding_22_user__name='ush'
 # shellcheck disable=SC2034
-user__age=7
+__ush_binding_22_user__age=7
 __ush_at 23 'print user'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
@@ -109,7 +109,7 @@ return 0
 __ush_value_4="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
 printf '%s\n' "${__ush_value_4}"
 __ush_at 24 'print format user'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
@@ -124,7 +124,7 @@ __ush_value_9="$(__ush_capture_return='1' __ush_return_path='' __ush_method_6 4>
 __ush_value_10="${__ush_value_9}"
 printf '%s\n' "${__ush_value_10}"
 __ush_at 25 'print user.prefixed("id")'
-__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
+__ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_11
 __ush_prefix_12='id'
 __ush_method_13() {

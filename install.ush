@@ -8,11 +8,11 @@ use std::string::{split, lines, starts_with, trim_prefix, trim_suffix, replace, 
 use std::io::eprint
 
 fn option(name: String, legacy: String, fallback: String) -> String {
-  let value = get name
+  let mut value = get name
   if value != "" {
     return value
   }
-  let value = get legacy
+  value = get legacy
   if value != "" {
     return value
   }
@@ -32,18 +32,18 @@ fn need(command: String) -> () / unknown, stderr, exec {
 }
 
 fn target() -> String / unknown, stderr, exec, env {
-  let os = uname "-s"
-  let arch = uname "-m"
+  let mut os = uname "-s"
+  let mut arch = uname "-m"
   match os {
-    "Linux" => let os = "unknown-linux-gnu"
-    "Darwin" => let os = "apple-darwin"
+    "Linux" => os = "unknown-linux-gnu"
+    "Darwin" => os = "apple-darwin"
     _ => fail 1 ("install.sh: unsupported operating system: " + os)
   }
   match arch {
-    "x86_64" => let arch = "x86_64"
-    "amd64" => let arch = "x86_64"
-    "arm64" => let arch = "aarch64"
-    "aarch64" => let arch = "aarch64"
+    "x86_64" => arch = "x86_64"
+    "amd64" => arch = "x86_64"
+    "arm64" => arch = "aarch64"
+    "aarch64" => arch = "aarch64"
     _ => fail 1 ("install.sh: unsupported architecture: " + arch)
   }
   arch + "-" + os
@@ -97,9 +97,9 @@ fn profile() -> String {
 
 # Escape literal path bytes for a double-quoted shell configuration value.
 fn escaped(value: String) -> String {
-  let value = replace value "\\" "\\\\"
-  let value = replace value "\"" "\\\""
-  let value = replace value "$" "\\$"
+  let mut value = replace value "\\" "\\\\"
+  value = replace value "\"" "\\\""
+  value = replace value "$" "\\$"
   replace value "`" "\\`"
 }
 
@@ -139,9 +139,9 @@ fn fetch(url: String, output: String) -> () / unknown, exec, fs, net, stderr, st
       curl "-fsSL" "--proto" "=file" url "-o" output
     }
     else {
-      let local_path = trim_prefix url "file://"
+      let mut local_path = trim_prefix url "file://"
       if starts_with local_path "localhost/" {
-        let local_path = trim_prefix local_path "localhost"
+        local_path = trim_prefix local_path "localhost"
       }
       if starts_with local_path "/" == false || contains local_path "%" {
         fail 1 "install.sh: encoded or nonlocal file URLs require curl"
@@ -170,43 +170,43 @@ fn release_url(repo: String, version: String, asset: String) -> String {
 
 fn expected_checksum(file: String, asset: String) -> String / unknown, fs, stderr {
   for line in lines (read_text file) {
-    let field = 0
-    let digest = ""
+    let mut field = 0
+    let mut digest = ""
     for word in split (replace line "\t" " ") " " {
       if word != "" {
         if field == 0 {
-          let digest = word
+          digest = word
         }
         else if field == 1 && trim_prefix word "*" == asset {
           return digest
         }
-        let field = field + 1
+        field = field + 1
       }
     }
   }
   fail 1 ("install.sh: could not find checksum for " + asset)
 }
 
-let repo = option "USH_REPO" "UBSH_REPO" "ubugeeei/ush"
-let repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"
-let version = option "USH_VERSION" "UBSH_VERSION" "latest"
-let prefix = option "USH_PREFIX" "UBSH_PREFIX" ""
-let directory = option "USH_BIN_DIR" "UBSH_BIN_DIR" ""
-let download_url = option "USH_DOWNLOAD_URL" "UBSH_DOWNLOAD_URL" ""
-let checksum_url = option "USH_CHECKSUM_URL" "UBSH_CHECKSUM_URL" ""
-let automatic = option "USH_AUTO_PATH" "UBSH_AUTO_PATH" "1"
-let pending = ""
+let mut repo = option "USH_REPO" "UBSH_REPO" "ubugeeei/ush"
+repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"
+let mut version = option "USH_VERSION" "UBSH_VERSION" "latest"
+let mut prefix = option "USH_PREFIX" "UBSH_PREFIX" ""
+let mut directory = option "USH_BIN_DIR" "UBSH_BIN_DIR" ""
+let mut download_url = option "USH_DOWNLOAD_URL" "UBSH_DOWNLOAD_URL" ""
+let mut checksum_url = option "USH_CHECKSUM_URL" "UBSH_CHECKSUM_URL" ""
+let mut automatic = option "USH_AUTO_PATH" "UBSH_AUTO_PATH" "1"
+let mut pending = ""
 for value in args {
   if pending != "" {
     match pending {
-      "--version" => let version = value
-      "--prefix" => let prefix = value
-      "--bin-dir" => let directory = value
-      "--download-url" => let download_url = value
-      "--checksum-url" => let checksum_url = value
+      "--version" => version = value
+      "--prefix" => prefix = value
+      "--bin-dir" => directory = value
+      "--download-url" => download_url = value
+      "--checksum-url" => checksum_url = value
       _ => fail 1 "install.sh: invalid option state"
     }
-    let pending = ""
+    pending = ""
   }
   else {
     if value == "--help" || value == "-h" {
@@ -214,10 +214,10 @@ for value in args {
       exit 0
     }
     else if value == "--no-modify-path" {
-      let automatic = "0"
+      automatic = "0"
     }
     else if value == "--version" || value == "--prefix" || value == "--bin-dir" || value == "--download-url" || value == "--checksum-url" {
-      let pending = value
+      pending = value
     }
     else {
       fail 1 ("install.sh: unknown option: " + value)
@@ -233,16 +233,16 @@ if std::env::contains "USH_BRANCH" || std::env::contains "UBSH_BRANCH" {
 need "tar"
 need "install"
 let target = target
-let directory = bin_directory directory prefix
+directory = bin_directory directory prefix
 if starts_with directory "/" == false {
-  let directory = std::path::cwd + "/" + directory
+  directory = std::path::cwd + "/" + directory
 }
 let asset = "ush-" + target + ".tar.gz"
 if download_url == "" {
-  let download_url = release_url repo version asset
+  download_url = release_url repo version asset
 }
 if checksum_url == "" {
-  let checksum_url = release_url repo version "sha256sums.txt"
+  checksum_url = release_url repo version "sha256sums.txt"
 }
 let work = temp_dir
 let archive = work + "/ush.tar.gz"
@@ -260,9 +260,9 @@ eprint ("install.sh: verified checksum for " + asset)
 let unpack = work + "/unpack"
 mkdir_p unpack
 tar "-xzf" archive "-C" unpack
-let package = unpack + "/ush-" + target
+let mut package = unpack + "/ush-" + target
 if is_file (package + "/ush") == false && is_file (unpack + "/ush") {
-  let package = unpack
+  package = unpack
 }
 if is_file (package + "/ush") == false {
   fail 1 "install.sh: release archive did not contain ush"

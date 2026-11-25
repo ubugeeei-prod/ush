@@ -23,10 +23,10 @@ for item in pair {
   print item
 }
 
-let count = 0
+let mut count = 0
 while count < 2 {
   print count
-  let count = count + 1
+  count = count + 1
 }
 
 loop {

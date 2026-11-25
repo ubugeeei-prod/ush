@@ -158,12 +158,14 @@ ush_fn_wrap() {
 ush_fn_outer() {
   __ush_at 14 'let value = fail()?'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_fail 4>&1 >&3)" || return "$?"
-  value="${__ush_value_0}"
+  __ush_binding_14_value="${__ush_value_0}"
+  # shellcheck disable=SC2034
+  value="${__ush_binding_14_value}"
   __ush_at 15 'value'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${value}" > "$__ush_return_path"
+    printf '%s' "${__ush_binding_14_value}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${value}" >&4
+    printf '%s' "${__ush_binding_14_value}" >&4
   fi
   return 0
 }
@@ -198,17 +200,22 @@ ush_fn_awaited() {
     __ush_task_3__pid=$!
     __ush_task_3__awaited=0
     __ush_jobs="${__ush_jobs} $!"
+    __ush_binding_24_task__pid="${__ush_task_3__pid}"
+    __ush_binding_24_task__result="${__ush_task_3__result}"
+    __ush_binding_24_task__awaited="${__ush_task_3__awaited}"
     __ush_at 25 'let value = task.await'
-    if [ "${__ush_task_3__awaited}" = '0' ]; then
-      __ush_wait_job "${__ush_task_3__pid}" "${__ush_task_3__result}.status" || exit "$?"
-      __ush_task_3__awaited='1'
+    if [ "${__ush_binding_24_task__awaited}" = '0' ]; then
+      __ush_wait_job "${__ush_binding_24_task__pid}" "${__ush_binding_24_task__result}.status" || exit "$?"
+      __ush_binding_24_task__awaited='1'
     fi
-    value="$(cat "${__ush_task_3__result}")"
+    __ush_binding_25_value="$(cat "${__ush_binding_24_task__result}")"
+    # shellcheck disable=SC2034
+    value="${__ush_binding_25_value}"
     __ush_at 26 'value'
     if [ -n "${__ush_return_path:-}" ]; then
-      printf '%s' "${value}" > "$__ush_return_path"
+      printf '%s' "${__ush_binding_25_value}" > "$__ush_return_path"
     elif [ "${__ush_capture_return:-0}" = '1' ]; then
-      printf '%s' "${value}" >&4
+      printf '%s' "${__ush_binding_25_value}" >&4
     fi
     return 0
   )

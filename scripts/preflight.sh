@@ -208,7 +208,9 @@ __ush_at 35 'banner "editor"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'editor' )
 __ush_at 36 'let root = cwd'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
-root="${__ush_value_0}"
+__ush_binding_36_root="${__ush_value_0}"
+# shellcheck disable=SC2034
+root="${__ush_binding_36_root}"
 __ush_at 37 'cd "editors/vscode"'
 command cd 'editors/vscode'
 __ush_at 38 'npm "ci" "--ignore-scripts"'
@@ -218,7 +220,7 @@ command npm 'test'
 __ush_at 40 'npm "run" "build"'
 command npm 'run' 'build'
 __ush_at 41 'cd root'
-command cd "${root}"
+command cd "${__ush_binding_36_root}"
 __ush_at 42 'banner "bench builds"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'bench builds' )
 __ush_at 43 'cargo "bench" "--locked" "-p" "ush_shell" "--no-run"'

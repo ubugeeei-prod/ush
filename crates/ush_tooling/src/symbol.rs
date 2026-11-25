@@ -101,6 +101,8 @@ fn declaration_on_line(line_no: u32, line: &str) -> Option<DocumentSymbol> {
         ("trait", SymbolKind::Trait)
     } else if line.starts_with("type ") {
         ("type", SymbolKind::Type)
+    } else if line.starts_with("let mut ") {
+        ("let mut", SymbolKind::Variable)
     } else if line.starts_with("let ") {
         ("let", SymbolKind::Variable)
     } else if line.starts_with("alias ") {

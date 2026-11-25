@@ -216,22 +216,28 @@ ush_fn_std__string__replace() {
 }
 
 __ush_at 7 'let page = """'
-page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
+__ush_binding_7_page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
+# shellcheck disable=SC2034
+page="${__ush_binding_7_page}"
 __ush_at 13 'env_set "USH_STD_IMPORT" "ready"'
 ush_fn_std__env__set 'USH_STD_IMPORT' 'ready'
 __ush_at 14 'let path = tmpfile()'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
-path="${__ush_value_0}"
+__ush_binding_14_path="${__ush_value_0}"
+# shellcheck disable=SC2034
+path="${__ush_binding_14_path}"
 __ush_at 15 'path.write_text("alpha")'
-__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${path}" 'alpha')
+__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${__ush_binding_14_path}" 'alpha')
 __ush_at 16 'path.append_text(":beta")'
-__ush_value_2=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__append_text "${path}" ':beta')
+__ush_value_2=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__append_text "${__ush_binding_14_path}" ':beta')
 __ush_at 18 'let greeting = "hello"'
-greeting='hello'
+__ush_binding_18_greeting='hello'
+# shellcheck disable=SC2034
+greeting="${__ush_binding_18_greeting}"
 __ush_at 19 '$ printf '"'"'%s\n'"'"' "$greeting"'
 printf '%s\n' "$greeting"
 __ush_at 21 'match greeting {'
-if [ "${greeting}" = 'hello' ]; then
+if [ "${__ush_binding_18_greeting}" = 'hello' ]; then
   __ush_at 22 '"hello" => $ printf '"'"'%s\n'"'"' matched'
 printf '%s\n' matched
 elif :; then
@@ -239,12 +245,12 @@ elif :; then
   printf '%s\n' 'fallback'
 fi
 __ush_at 26 'print page'
-printf '%s\n' "${page}"
+printf '%s\n' "${__ush_binding_7_page}"
 __ush_at 27 'print $ page.starts_with("<div>")'
-__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${page}" '<div>')
+__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_7_page}" '<div>')
 printf '%s\n' "${__ush_value_3}"
 __ush_at 28 'print $ page.ends_with("</div>")'
-__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
+__ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${__ush_binding_7_page}" '</div>')
 printf '%s\n' "${__ush_value_4}"
 __ush_at 29 'print $ get_or "USH_STD_IMPORT" "fallback"'
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')" || exit "$?"
@@ -268,10 +274,10 @@ __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
 __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"
 __ush_at 36 'print $ path.read_text()'
-__ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
+__ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_14_path}")
 printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
 printf '%s
 ' from-shell
 __ush_at 38 'path.remove()'
-__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")
+__ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_14_path}")

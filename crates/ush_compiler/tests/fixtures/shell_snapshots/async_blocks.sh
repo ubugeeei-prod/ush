@@ -158,15 +158,20 @@ __ush_task_0__result=$__ush_slot/result
 __ush_task_0__pid=$!
 __ush_task_0__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_6_task__pid="${__ush_task_0__pid}"
+__ush_binding_6_task__result="${__ush_task_0__result}"
+__ush_binding_6_task__awaited="${__ush_task_0__awaited}"
 __ush_at 7 'let block = async {'
 ush_fn___ush_task_block_1() {
   __ush_at 8 'let prefix = "work"'
-  prefix='work'
+  __ush_binding_8_prefix='work'
+  # shellcheck disable=SC2034
+  prefix="${__ush_binding_8_prefix}"
   __ush_at 9 'prefix + "bench"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${prefix}"'bench' > "$__ush_return_path"
+    printf '%s' "${__ush_binding_8_prefix}"'bench' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${prefix}"'bench' >&4
+    printf '%s' "${__ush_binding_8_prefix}"'bench' >&4
   fi
   return 0
 }
@@ -178,6 +183,9 @@ __ush_task_2__result=$__ush_slot/result
 __ush_task_2__pid=$!
 __ush_task_2__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_7_block__pid="${__ush_task_2__pid}"
+__ush_binding_7_block__result="${__ush_task_2__result}"
+__ush_binding_7_block__awaited="${__ush_task_2__awaited}"
 __ush_at 11 'let number = async {'
 ush_fn___ush_task_block_3() {
   __ush_at 12 'if true {'
@@ -208,29 +216,38 @@ __ush_task_4__result=$__ush_slot/result
 __ush_task_4__pid=$!
 __ush_task_4__awaited=0
 __ush_jobs="${__ush_jobs} $!"
+__ush_binding_11_number__pid="${__ush_task_4__pid}"
+__ush_binding_11_number__result="${__ush_task_4__result}"
+__ush_binding_11_number__awaited="${__ush_task_4__awaited}"
 __ush_at 17 'print "after"'
 printf '%s\n' 'after'
 __ush_at 18 'let result = task.await'
-if [ "${__ush_task_0__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_0__pid}" "${__ush_task_0__result}.status" || exit "$?"
-  __ush_task_0__awaited='1'
+if [ "${__ush_binding_6_task__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_6_task__pid}" "${__ush_binding_6_task__result}.status" || exit "$?"
+  __ush_binding_6_task__awaited='1'
 fi
-result="$(cat "${__ush_task_0__result}")"
+__ush_binding_18_result="$(cat "${__ush_binding_6_task__result}")"
+# shellcheck disable=SC2034
+result="${__ush_binding_18_result}"
 __ush_at 19 'let next = block.await'
-if [ "${__ush_task_2__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_2__pid}" "${__ush_task_2__result}.status" || exit "$?"
-  __ush_task_2__awaited='1'
+if [ "${__ush_binding_7_block__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_7_block__pid}" "${__ush_binding_7_block__result}.status" || exit "$?"
+  __ush_binding_7_block__awaited='1'
 fi
-next="$(cat "${__ush_task_2__result}")"
+__ush_binding_19_next="$(cat "${__ush_binding_7_block__result}")"
+# shellcheck disable=SC2034
+next="${__ush_binding_19_next}"
 __ush_at 20 'let value = number.await'
-if [ "${__ush_task_4__awaited}" = '0' ]; then
-  __ush_wait_job "${__ush_task_4__pid}" "${__ush_task_4__result}.status" || exit "$?"
-  __ush_task_4__awaited='1'
+if [ "${__ush_binding_11_number__awaited}" = '0' ]; then
+  __ush_wait_job "${__ush_binding_11_number__pid}" "${__ush_binding_11_number__result}.status" || exit "$?"
+  __ush_binding_11_number__awaited='1'
 fi
-value="$(cat "${__ush_task_4__result}")"
+__ush_binding_20_value="$(cat "${__ush_binding_11_number__result}")"
+# shellcheck disable=SC2034
+value="${__ush_binding_20_value}"
 __ush_at 21 'print result'
-printf '%s\n' "${result}"
+printf '%s\n' "${__ush_binding_18_result}"
 __ush_at 22 'print next'
-printf '%s\n' "${next}"
+printf '%s\n' "${__ush_binding_19_next}"
 __ush_at 23 'print value + 2'
-printf '%s\n' $((value + 2))
+printf '%s\n' $((__ush_binding_20_value + 2))

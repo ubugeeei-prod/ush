@@ -14,9 +14,9 @@ let compiler = arg 0
 if compiler == "" {
   fail 1 "compiler path required"
 }
-let target = arg 1
+let mut target = arg 1
 if target == "" {
-  let target = "sh"
+  target = "sh"
 }
 let work = temp_dir
 write_text (work + "/job.ush") """

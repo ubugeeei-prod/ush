@@ -77,10 +77,10 @@ fn list_and_tuple_literals_are_both_iterable() {
 #[test]
 fn a_while_loop_stops_when_its_condition_fails() {
     let output = run(r#"
-        let count = 0
+        let mut count = 0
         while count < 3 {
           print "tick:" + count
-          let count = count + 1
+          count = count + 1
         }
     "#);
 

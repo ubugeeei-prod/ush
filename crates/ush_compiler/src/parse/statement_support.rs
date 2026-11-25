@@ -15,6 +15,21 @@ pub(super) fn split_assignment(source: &str) -> Option<(&str, &str)> {
     Some((name.trim(), expr.trim()))
 }
 
+/// Declaration or assignment, excluding comparisons and named call arguments.
+pub(super) fn binding_source(source: &str) -> Option<(crate::ast::BindingMode, &str)> {
+    use crate::ast::BindingMode;
+    if let Some(rest) = source.strip_prefix("let ") {
+        let rest = rest.trim_start();
+        return Some(match rest.strip_prefix("mut ") {
+            Some(rest) => (BindingMode::Mutable, rest.trim_start()),
+            None => (BindingMode::Immutable, rest),
+        });
+    }
+    let (name, value) = split_assignment(source)?;
+    (crate::util::is_identifier(name) && !value.starts_with('='))
+        .then_some((BindingMode::Assign, source))
+}
+
 pub(super) fn parse_alias(source: &str) -> Result<StatementKind> {
     let (name, value) = split_assignment(source).ok_or_else(|| anyhow!("invalid alias binding"))?;
     Ok(StatementKind::Alias {

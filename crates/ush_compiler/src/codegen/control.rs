@@ -134,6 +134,7 @@ fn compile_range_for(
     ctx: &mut ControlContext<'_>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    let storage = super::control_support::loop_storage(name, env, ctx.state);
     let start = compile_runtime_primitive_expr(
         start,
         env,
@@ -158,11 +159,11 @@ fn compile_range_for(
     out.push_str(&format!(
         "{index}={start}\nwhile [ \"${{{index}}}\" -lt {end} ]; do\n"
     ));
-    let mut body_env = bind_loop_var(name, &Type::Int, env);
+    let mut body_env = bind_loop_var(name, &storage, &Type::Int, env);
     // The counter advances before the body so `continue` cannot skip
     // it and spin forever.
     out.push_str(&format!(
-        "  {name}=\"${{{index}}}\"\n  {index}=$(({index} + 1))\n"
+        "  {storage}=\"${{{index}}}\"\n  {index}=$(({index} + 1))\n"
     ));
     push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 2);
     out.push_str("done\n");
@@ -178,6 +179,7 @@ fn compile_tuple_for(
     ctx: &mut ControlContext<'_>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    let storage = super::control_support::loop_storage(name, env, ctx.state);
     let Some(item_ty) = homogeneous_type(types) else {
         bail!("for-in over tuples requires all items to share one type");
     };
@@ -189,7 +191,7 @@ fn compile_tuple_for(
             tuple_item_binding(prefix, index, &item_ty),
         );
         emit_value_to_target(
-            name,
+            &storage,
             &Expr::Var(source_name.into()),
             &item_ty,
             &item_env,
@@ -200,7 +202,7 @@ fn compile_tuple_for(
             ctx.inside_function,
             out,
         )?;
-        let mut body_env = bind_loop_var(name, &item_ty, env);
+        let mut body_env = bind_loop_var(name, &storage, &item_ty, env);
         push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 0);
     }
     Ok(())
@@ -215,6 +217,7 @@ fn compile_list_for(
     ctx: &mut ControlContext<'_>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    let storage = super::control_support::loop_storage(name, env, ctx.state);
     let index = ctx.state.temp_var("for_list_index");
     let value = ctx.state.temp_var("for_value");
     out.push_str(&format!(
@@ -223,14 +226,14 @@ fn compile_list_for(
     if item_ty.is_structured() {
         let source = format!("{prefix}__${{{index}}}");
         let mut element = OutputBuffer::new(ctx.state.mapped);
-        super::wire::copy(item_ty, &source, name, ctx.state, &mut element);
+        super::wire::copy(item_ty, &source, &storage, ctx.state, &mut element);
         push_output(out, &element, 2);
     } else {
         out.push_str(&format!(
-            "  {value}=''\n  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n  {name}=\"${{{value}}}\"\n"
+            "  {value}=''\n  eval \"{value}=\\\"\\${{{prefix}__${{{index}}}}}\\\"\"\n  {storage}=\"${{{value}}}\"\n"
         ));
     }
-    let mut body_env = bind_loop_var(name, item_ty, env);
+    let mut body_env = bind_loop_var(name, &storage, item_ty, env);
     // Advance before the body so continue makes progress.
     out.push_str(&format!("  {index}=$(({index} + 1))\n"));
     push_output(out, &compile_body(body, &mut body_env, false, ctx)?, 2);

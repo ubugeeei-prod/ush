@@ -367,9 +367,13 @@ ush_fn_build() {
   __ush_at 20 'set "CARGO_TARGET_DIR" target'
   ush_fn_std__env__set 'CARGO_TARGET_DIR' "${__ush_fn_build_arg_4}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 21 'let log = work + "/cargo.jsonl"'
-  log="${__ush_fn_build_arg_5}"'/cargo.jsonl'
+  __ush_binding_21_log="${__ush_fn_build_arg_5}"'/cargo.jsonl'
+  # shellcheck disable=SC2034
+  log="${__ush_binding_21_log}"
   __ush_at 22 'let error_log = work + "/cargo.err"'
-  error_log="${__ush_fn_build_arg_5}"'/cargo.err'
+  __ush_binding_22_error_log="${__ush_fn_build_arg_5}"'/cargo.err'
+  # shellcheck disable=SC2034
+  error_log="${__ush_binding_22_error_log}"
   __ush_at 23 'let code = redirect "cargo" ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] log error_log'
   __ush_match_0__len='8'
   # shellcheck disable=SC2034
@@ -388,17 +392,19 @@ ush_fn_build() {
   __ush_match_0__6="${__ush_fn_build_arg_2}"
   # shellcheck disable=SC2034
   __ush_match_0__7='--message-format=json'
-  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'cargo' "$(ush_fn_std__pack __ush_match_0)" "${log}" "${error_log}")" || return "$?"
-  code="${__ush_value_2}"
+  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'cargo' "$(ush_fn_std__pack __ush_match_0)" "${__ush_binding_21_log}" "${__ush_binding_22_error_log}")" || return "$?"
+  __ush_binding_23_code="${__ush_value_2}"
+  # shellcheck disable=SC2034
+  code="${__ush_binding_23_code}"
   __ush_at 24 'eprint (read_text error_log)'
-  __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${error_log}")" || return "$?"
+  __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_22_error_log}")" || return "$?"
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_3}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 25 'if code != 0 {'
   if {
-  [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_23_code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 26 'fail code ("benchmark build failed in " + checkout)'
-    __ush_status="${code}"
+    __ush_status="${__ush_binding_23_code}"
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
     __ush_report "$__ush_status" 'benchmark build failed in '"${__ush_fn_build_arg_0}"
     return "$__ush_status"
@@ -416,11 +422,13 @@ ush_fn_build() {
   # shellcheck disable=SC2034
   __ush_match_4__4='[.[] | select(.reason == "compiler-artifact" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error("expected one benchmark executable") end'
   # shellcheck disable=SC2034
-  __ush_match_4__5="${log}"
+  __ush_match_4__5="${__ush_binding_21_log}"
   __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_4)")" || return "$?"
-  binary="${__ush_value_6}"
+  __ush_binding_28_binary="${__ush_value_6}"
+  # shellcheck disable=SC2034
+  binary="${__ush_binding_28_binary}"
   __ush_at 29 'cp binary destination'
-  command cp "${binary}" "${__ush_fn_build_arg_3}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  command cp "${__ush_binding_28_binary}" "${__ush_fn_build_arg_3}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 30 'destination'
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_fn_build_arg_3}" > "$__ush_return_path"
@@ -435,8 +443,10 @@ ush_fn_cases() {
   __ush_fn_cases_arg_0="${1}"
   # shellcheck disable=SC2034
   binary="${__ush_fn_cases_arg_0}"
-  __ush_at 34 'let names = ""'
-  names=''
+  __ush_at 34 'let mut names = ""'
+  __ush_binding_34_names=''
+  # shellcheck disable=SC2034
+  names="${__ush_binding_34_names}"
   __ush_at 35 'for line in lines (output binary ["--list"]) {'
   __ush_match_8__len='1'
   # shellcheck disable=SC2034
@@ -456,14 +466,16 @@ ush_fn_cases() {
     __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${line}" ': benchmark')" || return "$?"
     [ "${__ush_value_14}" = 'true' ]
     }; then
-      __ush_at 37 'let names = names + trim_suffix line ": benchmark" + "\n"'
+      __ush_at 37 'names = names + trim_suffix line ": benchmark" + "\n"'
       __ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${line}" ': benchmark')" || return "$?"
-      names="${names}""${__ush_value_15}"''"${__ush_lf}"''
+      __ush_binding_34_names="${__ush_binding_34_names}""${__ush_value_15}"''"${__ush_lf}"''
+      # shellcheck disable=SC2034
+      names="${__ush_binding_34_names}"
     fi
   done
   __ush_at 40 'if names == "" {'
   if {
-  [ "$(if [ "${names}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_34_names}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 41 'fail 1 ("No benchmarks in " + binary)'
     __ush_status=1
@@ -473,9 +485,9 @@ ush_fn_cases() {
   fi
   __ush_at 43 'names'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${names}" > "$__ush_return_path"
+    printf '%s' "${__ush_binding_34_names}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${names}" >&4
+    printf '%s' "${__ush_binding_34_names}" >&4
   fi
   return 0
 }
@@ -490,9 +502,11 @@ ush_fn_measure() {
   name="${__ush_fn_measure_arg_1}"
   __ush_at 47 'let run = temp_dir'
   __ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || return "$?"
-  run="${__ush_value_16}"
+  __ush_binding_47_run="${__ush_value_16}"
+  # shellcheck disable=SC2034
+  run="${__ush_binding_47_run}"
   __ush_at 48 'set "CRITERION_HOME" run'
-  ush_fn_std__env__set 'CRITERION_HOME' "${run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  ush_fn_std__env__set 'CRITERION_HOME' "${__ush_binding_47_run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 49 'let code = redirect binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")'
   __ush_match_17__len='12'
   # shellcheck disable=SC2034
@@ -519,30 +533,36 @@ ush_fn_measure() {
   __ush_match_17__10='--nresamples'
   # shellcheck disable=SC2034
   __ush_match_17__11='10000'
-  __ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${__ush_fn_measure_arg_0}" "$(ush_fn_std__pack __ush_match_17)" "${run}"'/out' "${run}"'/err')" || return "$?"
-  code="${__ush_value_19}"
+  __ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${__ush_fn_measure_arg_0}" "$(ush_fn_std__pack __ush_match_17)" "${__ush_binding_47_run}"'/out' "${__ush_binding_47_run}"'/err')" || return "$?"
+  __ush_binding_49_code="${__ush_value_19}"
+  # shellcheck disable=SC2034
+  code="${__ush_binding_49_code}"
   __ush_at 50 'if code != 0 {'
   if {
-  [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_49_code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 51 'eprint (read_text (run + "/out"))'
-    __ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/out')" || return "$?"
+    __ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_47_run}"'/out')" || return "$?"
     ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_20}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     __ush_at 52 'eprint (read_text (run + "/err"))'
-    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/err')" || return "$?"
+    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_47_run}"'/err')" || return "$?"
     ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_21}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     __ush_at 53 'fail code ("benchmark failed: " + name)'
-    __ush_status="${code}"
+    __ush_status="${__ush_binding_49_code}"
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
     __ush_report "$__ush_status" 'benchmark failed: '"${__ush_fn_measure_arg_1}"
     return "$__ush_status"
   fi
-  __ush_at 55 'let estimate = ""'
-  estimate=''
-  __ush_at 56 'let count = 0'
-  count=0
+  __ush_at 55 'let mut estimate = ""'
+  __ush_binding_55_estimate=''
+  # shellcheck disable=SC2034
+  estimate="${__ush_binding_55_estimate}"
+  __ush_at 56 'let mut count = 0'
+  __ush_binding_56_count=0
+  # shellcheck disable=SC2034
+  count="${__ush_binding_56_count}"
   __ush_at 57 'for file in lines (find run "-path" "*/new/estimates.json") {'
-  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' command find "${run}" '-path' '*/new/estimates.json')" || return "$?"
+  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' command find "${__ush_binding_47_run}" '-path' '*/new/estimates.json')" || return "$?"
   __ush_packed_24="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_23}")" || return "$?"
   __ush_match_22__len=0
   ush_fn_std__unpack __ush_match_22 "${__ush_packed_24}"
@@ -552,14 +572,18 @@ ush_fn_measure() {
     eval "__ush_for_value_26=\"\${__ush_match_22__${__ush_for_list_index_25}}\""
     file="${__ush_for_value_26}"
     __ush_for_list_index_25=$((__ush_for_list_index_25 + 1))
-    __ush_at 58 'let estimate = file'
-    estimate="${file}"
-    __ush_at 59 'let count = count + 1'
-    count=$((count + 1))
+    __ush_at 58 'estimate = file'
+    __ush_binding_55_estimate="${file}"
+    # shellcheck disable=SC2034
+    estimate="${__ush_binding_55_estimate}"
+    __ush_at 59 'count = count + 1'
+    __ush_binding_56_count=$((__ush_binding_56_count + 1))
+    # shellcheck disable=SC2034
+    count="${__ush_binding_56_count}"
   done
   __ush_at 61 'if count != 1 {'
   if {
-  [ "$(if [ "${count}" -ne 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_binding_56_count}" -ne 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 62 'fail 1 ("expected one Criterion estimate for " + name)'
     __ush_status=1
@@ -574,16 +598,18 @@ ush_fn_measure() {
   # shellcheck disable=SC2034
   __ush_match_27__1='(.slope // .mean).point_estimate | if type == "number" and . > 0 and isfinite then . else error("invalid timing estimate") end'
   # shellcheck disable=SC2034
-  __ush_match_27__2="${estimate}"
+  __ush_match_27__2="${__ush_binding_55_estimate}"
   __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_27)")" || return "$?"
-  value="${__ush_value_29}"
+  __ush_binding_64_value="${__ush_value_29}"
+  # shellcheck disable=SC2034
+  value="${__ush_binding_64_value}"
   __ush_at 65 'rm "-rf" run'
-  command rm '-rf' "${run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  command rm '-rf' "${__ush_binding_47_run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 66 'value'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${value}" > "$__ush_return_path"
+    printf '%s' "${__ush_binding_64_value}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${value}" >&4
+    printf '%s' "${__ush_binding_64_value}" >&4
   fi
   return 0
 }
@@ -636,16 +662,24 @@ ush_fn_compare() {
   summary="${__ush_fn_compare_arg_2}"
   __ush_at 74 'let before_cases = cases base + "\n"'
   __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_0}" 4>&1 >&3)" || return "$?"
-  before_cases="${__ush_value_33}"''"${__ush_lf}"''
+  __ush_binding_74_before_cases="${__ush_value_33}"''"${__ush_lf}"''
+  # shellcheck disable=SC2034
+  before_cases="${__ush_binding_74_before_cases}"
   __ush_at 75 'let after_cases = cases head + "\n"'
   __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_1}" 4>&1 >&3)" || return "$?"
-  after_cases="${__ush_value_34}"''"${__ush_lf}"''
-  __ush_at 76 'let seen = "\n"'
-  seen=''"${__ush_lf}"''
-  __ush_at 77 'let failures = 0'
-  failures=0
+  __ush_binding_75_after_cases="${__ush_value_34}"''"${__ush_lf}"''
+  # shellcheck disable=SC2034
+  after_cases="${__ush_binding_75_after_cases}"
+  __ush_at 76 'let mut seen = "\n"'
+  __ush_binding_76_seen=''"${__ush_lf}"''
+  # shellcheck disable=SC2034
+  seen="${__ush_binding_76_seen}"
+  __ush_at 77 'let mut failures = 0'
+  __ush_binding_77_failures=0
+  # shellcheck disable=SC2034
+  failures="${__ush_binding_77_failures}"
   __ush_at 78 'for name in lines (before_cases + after_cases) {'
-  __ush_packed_36="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${before_cases}""${after_cases}")" || return "$?"
+  __ush_packed_36="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_binding_74_before_cases}""${__ush_binding_75_after_cases}")" || return "$?"
   __ush_match_35__len=0
   ush_fn_std__unpack __ush_match_35 "${__ush_packed_36}"
   __ush_for_list_index_37=0
@@ -655,46 +689,66 @@ ush_fn_compare() {
     name="${__ush_for_value_38}"
     __ush_for_list_index_37=$((__ush_for_list_index_37 + 1))
     __ush_at 79 'let key = "\n" + name + "\n"'
-    key=''"${__ush_lf}"''"${name}"''"${__ush_lf}"''
+    __ush_binding_79_key=''"${__ush_lf}"''"${name}"''"${__ush_lf}"''
+    # shellcheck disable=SC2034
+    key="${__ush_binding_79_key}"
     __ush_at 80 'if contains seen key == false {'
     if {
-    __ush_value_39="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${seen}" "${key}")" || return "$?"
+    __ush_value_39="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_binding_76_seen}" "${__ush_binding_79_key}")" || return "$?"
     [ "$(if [ "${__ush_value_39}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
     }; then
-      __ush_at 81 'let seen = seen + name + "\n"'
-      seen="${seen}""${name}"''"${__ush_lf}"''
+      __ush_at 81 'seen = seen + name + "\n"'
+      __ush_binding_76_seen="${__ush_binding_76_seen}""${name}"''"${__ush_lf}"''
+      # shellcheck disable=SC2034
+      seen="${__ush_binding_76_seen}"
       __ush_at 82 'let in_base = contains ("\n" + before_cases) key'
-      __ush_value_40="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${before_cases}" "${key}")" || return "$?"
-      in_base="${__ush_value_40}"
+      __ush_value_40="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${__ush_binding_74_before_cases}" "${__ush_binding_79_key}")" || return "$?"
+      __ush_binding_82_in_base="${__ush_value_40}"
+      # shellcheck disable=SC2034
+      in_base="${__ush_binding_82_in_base}"
       __ush_at 83 'let in_head = contains ("\n" + after_cases) key'
-      __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${after_cases}" "${key}")" || return "$?"
-      in_head="${__ush_value_41}"
+      __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${__ush_binding_75_after_cases}" "${__ush_binding_79_key}")" || return "$?"
+      __ush_binding_83_in_head="${__ush_value_41}"
+      # shellcheck disable=SC2034
+      in_head="${__ush_binding_83_in_head}"
       __ush_at 84 'if in_base && in_head {'
       if {
       {
-      [ "${in_base}" = 'true' ]
+      [ "${__ush_binding_82_in_base}" = 'true' ]
       } && {
-      [ "${in_head}" = 'true' ]
+      [ "${__ush_binding_83_in_head}" = 'true' ]
       }
       }; then
         __ush_at 86 'let b1 = measure base name'
         __ush_value_42="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-        b1="${__ush_value_42}"
+        __ush_binding_86_b1="${__ush_value_42}"
+        # shellcheck disable=SC2034
+        b1="${__ush_binding_86_b1}"
         __ush_at 87 'let h1 = measure head name'
         __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-        h1="${__ush_value_43}"
+        __ush_binding_87_h1="${__ush_value_43}"
+        # shellcheck disable=SC2034
+        h1="${__ush_binding_87_h1}"
         __ush_at 88 'let h2 = measure head name'
         __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-        h2="${__ush_value_44}"
+        __ush_binding_88_h2="${__ush_value_44}"
+        # shellcheck disable=SC2034
+        h2="${__ush_binding_88_h2}"
         __ush_at 89 'let b2 = measure base name'
         __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-        b2="${__ush_value_45}"
+        __ush_binding_89_b2="${__ush_value_45}"
+        # shellcheck disable=SC2034
+        b2="${__ush_binding_89_b2}"
         __ush_at 90 'let before = geometric b1 b2'
-        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${b1}" "${b2}" 4>&1 >&3)" || return "$?"
-        before="${__ush_value_46}"
+        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${__ush_binding_86_b1}" "${__ush_binding_89_b2}" 4>&1 >&3)" || return "$?"
+        __ush_binding_90_before="${__ush_value_46}"
+        # shellcheck disable=SC2034
+        before="${__ush_binding_90_before}"
         __ush_at 91 'let after = geometric h1 h2'
-        __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${h1}" "${h2}" 4>&1 >&3)" || return "$?"
-        after="${__ush_value_47}"
+        __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${__ush_binding_87_h1}" "${__ush_binding_88_h2}" 4>&1 >&3)" || return "$?"
+        __ush_binding_91_after="${__ush_value_47}"
+        # shellcheck disable=SC2034
+        after="${__ush_binding_91_after}"
         __ush_at 92 'let ratio = output "jq" ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]'
         __ush_match_48__len='8'
         # shellcheck disable=SC2034
@@ -704,22 +758,26 @@ ush_fn_compare() {
         # shellcheck disable=SC2034
         __ush_match_48__2='a'
         # shellcheck disable=SC2034
-        __ush_match_48__3="${after}"
+        __ush_match_48__3="${__ush_binding_91_after}"
         # shellcheck disable=SC2034
         __ush_match_48__4='--argjson'
         # shellcheck disable=SC2034
         __ush_match_48__5='b'
         # shellcheck disable=SC2034
-        __ush_match_48__6="${before}"
+        __ush_match_48__6="${__ush_binding_90_before}"
         # shellcheck disable=SC2034
         __ush_match_48__7='$a / $b'
         __ush_value_50="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_48)")" || return "$?"
-        ratio="${__ush_value_50}"
+        __ush_binding_92_ratio="${__ush_value_50}"
+        # shellcheck disable=SC2034
+        ratio="${__ush_binding_92_ratio}"
         __ush_at 93 'let row = printf "| %s | %.2f | %.2f | %.3f× |" name before after ratio'
-        __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | %.2f | %.3f× |' "${name}" "${before}" "${after}" "${ratio}")" || return "$?"
-        row="${__ush_value_51}"
+        __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | %.2f | %.3f× |' "${name}" "${__ush_binding_90_before}" "${__ush_binding_91_after}" "${__ush_binding_92_ratio}")" || return "$?"
+        __ush_binding_93_row="${__ush_value_51}"
+        # shellcheck disable=SC2034
+        row="${__ush_binding_93_row}"
         __ush_at 94 'report row summary'
-        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${row}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_binding_93_row}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         __ush_at 95 'if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {'
         if {
         __ush_match_52__len='5'
@@ -730,32 +788,38 @@ ush_fn_compare() {
         # shellcheck disable=SC2034
         __ush_match_52__2='ratio'
         # shellcheck disable=SC2034
-        __ush_match_52__3="${ratio}"
+        __ush_match_52__3="${__ush_binding_92_ratio}"
         # shellcheck disable=SC2034
         __ush_match_52__4='$ratio > 1.25'
         __ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'jq' "$(ush_fn_std__pack __ush_match_52)")" || return "$?"
         [ "$(if [ "${__ush_value_54}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }; then
-          __ush_at 96 'let failures = failures + 1'
-          failures=$((failures + 1))
+          __ush_at 96 'failures = failures + 1'
+          __ush_binding_77_failures=$((__ush_binding_77_failures + 1))
+          # shellcheck disable=SC2034
+          failures="${__ush_binding_77_failures}"
         fi
       else
         __ush_at 99 'else if in_head {'
         if {
-        [ "${in_head}" = 'true' ]
+        [ "${__ush_binding_83_in_head}" = 'true' ]
         }; then
           __ush_at 100 'let value = measure head name'
           __ush_value_55="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-          value="${__ush_value_55}"
+          __ush_binding_100_value="${__ush_value_55}"
+          # shellcheck disable=SC2034
+          value="${__ush_binding_100_value}"
           __ush_at 101 'report (printf "| %s | — | %.2f | new |" name value) summary'
-          __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | — | %.2f | new |' "${name}" "${value}")" || return "$?"
+          __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | — | %.2f | new |' "${name}" "${__ush_binding_100_value}")" || return "$?"
           ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_56}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         else
           __ush_at 104 'let value = measure base name'
           __ush_value_57="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-          value="${__ush_value_57}"
+          __ush_binding_104_value="${__ush_value_57}"
+          # shellcheck disable=SC2034
+          value="${__ush_binding_104_value}"
           __ush_at 105 'report (printf "| %s | %.2f | — | removed |" name value) summary'
-          __ush_value_58="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | — | removed |' "${name}" "${value}")" || return "$?"
+          __ush_value_58="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | — | removed |' "${name}" "${__ush_binding_104_value}")" || return "$?"
           ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_58}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         fi
       fi
@@ -763,19 +827,21 @@ ush_fn_compare() {
   done
   __ush_at 109 'failures'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${failures}" > "$__ush_return_path"
+    printf '%s' "${__ush_binding_77_failures}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${failures}" >&4
+    printf '%s' "${__ush_binding_77_failures}" >&4
   fi
   return 0
 }
 
 __ush_at 112 'let base_arg = arg 0'
 __ush_value_59="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 0)" || exit "$?"
-base_arg="${__ush_value_59}"
+__ush_binding_112_base_arg="${__ush_value_59}"
+# shellcheck disable=SC2034
+base_arg="${__ush_binding_112_base_arg}"
 __ush_at 113 'if base_arg == "" {'
 if {
-[ "$(if [ "${base_arg}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_112_base_arg}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
   __ush_at 114 'fail 1 "usage: compare_benchmarks.sh BASE_CHECKOUT"'
   __ush_status=1
@@ -785,33 +851,43 @@ if {
 fi
 __ush_at 116 'let head = cwd'
 __ush_value_60="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
-head="${__ush_value_60}"
+__ush_binding_116_head="${__ush_value_60}"
+# shellcheck disable=SC2034
+head="${__ush_binding_116_head}"
 __ush_at 117 'let base = resolve (from_cwd base_arg)'
-__ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd "${base_arg}")" || exit "$?"
+__ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd "${__ush_binding_112_base_arg}")" || exit "$?"
 __ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_value_61}")" || exit "$?"
-base="${__ush_value_62}"
+__ush_binding_117_base="${__ush_value_62}"
+# shellcheck disable=SC2034
+base="${__ush_binding_117_base}"
 __ush_at 118 'let summary = get "GITHUB_STEP_SUMMARY"'
 __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'GITHUB_STEP_SUMMARY')" || exit "$?"
-summary="${__ush_value_63}"
+__ush_binding_118_summary="${__ush_value_63}"
+# shellcheck disable=SC2034
+summary="${__ush_binding_118_summary}"
 __ush_at 119 'report "## Paired Criterion measurements" summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '## Paired Criterion measurements' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '## Paired Criterion measurements' "${__ush_binding_118_summary}" )
 __ush_at 120 'report "" summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '' "${__ush_binding_118_summary}" )
 __ush_at 121 'report "Base and PR binaries run on the same runner. The regression threshold is 1.25×." summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report 'Base and PR binaries run on the same runner. The regression threshold is 1.25×.' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report 'Base and PR binaries run on the same runner. The regression threshold is 1.25×.' "${__ush_binding_118_summary}" )
 __ush_at 122 'report "" summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '' "${__ush_binding_118_summary}" )
 __ush_at 123 'report "| Benchmark | Base (ns) | PR (ns) | Ratio |" summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '| Benchmark | Base (ns) | PR (ns) | Ratio |' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '| Benchmark | Base (ns) | PR (ns) | Ratio |' "${__ush_binding_118_summary}" )
 __ush_at 124 'report "| --- | ---: | ---: | ---: |" summary'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '| --- | ---: | ---: | ---: |' "${summary}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '| --- | ---: | ---: | ---: |' "${__ush_binding_118_summary}" )
 __ush_at 125 'let work = temp_dir'
 __ush_task_init
 __ush_at 125 'let work = temp_dir'
 __ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_64}"
-__ush_at 126 'let failures = 0'
-failures=0
+__ush_binding_125_work="${__ush_value_64}"
+# shellcheck disable=SC2034
+work="${__ush_binding_125_work}"
+__ush_at 126 'let mut failures = 0'
+__ush_binding_126_failures=0
+# shellcheck disable=SC2034
+failures="${__ush_binding_126_failures}"
 __ush_at 127 'for package in ["ush_shell", "ush_compiler"] {'
 __ush_match_65__len='2'
 # shellcheck disable=SC2034
@@ -824,32 +900,42 @@ while [ "${__ush_for_list_index_66}" -lt "${__ush_match_65__len}" ]; do
   eval "__ush_for_value_67=\"\${__ush_match_65__${__ush_for_list_index_66}}\""
   package="${__ush_for_value_67}"
   __ush_for_list_index_66=$((__ush_for_list_index_66 + 1))
-  __ush_at 128 'let suite = "parser"'
-  suite='parser'
+  __ush_at 128 'let mut suite = "parser"'
+  __ush_binding_128_suite='parser'
+  # shellcheck disable=SC2034
+  suite="${__ush_binding_128_suite}"
   __ush_at 129 'if package == "ush_compiler" {'
   if {
   [ "$(if [ "${package}" = 'ush_compiler' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 130 'let suite = "compile"'
-    suite='compile'
+    __ush_at 130 'suite = "compile"'
+    __ush_binding_128_suite='compile'
+    # shellcheck disable=SC2034
+    suite="${__ush_binding_128_suite}"
   fi
   __ush_at 132 'let before = build base package suite (work + "/base-" + suite) (head + "/target/bench-base") work'
-  __ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${base}" "${package}" "${suite}" "${work}"'/base-'"${suite}" "${head}"'/target/bench-base' "${work}" 4>&1 >&3)" || exit "$?"
-  before="${__ush_value_68}"
+  __ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${__ush_binding_117_base}" "${package}" "${__ush_binding_128_suite}" "${__ush_binding_125_work}"'/base-'"${__ush_binding_128_suite}" "${__ush_binding_116_head}"'/target/bench-base' "${__ush_binding_125_work}" 4>&1 >&3)" || exit "$?"
+  __ush_binding_132_before="${__ush_value_68}"
+  # shellcheck disable=SC2034
+  before="${__ush_binding_132_before}"
   __ush_at 133 'let after = build head package suite (work + "/head-" + suite) (head + "/target") work'
-  __ush_value_69="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${head}" "${package}" "${suite}" "${work}"'/head-'"${suite}" "${head}"'/target' "${work}" 4>&1 >&3)" || exit "$?"
-  after="${__ush_value_69}"
-  __ush_at 134 'let failures = failures + compare before after summary'
-  __ush_value_70="$(__ush_return_path='' __ush_capture_return='1' ush_fn_compare "${before}" "${after}" "${summary}" 4>&1 >&3)" || exit "$?"
-  failures=$((failures + __ush_value_70))
+  __ush_value_69="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${__ush_binding_116_head}" "${package}" "${__ush_binding_128_suite}" "${__ush_binding_125_work}"'/head-'"${__ush_binding_128_suite}" "${__ush_binding_116_head}"'/target' "${__ush_binding_125_work}" 4>&1 >&3)" || exit "$?"
+  __ush_binding_133_after="${__ush_value_69}"
+  # shellcheck disable=SC2034
+  after="${__ush_binding_133_after}"
+  __ush_at 134 'failures = failures + compare before after summary'
+  __ush_value_70="$(__ush_return_path='' __ush_capture_return='1' ush_fn_compare "${__ush_binding_132_before}" "${__ush_binding_133_after}" "${__ush_binding_118_summary}" 4>&1 >&3)" || exit "$?"
+  __ush_binding_126_failures=$((__ush_binding_126_failures + __ush_value_70))
+  # shellcheck disable=SC2034
+  failures="${__ush_binding_126_failures}"
 done
 __ush_at 136 'if failures > 0 {'
 if {
-[ "$(if [ "${failures}" -gt 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_126_failures}" -gt 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
   __ush_at 137 'fail 1 ("Performance regression above 25% in " + failures + " benchmark(s)")'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-  __ush_report "$__ush_status" 'Performance regression above 25% in '"${failures}"' benchmark(s)'
+  __ush_report "$__ush_status" 'Performance regression above 25% in '"${__ush_binding_126_failures}"' benchmark(s)'
   exit "$__ush_status"
 fi

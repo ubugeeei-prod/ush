@@ -10,6 +10,11 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+- Make `let` bindings immutable by default; introduce `let mut` and bare `name = value` reassignment, with compile-time mutability and type diagnostics. Shadowing keeps outer bindings intact, including function locals and loop variables.
+- Support mutable aggregates, asynchronous task handles, and awaited results; evaluate structured assignment before replacing its destination.
+- Teach editor highlighting, navigation, rename, hover, and formatting about mutable bindings. Separate imports from the body with one blank line.
+- Migrate the native ush installer and repository scripts to explicit mutation.
+
 ### Added
 
 - Native pipelines: `a | b | c` streams as a statement and captures the last

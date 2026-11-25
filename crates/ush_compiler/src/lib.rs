@@ -29,6 +29,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod ast;
+mod bindings;
 mod commands;
 mod contracts;
 pub use commands::command_names;
@@ -107,6 +108,7 @@ impl UshCompiler {
         if script_name == Some("bin.ush") && program.iter().any(|s| matches!(&s.kind, ast::StatementKind::Function(f) if f.name=="bin" && f.scheme.as_ref().is_some_and(|scheme| !scheme.variables.is_empty()))) {
             anyhow::bail!("bin.ush requires concrete parameter types for its shell entrypoint");
         }
+        bindings::validate(&program)?;
         let program = contracts::elaborate(program)?;
         let docs = ScriptDocs::parse(source);
         codegen::compile_program(
@@ -144,6 +146,7 @@ impl UshCompiler {
     pub fn effects_source(&self, source: &str) -> Result<EffectReport> {
         let program = imports::resolve_program(parse::parse_program(source)?)?;
         let mut functions = effects::describe_function_effects(&program)?;
+        bindings::validate(&program)?;
         let lowered = contracts::elaborate(program)?;
         for actual in effects::describe_function_effects(&lowered)? {
             let name = actual
