@@ -173,3 +173,11 @@ print alias 2
         "3\n"
     );
 }
+
+#[test]
+fn assertions_compare_source_types_before_erasure() {
+    let source =
+        "use std::test::assert_eq\nfn inc(x: Int) -> Int {\n x + 1\n}\nassert_eq &inc \"inc\"\n";
+    let error = UshCompiler.compile_source(source).unwrap_err();
+    assert!(format!("{error:#}").contains("same type"), "{error:#}");
+}

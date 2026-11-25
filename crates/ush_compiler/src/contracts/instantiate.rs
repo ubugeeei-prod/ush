@@ -115,7 +115,7 @@ impl Checker {
         if call.name == "std::test::assert_eq" {
             ensure!(args.len() == 2, "assert_eq expects two arguments");
             ensure!(
-                args[0].erase() == args[1].erase(),
+                args[0].same_shape(&args[1]),
                 "assert_eq arguments must have the same type"
             );
             return Ok(Ty::named("()"));

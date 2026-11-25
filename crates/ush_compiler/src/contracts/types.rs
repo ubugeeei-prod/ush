@@ -85,6 +85,15 @@ impl Ty {
         )
         .into()
     }
+    pub fn same_shape(&self, other: &Self) -> bool {
+        self.name == other.name
+            && self.args.len() == other.args.len()
+            && self
+                .args
+                .iter()
+                .zip(&other.args)
+                .all(|(a, b)| a.same_shape(b))
+    }
     pub fn check(&self, found: &Self) -> Result<()> {
         if self.function.is_some() && self.function != found.function {
             bail!("runtime selection between different function values is not supported");
