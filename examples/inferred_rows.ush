@@ -23,7 +23,7 @@ fn require(name: String) -> String {
 # `?` works as if the row had been written.
 fn banner(name: String) -> () {
   let found = require name?
-  print found + " on " + kernel
+  echo (found + " on " + kernel)
 }
 
 # A written row is still a checked contract; `/ ()` means pure.

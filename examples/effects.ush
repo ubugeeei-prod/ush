@@ -31,7 +31,7 @@ fn default_target() -> String / env {
 fn deploy() -> () / io, env, ask, audit {
   let target = do ask("deploy to?")
   do audit("deploying to " + target)
-  print "deployed " + slug(target) + " as " + default_target()
+  echo ("deployed " + slug(target) + " as " + default_target())
 }
 
 # `try … with` answers an effect for the block it wraps. The handler
@@ -41,7 +41,7 @@ fn deploy() -> () / io, env, ask, audit {
 try {
   deploy()
 } with audit(entry) {
-  print "[audit] " + entry
+  echo ("[audit] " + entry)
 } with ask(question) {
   "staging"
 }

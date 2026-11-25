@@ -11,4 +11,4 @@ let right_task = async right ()
 let first = left_task.await
 let second = right_task.await
 
-print first + ":" + second
+echo (first + ":" + second)

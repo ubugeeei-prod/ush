@@ -6,6 +6,6 @@ enum Option {
 let value = Option::None
 
 match value {
-  Option::Some(message) => print message
-  _ => print "none"
+  Option::Some(message) => echo message
+  _ => echo "none"
 }

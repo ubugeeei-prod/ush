@@ -7,9 +7,9 @@ fn increment(value: Int) -> Int {
 }
 
 for n in map [1, 2, 3] &increment {
-  print n
+  echo n
 }
 
 for n in [x + y for x in 0..3 if x > 0 for y in 1..3 if y > x] {
-  print n
+  echo n
 }

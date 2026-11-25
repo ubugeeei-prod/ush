@@ -154,8 +154,8 @@ ush_fn_banner() {
   __ush_fn_banner_arg_0="${1}"
   # shellcheck disable=SC2034
   name="${__ush_fn_banner_arg_0}"
-  __ush_at 10 'print "=== " + name + " ==="'
-  printf '%s\n' '=== '"${__ush_fn_banner_arg_0}"' ==='
+  __ush_at 10 'echo ("=== " + name + " ===")'
+  printf '%s\n' '=== '"${__ush_fn_banner_arg_0}"' ===' || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
 }
 
 __ush_at 12 'banner "rustfmt"'

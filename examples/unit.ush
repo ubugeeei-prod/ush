@@ -4,4 +4,4 @@ fn noop() {
 
 let value = noop ()
 
-print value == ()
+echo (value == ())

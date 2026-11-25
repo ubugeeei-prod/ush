@@ -9,10 +9,10 @@ use std::test::assert_eq
 
 assert_eq (join ["a", "b"] ",") "a,b"
 for entry in read_dir "." {
-  print entry
+  echo entry
 }
 for line in read_lines "README.md" {
-  print to_upper_ascii line
+  echo (to_upper_ascii line)
 }
 ```
 

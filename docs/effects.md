@@ -18,9 +18,9 @@ fn greet(name: String) -> String / log {
 }
 
 try {
-  print greet("ubu")
+  echo (greet("ubu"))
 } with log(message) {
-  print "[log] " + message
+  echo ("[log] " + message)
 }
 ```
 
@@ -146,7 +146,7 @@ block it wraps. One `try` can carry several arms:
 try {
   deploy()
 } with audit(entry) {
-  print "[audit] " + entry
+  echo ("[audit] " + entry)
 } with ask(question) {
   "staging"
 }

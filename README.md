@@ -393,17 +393,17 @@ Small example:
 
 ```text
 let greeting = "hello"
-print greeting + " world"
+echo greeting "world"
 $ printf '%s\n' from-ush
 match greeting {
-  "hello" => print "matched"
-  _ => print "fallback"
+  "hello" => echo "matched"
+  _ => echo "fallback"
 }
 ```
 
 Current highlights:
 
-- `let`, `print`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
+- `let`, `echo`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
 - `""" ... """` multiline strings with common-indent dedent
 - `mod "lib/x.ush"` local modules with `pub` items, inlined at compile time
 - `std::env`, `std::path`, `std::fs`, `std::command`, and `std::string` helpers via fully-qualified calls or top-level `use`, plus method-style path/string flows like `path.resolve()`, `path.exists()`, `path.read_text()`, and `name.trim_suffix(".ush")`
@@ -457,7 +457,7 @@ fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
   [f x for x in items]
 }
 
-print greet "ush"
+echo (greet "ush")
 let greetings = map ["Ada", "Lin"] &greet
 
 test "greetings" {

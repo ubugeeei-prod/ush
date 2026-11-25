@@ -39,4 +39,4 @@ enum Status {
 trait Documented {
 }
 
-print greet "ush"
+echo (greet "ush")

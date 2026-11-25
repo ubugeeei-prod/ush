@@ -8,6 +8,6 @@ let body = "ok"
 let response = Response::Http { code, body }
 
 match response {
-  Response::Http { code, body } => print body + ":" + code
-  _ => print "empty"
+  Response::Http { code, body } => echo (body + ":" + code)
+  _ => echo "empty"
 }

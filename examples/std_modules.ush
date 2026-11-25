@@ -13,13 +13,13 @@ let example_config = example_root.join("config.pkl")
 let resolved_config = example_config.resolve()
 write_text file "from-fs"
 
-print get_or "USH_EXAMPLE" "fallback"
-print nested.dirname()
-print file.exists()
-print example_config.exists()
-print resolved_config.basename()
-print replace "hello.txt" ".txt" ".ush"
-print trim_suffix "module.ush" ".ush"
-print file.read_text()
-print command_exists "sh"
-print capture "printf '%s\n' from-command"
+echo (get_or "USH_EXAMPLE" "fallback")
+echo (nested.dirname())
+echo (file.exists())
+echo (example_config.exists())
+echo (resolved_config.basename())
+echo (replace "hello.txt" ".txt" ".ush")
+echo (trim_suffix "module.ush" ".ush")
+echo (file.read_text())
+echo (command_exists "sh")
+echo (capture "printf '%s\n' from-command")

@@ -144,7 +144,7 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
   else if scenario == "checksum-name" || scenario == "checksum-content" {
     assert_eq (is_file (directory + "/ush")) false
   }
-  print "installer: " + scenario + " passed"
+  echo ("installer: " + scenario + " passed")
   cd root
 }
 let work = temp_dir

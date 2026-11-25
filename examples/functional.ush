@@ -11,4 +11,4 @@ fn label() -> String {
 }
 
 let value = wrap (greet label)
-print value
+echo value

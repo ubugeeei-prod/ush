@@ -1,6 +1,6 @@
 #| CLI example with defaults and short aliases.
 #| Run with: ush examples/bin_defaults.ush --target prod --verbose
 fn bin(#[alias("t")] target: String, #[default(3)] retries: Int, verbose: Bool) {
-  print target + ":" + retries
-  print verbose
+  echo (target + ":" + retries)
+  echo verbose
 }

@@ -72,7 +72,14 @@ const KEYWORDS: &[(&str, &str)] = &[
         "match",
         "Pattern-match an expression. The compiler enforces exhaustiveness.",
     ),
-    ("print", "Print a value to stdout."),
+    (
+        "echo",
+        "Write arguments separated by spaces, then a newline. No options or escape processing; use printf for formatting.",
+    ),
+    (
+        "print",
+        "Print a value to stdout. Legacy syntax; prefer echo.",
+    ),
     (
         "fail",
         "Return a typed error or an exit status and message.",

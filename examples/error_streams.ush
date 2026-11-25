@@ -16,4 +16,4 @@ fn run() -> String / Problem, stderr {
 }
 
 run()?
-print "unreachable"
+echo "unreachable"

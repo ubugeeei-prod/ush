@@ -120,6 +120,13 @@ impl Checker {
             );
             return Ok(Ty::named("()"));
         }
+        if call.name == "echo" {
+            ensure!(
+                call.args.iter().all(|arg| arg.label.is_none()),
+                "echo arguments are positional"
+            );
+            return Ok(Ty::named("String"));
+        }
         if call.name == "format" {
             return Ok(Ty::named("String"));
         }

@@ -455,7 +455,7 @@ __ush_match_15__5='-Zunstable-options'
 __ush_match_15__6='--jobs-frontend=8'
 __ush_value_17="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_15)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_14}" "${__ush_value_17}" )
-__ush_at 36 'print "rustc wrapper: checkout crate passed"'
+__ush_at 36 'echo "rustc wrapper: checkout crate passed"'
 printf '%s\n' 'rustc wrapper: checkout crate passed'
 __ush_at 39 'assert_eq (output wrapper [rustc, "-vV"]) (join ["bootstrap=", "-vV"] "\n")'
 __ush_match_18__len='2'
@@ -499,7 +499,7 @@ __ush_match_27__3='--crate-type=lib'
 __ush_match_27__4='-'
 __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_27)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_26}" "${__ush_value_29}" )
-__ush_at 44 'print "rustc wrapper: build-script probe passed"'
+__ush_at 44 'echo "rustc wrapper: build-script probe passed"'
 printf '%s\n' 'rustc wrapper: build-script probe passed'
 __ush_at 47 'set "CARGO_MANIFEST_DIR" "/home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6"'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' '/home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6'
@@ -553,7 +553,7 @@ __ush_match_39__2='ush_shell'
 __ush_match_39__3='src/lib.rs'
 __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_39)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_38}" "${__ush_value_41}" )
-__ush_at 54 'print "rustc wrapper: dependencies passed"'
+__ush_at 54 'echo "rustc wrapper: dependencies passed"'
 printf '%s\n' 'rustc wrapper: dependencies passed'
 __ush_at 57 'set "CARGO_MANIFEST_DIR" member'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' "${__ush_binding_27_member}"
@@ -620,7 +620,7 @@ __ush_match_54__2='ush_shell'
 __ush_match_54__3='src/lib.rs'
 __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_54)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_53}" "${__ush_value_56}" )
-__ush_at 64 'print "rustc wrapper: frontend off passed"'
+__ush_at 64 'echo "rustc wrapper: frontend off passed"'
 printf '%s\n' 'rustc wrapper: frontend off passed'
 __ush_at 67 'set "USH_KACHE" kache'
 ush_fn_std__env__set 'USH_KACHE' "${__ush_binding_20_kache}"
@@ -686,5 +686,5 @@ __ush_match_72__0='bootstrap='
 __ush_match_72__1='-vV'
 __ush_value_74="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_72)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_71}" "${__ush_value_74}" )
-__ush_at 73 'print "rustc wrapper: kache passed"'
+__ush_at 73 'echo "rustc wrapper: kache passed"'
 printf '%s\n' 'rustc wrapper: kache passed'

@@ -88,7 +88,7 @@ impl Resolver<'_> {
         if let Some(path) = self.imports.get(name) {
             *name = path.clone();
         } else if !name.contains("::") {
-            if self.imports.contains_key("*") && crate::commands::contains(name) {
+            if name != "echo" && self.imports.contains_key("*") && crate::commands::contains(name) {
                 *name = format!("$bin::{name}").into();
             }
         } else if let Some(item) = self.scope.qualify(name) {

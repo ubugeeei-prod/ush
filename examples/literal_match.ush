@@ -1,7 +1,7 @@
 let mode = "prod"
 
 match mode {
-  "dev" => print "development"
-  "prod" => print "production"
-  _ => print "unknown"
+  "dev" => echo "development"
+  "prod" => echo "production"
+  _ => echo "unknown"
 }

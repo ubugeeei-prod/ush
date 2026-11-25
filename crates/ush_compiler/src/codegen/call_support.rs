@@ -3,8 +3,14 @@ use anyhow::{Result, anyhow, bail};
 use super::{
     super::ast::{Call, Expr, FunctionDef},
     FunctionRegistry,
+    calls::ensure_signature,
+    compile_primitive_expr, infer,
 };
-use crate::types::AstVec as Vec;
+use crate::{
+    env::{EnumRegistry, Env},
+    traits::TraitImplRegistry,
+    types::{AstVec as Vec, OutputString as String},
+};
 
 pub(super) fn resolve_call_args<'a>(call: &'a Call, def: &'a FunctionDef) -> Result<Vec<&'a Expr>> {
     let mut resolved = vec![None; def.params.len()];
@@ -68,10 +74,48 @@ pub(super) fn function_for_call<'a>(
 }
 
 pub(super) fn capture_fds(name: &str) -> &'static str {
-    if name != "std::terminal::is_tty" && (name.starts_with("std::") || name.starts_with("$bin::"))
+    if name == "echo"
+        || (name != "std::terminal::is_tty"
+            && (name.starts_with("std::") || name.starts_with("$bin::")))
     {
         ""
     } else {
         " 4>&1 >&3"
     }
+}
+
+pub(super) fn rendered_args(
+    call: &Call,
+    env: &Env,
+    functions: &FunctionRegistry,
+    impls: &TraitImplRegistry,
+    enums: &EnumRegistry,
+    def: &FunctionDef,
+) -> Result<Vec<String>> {
+    ensure_signature(def)?;
+    def.params
+        .iter()
+        .zip(resolve_call_args(call, def)?)
+        .map(|(param, arg)| {
+            let actual = infer(arg, env, functions, impls, enums)?;
+            if actual != param.ty {
+                bail!(
+                    "type mismatch for `{}`: expected {:?}, found {:?}",
+                    param.name,
+                    param.ty,
+                    actual
+                );
+            }
+            if let crate::ast::Expr::Var(name) = arg
+                && let Some(crate::env::Binding {
+                    storage:
+                        crate::env::Storage::Aggregate(prefix) | crate::env::Storage::Adt(prefix),
+                    ..
+                }) = env.get(name)
+            {
+                return Ok(super::wire::encode(&actual, prefix));
+            }
+            compile_primitive_expr(arg, env, functions, impls, enums)
+        })
+        .collect()
 }

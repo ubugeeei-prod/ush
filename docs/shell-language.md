@@ -43,10 +43,10 @@ fn label() -> String {
   "ush"
 }
 
-print greet "hello" label
+echo (greet "hello" label)
 let branch = git "branch" "--show-current"?
-print trim_suffix branch "\n"
-print greet (trim_prefix "@Ada" "@") "Lovelace"
+echo (trim_suffix branch "\n")
+echo (greet (trim_prefix "@Ada" "@") "Lovelace")
 ```
 
 Arguments are separated by whitespace and each argument is one typed value.
@@ -380,8 +380,8 @@ pub enum Level {
 
 pub fn annotate(level: Level, message: String) {
   match level {
-    Level::Notice => print "::notice::" + clean message,
-    Level::Warning => print "::warning::" + clean message,
+    Level::Notice => echo ("::notice::" + clean message),
+    Level::Warning => echo ("::warning::" + clean message),
   }
 }
 
@@ -586,8 +586,8 @@ extern "helpers.sh" as helpers {
 }
 use helpers::*
 
-print greet "ush"
-print answer
+echo (greet "ush")
+echo answer
 ```
 
 The optional module name provides qualified calls such as `helpers::greet`;

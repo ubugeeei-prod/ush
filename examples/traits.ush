@@ -15,6 +15,6 @@ fn noop() {
 }
 
 let value = noop ()
-print value == ()
-print "ant" < "bee"
-print 1 + 2
+echo (value == ())
+echo ("ant" < "bee")
+echo (1 + 2)

@@ -190,6 +190,9 @@ pub(super) fn call_effects(call: &Call, ctx: Context<'_>, capture: bool) -> Effe
         || builtin_call_effects(&call.name),
         |cmd| cmd.effects(capture),
     );
+    if call.name == "echo" && !capture {
+        effects.insert(Effect::Stdout);
+    }
     // `do log(…)` lowers to a call of the operation's own name, so
     // this is where performing an effect enters the row.
     if ctx.declarations.contains(&call.name) {

@@ -11,8 +11,8 @@ fn keep<F<_>, T>(x: F<T>) -> F<T> / () {
   x
 }
 
-print identity(42)
-print identity("ready")
+echo (identity(42))
+echo (identity("ready"))
 let names = keep(["test", "release"])
 ```
 
@@ -31,8 +31,8 @@ fn length<const N: Int>(items: [String; N]) -> Int / () {
   N
 }
 
-print delay (5ms + 10ms)
-print length ["a", "b"]
+echo (delay (5ms + 10ms))
+echo (length ["a", "b"])
 ```
 
 Units are nominal. Declare each suffix once. Addition and comparison require compatible units. The runtime representation of a quantity is an integer in its declared unit.
@@ -46,7 +46,7 @@ use $bin::*
 
 cd "tools"?
 let status_text = git "status" "--short"?
-print status_text
+echo status_text
 ```
 
 Fully qualified calls work without an import, for example `$bin::git "status" "--short"`. Local functions and explicit imports take precedence over the wildcard. The catalog covers the 155 named entries in the POSIX.1-2024 utilities index and common tools including git, curl, jq, and package managers. Availability depends on the target host. [POSIX utilities index](https://pubs.opengroup.org/onlinepubs/9799919799/idx/utilities.html)
@@ -59,14 +59,14 @@ The checker validates positional arguments, accepted arity, return type and effe
 let text = $(
   printf '%s\n' "a shell pipeline" | tr 'a-z' 'A-Z'
 )?
-print text
+echo text
 
 fn build(path: String) -> String {
   "built " + path
 }
 let job = async build "release"
 let result = job.await
-print result
+echo result
 ```
 
 Inside a capture the selected shell handles quotes, pipes, redirections, here-documents and variable expansion. For multiline captures, put the final `)?` at the indentation of the opening source line. `ush script.ush` inherits standard input. Inline shell code follows the dialect of the chosen interpreter.
