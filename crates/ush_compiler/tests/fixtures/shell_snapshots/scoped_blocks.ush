@@ -1,0 +1,16 @@
+use $bin::*
+
+export RUST_BACKTRACE = "1"
+cd "crates" {
+  export CARGO_TERM_COLOR = "never", RUSTFLAGS = "-D warnings" {
+    cargo "build"
+  }
+}
+for name in ["a", "b"] {
+  cd name {
+    if name == "b" {
+      break
+    }
+    ls
+  }
+}

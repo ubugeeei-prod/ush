@@ -191,7 +191,9 @@ fn collect_return_types(
                 collect_return_types(arm, &arm_env, functions, impls, enums, returns)?;
             }
         }
-        StatementKind::While { body, .. } | StatementKind::Loop { body } => {
+        StatementKind::While { body, .. }
+        | StatementKind::Loop { body }
+        | StatementKind::Scoped { body, .. } => {
             collect_body_returns(body, env, functions, impls, enums, returns)?;
         }
         StatementKind::For {

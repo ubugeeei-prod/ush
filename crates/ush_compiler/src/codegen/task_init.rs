@@ -85,6 +85,9 @@ impl Walker<'_> {
             S::While { condition, body } => self.condition(condition) || self.body(body),
             S::For { iterable, body, .. } => self.expr(iterable) || self.body(body),
             S::Loop { body } => self.body(body),
+            S::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
+            S::Export(bindings) => bindings.iter().any(|b| self.expr(&b.value)),
+            S::Scoped { scope, body } => scope.exprs().any(|e| self.expr(e)) || self.body(body),
             _ => false,
         }
     }
@@ -124,6 +127,7 @@ impl Walker<'_> {
             } => self.expr(lhs) || self.expr(rhs),
             Expr::Try(e) | Expr::Field { base: e, .. } => self.expr(e),
             Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(|e| self.expr(e)),
+            Expr::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
             Expr::Variant(v) => match &v.fields {
                 crate::ast::ExprFields::Tuple(es) => es.iter().any(|e| self.expr(e)),
                 crate::ast::ExprFields::Struct(es) => es.iter().any(|e| self.expr(&e.expr)),

@@ -6,6 +6,7 @@ mod declared_errors;
 mod handled;
 mod loops;
 mod matching;
+mod shell;
 mod side;
 mod support;
 

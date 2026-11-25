@@ -4,6 +4,7 @@ mod fs;
 mod host;
 mod http;
 mod path;
+pub(crate) mod pipe;
 mod portable;
 mod process;
 mod regex;
@@ -29,6 +30,7 @@ pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
         .chain(http::definitions())
         .chain(host::definitions())
         .chain(path::definitions())
+        .chain(pipe::definitions())
         .chain(portable::definitions())
         .chain(process::definitions())
         .chain(regex::definitions())
@@ -45,7 +47,7 @@ pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
 
 /// Link the transitive closure in library order for reproducible output.
 pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
-    if !body.contains("ush_fn_std__") {
+    if !body.contains("ush_fn_std__") && !body.contains("__ush_std_") {
         return;
     }
     let runtime = concat!(

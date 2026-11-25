@@ -87,6 +87,13 @@ fn statement_effects(statement: &Statement, ctx: Context<'_>) -> EffectSet {
             expr_effects(iterable, ctx).union(&block_effects(body, ctx))
         }
         StatementKind::Loop { body } => block_effects(body, ctx),
+        StatementKind::Pipeline(pipeline) => super::shell::pipeline_effects(pipeline, ctx, false),
+        StatementKind::Export(bindings) => {
+            bindings.iter().fold(EffectSet::of(Effect::Env), |row, b| {
+                row.union(&expr_effects(&b.value, ctx))
+            })
+        }
+        StatementKind::Scoped { scope, body } => super::shell::scoped_effects(scope, body, ctx),
     }
 }
 
@@ -115,7 +122,7 @@ fn condition_effects(condition: &Condition, ctx: Context<'_>) -> EffectSet {
     }
 }
 
-fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
+pub(super) fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
     match expr {
         Expr::FunctionRef(_)
         | Expr::Quantity(..)
@@ -169,10 +176,11 @@ fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
         },
         Expr::ShellCapture(_) => super::table::shell_effects(false),
         Expr::AsyncBlock(body) => EffectSet::of(Effect::Task).union(&block_effects(body, ctx)),
+        Expr::Pipeline(pipeline) => super::shell::pipeline_effects(pipeline, ctx, true),
     }
 }
 
-fn call_effects(call: &Call, ctx: Context<'_>, capture: bool) -> EffectSet {
+pub(super) fn call_effects(call: &Call, ctx: Context<'_>, capture: bool) -> EffectSet {
     let mut effects = crate::commands::lookup(&call.name).map_or_else(
         || builtin_call_effects(&call.name),
         |cmd| cmd.effects(capture),

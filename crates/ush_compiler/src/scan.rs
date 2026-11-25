@@ -132,3 +132,44 @@ pub fn closes_shell_capture(line: &str, indent: &str) -> bool {
     line.strip_prefix(indent)
         .is_some_and(|rest| matches!(rest.trim_end(), ")" | ")?" | ");" | ")?;"))
 }
+
+/// Split at top-level `|` and `|&`, reporting whether each piece was
+/// followed by `|&`. `||` is never a pipe, and a `|` inside a string,
+/// parentheses, brackets or braces belongs to that inner text.
+pub(crate) fn split_pipeline(source: &str) -> crate::types::HeapVec<(&str, bool)> {
+    let bytes = source.as_bytes();
+    let mut pieces = crate::types::HeapVec::new();
+    let mut state = ScanState::default();
+    let (mut start, mut index) = (0usize, 0usize);
+    while index < source.len() {
+        if state.top_level() && bytes[index] == b'|' {
+            if bytes.get(index + 1) == Some(&b'|') {
+                index += 2;
+                continue;
+            }
+            let merge = bytes.get(index + 1) == Some(&b'&');
+            pieces.push((&source[start..index], merge));
+            index += 1 + usize::from(merge);
+            start = index;
+            continue;
+        }
+        index = advance(source, index, &mut state);
+    }
+    pieces.push((&source[start..], false));
+    pieces
+}
+
+/// Whether a line ends with a pipe, so the next line holds the next stage.
+/// Comments and inline shell (`$ …`) keep their own line structure.
+pub fn continues_pipeline(line: &str) -> bool {
+    let line = line.trim();
+    let inline_shell = line.starts_with('$') && !line.starts_with("$bin::");
+    if line.starts_with('#') || inline_shell || !line.ends_with(['|', '&']) {
+        return false;
+    }
+    let pieces = split_pipeline(line);
+    pieces.len() > 1
+        && pieces
+            .last()
+            .is_some_and(|(rest, _)| rest.trim().is_empty())
+}

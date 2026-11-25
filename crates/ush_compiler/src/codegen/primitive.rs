@@ -63,6 +63,7 @@ pub(crate) fn infer(
         }
         Expr::AsyncBlock(body) => infer_async_block_type(body, env, functions, impls, enums)
             .map(|ty| Type::Task(Box::new(ty))),
+        Expr::Pipeline(pipeline) => super::pipeline::infer(pipeline, env, functions, impls, enums),
     }
 }
 

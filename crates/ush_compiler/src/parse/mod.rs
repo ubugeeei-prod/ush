@@ -14,8 +14,10 @@ mod impls;
 mod inline;
 mod params;
 mod path;
+mod pipeline;
 mod record;
 mod returns;
+mod scoped;
 mod signature;
 mod statement;
 mod statement_support;
@@ -29,14 +31,14 @@ use bumpalo::{
 };
 
 use super::ast::Statement;
-use crate::scan::triple_quote_toggles;
+use crate::scan::{continues_pipeline, triple_quote_toggles};
 use crate::types::HeapVec as Vec;
 
 pub(super) type SourceLine<'a> = (usize, &'a str);
 
 pub(crate) fn parse_program(source: &str) -> Result<Vec<Statement>> {
     let arena = Bump::new();
-    let lines = collect_source_lines(source, &arena)?;
+    let lines = join_pipeline_lines(collect_source_lines(source, &arena)?, &arena)?;
     let mut cursor = 0usize;
     let mut program = statement::parse_block(&lines, &mut cursor, true, false)?;
 
@@ -102,4 +104,38 @@ fn collect_source_lines<'a>(
         bail!("line {block_start}: unterminated multiline string");
     }
     Ok(lines)
+}
+
+/// Join a line that ends with `|` or `|&` with the line holding the next
+/// stage. Blank lines and comments between the stages are skipped.
+fn join_pipeline_lines<'a>(
+    lines: BumpVec<'a, SourceLine<'a>>,
+    arena: &'a Bump,
+) -> Result<BumpVec<'a, SourceLine<'a>>> {
+    let mut joined = BumpVec::with_capacity_in(lines.len(), arena);
+    let mut pending: Option<(usize, BumpString<'a>)> = None;
+    for (line_no, line) in lines {
+        let Some((start, text)) = &mut pending else {
+            if continues_pipeline(line) {
+                pending = Some((line_no, BumpString::from_str_in(line, arena)));
+            } else {
+                joined.push((line_no, line));
+            }
+            continue;
+        };
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        text.push('\n');
+        text.push_str(line);
+        if !continues_pipeline(line) {
+            joined.push((*start, &*arena.alloc_str(text)));
+            pending = None;
+        }
+    }
+    if let Some((start, _)) = pending {
+        bail!("line {start}: the pipeline continues past the end of the file");
+    }
+    Ok(joined)
 }

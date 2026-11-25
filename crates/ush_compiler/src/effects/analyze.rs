@@ -181,5 +181,17 @@ fn statement_errors(
             function_errors,
         ),
         StatementKind::Break | StatementKind::Continue => Ok(ErrorSet::default()),
+        StatementKind::Pipeline(pipeline) => {
+            super::shell::pipeline_errors(pipeline, env, functions, impls, enums, function_errors)
+        }
+        StatementKind::Export(_) | StatementKind::Scoped { .. } => super::shell::scoped_errors(
+            statement,
+            env,
+            tasks,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        ),
     }
 }

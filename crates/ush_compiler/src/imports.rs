@@ -151,6 +151,14 @@ impl Resolver {
                 self.block(body, &mut inner);
             }
             S::Loop { body } => self.block(body, &mut scope.clone()),
+            S::Pipeline(pipeline) => pipeline.exprs_mut().for_each(|e| self.expr(e, scope)),
+            S::Export(bindings) => bindings
+                .iter_mut()
+                .for_each(|b| self.expr(&mut b.value, scope)),
+            S::Scoped { scope: kind, body } => {
+                kind.exprs_mut().for_each(|e| self.expr(e, scope));
+                self.block(body, &mut scope.clone());
+            }
             _ => {}
         }
     }
@@ -219,6 +227,7 @@ impl Resolver {
             }
             Expr::Try(e) | Expr::Field { base: e, .. } => self.expr(e, scope),
             Expr::AsyncBlock(body) => self.block(body, &mut scope.clone()),
+            Expr::Pipeline(pipeline) => pipeline.exprs_mut().for_each(|e| self.expr(e, scope)),
             Expr::Variant(v) => match &mut v.fields {
                 crate::ast::ExprFields::Tuple(es) => {
                     for e in es {

@@ -42,23 +42,49 @@ pub(crate) fn compile_control_statement(
             branch,
             returns_value,
         } => compile_if(branch, *returns_value, env, &mut ctx, out),
-        StatementKind::While { condition, body } => {
-            compile_while(condition, body, env, &mut ctx, out)
-        }
+        StatementKind::While { condition, body } => looped(&mut ctx, |ctx| {
+            compile_while(condition, body, env, ctx, out)
+        }),
         StatementKind::For {
             name,
             iterable,
             body,
-        } => compile_for(name, iterable, env, body, &mut ctx, out),
-        StatementKind::Loop { body } => compile_loop(body, env, &mut ctx, out),
-        StatementKind::Break => {
-            out.push_str("break\n");
+        } => looped(&mut ctx, |ctx| {
+            compile_for(name, iterable, env, body, ctx, out)
+        }),
+        StatementKind::Loop { body } => looped(&mut ctx, |ctx| compile_loop(body, env, ctx, out)),
+        StatementKind::Break | StatementKind::Continue => {
+            super::scoped::unwind_to_loop(ctx.state, out);
+            let keyword = if matches!(kind, StatementKind::Break) {
+                "break"
+            } else {
+                "continue"
+            };
+            out.push_str(keyword);
+            out.push('\n');
             Ok(())
         }
-        StatementKind::Continue => {
-            out.push_str("continue\n");
-            Ok(())
+        StatementKind::Pipeline(pipeline) => {
+            super::pipeline::compile_statement(pipeline, env, &mut ctx, out)
+        }
+        StatementKind::Export(bindings) => {
+            super::scoped::compile_export(bindings, env, &mut ctx, out)
+        }
+        StatementKind::Scoped { scope, body } => {
+            super::scoped::compile_scoped(scope, body, env, &mut ctx, out)
         }
         _ => return None,
     })
+}
+
+/// Compile a loop with its body one loop deeper, which is how `break`
+/// and `continue` know which scoped blocks they leave.
+fn looped(
+    ctx: &mut ControlContext<'_>,
+    compile: impl FnOnce(&mut ControlContext<'_>) -> Result<()>,
+) -> Result<()> {
+    ctx.state.loop_depth += 1;
+    let result = compile(ctx);
+    ctx.state.loop_depth -= 1;
+    result
 }

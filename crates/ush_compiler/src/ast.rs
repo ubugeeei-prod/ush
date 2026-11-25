@@ -1,5 +1,6 @@
 mod control;
 mod items;
+mod shell;
 mod ty;
 
 use alloc::boxed::Box;
@@ -11,6 +12,7 @@ pub(crate) use items::{
     FunctionParam, MethodCall, NamedExpr, NamedFieldType, NamedPattern, PatternFields, TraitDef,
     TraitImpl, UseItem, VariantDef, VariantExpr, VariantFields, VariantPattern,
 };
+pub(crate) use shell::{EnvBinding, Pipeline, Scope, Stage};
 pub(crate) use ty::{CompareOp, Type};
 
 #[derive(Debug, Clone)]
@@ -90,6 +92,15 @@ pub(crate) enum StatementKind {
     },
     Break,
     Continue,
+    /// `a | b`: the last stage's stdout streams to the script's.
+    Pipeline(Pipeline),
+    /// `export NAME = value, …` for the rest of the process scope.
+    Export(Vec<EnvBinding>),
+    /// `cd path { … }` and `export NAME = value { … }`.
+    Scoped {
+        scope: Scope,
+        body: Vec<Statement>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -124,6 +135,8 @@ pub(crate) enum Expr {
         end: Box<Expr>,
     },
     AsyncBlock(Vec<Statement>),
+    /// `a | b` in value position: the last stage's captured stdout.
+    Pipeline(Box<Pipeline>),
 }
 
 #[derive(Debug, Clone)]

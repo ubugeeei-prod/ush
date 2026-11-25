@@ -30,6 +30,9 @@ fn statement(s: &Statement) -> bool {
         S::While { condition: c, body } => condition(c) || references(body),
         S::For { iterable, body, .. } => expr(iterable) || references(body),
         S::Loop { body } => references(body),
+        S::Pipeline(pipeline) => pipeline.exprs().any(expr),
+        S::Export(bindings) => bindings.iter().any(|b| expr(&b.value)),
+        S::Scoped { scope, body } => scope.exprs().any(expr) || references(body),
         _ => false,
     }
 }
@@ -59,6 +62,7 @@ fn expr(e: &Expr) -> bool {
         Expr::Try(e) | Expr::Field { base: e, .. } => expr(e),
         Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(expr),
         Expr::AsyncBlock(body) => references(body),
+        Expr::Pipeline(pipeline) => pipeline.exprs().any(expr),
         Expr::Variant(v) => match &v.fields {
             crate::ast::ExprFields::Tuple(es) => es.iter().any(expr),
             crate::ast::ExprFields::Struct(es) => es.iter().any(|e| expr(&e.expr)),

@@ -46,6 +46,7 @@ pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
             "io::eprint" => EffectSet::of(Effect::Stderr),
             "io::print" | "io::println" => EffectSet::of(Effect::Stdout),
             "io::read_all" | "io::read_lines" => EffectSet::of(Effect::Stdin),
+            "io::from_file" | "io::to_file" | "io::append_to" => EffectSet::of(Effect::Fs),
             _ if rest.starts_with("os::") || rest.starts_with("terminal::") => {
                 EffectSet::of(Effect::Env)
             }
