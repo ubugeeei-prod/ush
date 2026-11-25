@@ -40,10 +40,18 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("effect", "declare an effect operation"),
     ("with", "handle an effect"),
     ("alias", "alias name = …"),
+    (
+        "allow_fail",
+        "run a command and carry on whatever its status",
+    ),
     ("async", "spawn an asynchronous task"),
     ("await", "await an async task"),
     ("break", "exit the current loop"),
     ("continue", "skip to the next iteration"),
+    (
+        "defer",
+        "run a block when the function returns or the script exits",
+    ),
     ("else", "else branch"),
     ("enum", "declare an enum"),
     (
@@ -78,7 +86,11 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("raise", "raise a typed error"),
     ("return", "return from a function"),
     ("shell", "execute a shell command"),
-    ("spawn", "spawn an async task"),
+    (
+        "spawn",
+        "run a command in the background: let job = spawn cmd",
+    ),
+    ("status_of", "a command's exit status as an Int"),
     ("trait", "declare a trait"),
     ("true", "boolean true"),
     ("type", "type alias"),
