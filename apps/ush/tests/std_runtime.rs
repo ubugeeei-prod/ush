@@ -183,6 +183,10 @@ fn atomic_replacement_preserves_special_mode_bits_when_permitted() {
         eprintln!("setuid modes are prohibited in this environment: {error}");
         return;
     }
+    if fs::metadata(&path).unwrap().permissions().mode() & 0o7777 != 0o4440 {
+        eprintln!("the filesystem masks setuid bits when setting permissions");
+        return;
+    }
     let output = Command::new(USH)
         .args(["__runtime", "v1", "std::fs::write_atomic"])
         .arg(&path)
