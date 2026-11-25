@@ -76,24 +76,36 @@ impl<'a> Scope<'a> {
 
     /// The internal name of a type, trait or effect written bare in this
     /// file. The file's own declarations win over imports, explicit
-    /// imports over wildcards; two wildcards offering different items
-    /// make the name ambiguous.
-    pub(crate) fn type_name(&self, own: &Map<Name, Name>, name: &str) -> Result<Option<Name>> {
+    /// imports over wildcards.
+    pub(crate) fn type_name(&self, own: &Map<Name, Name>, name: &str) -> Option<Name> {
         if let Some(internal) = own.get(name) {
-            return Ok(Some(internal.clone()));
+            return Some(internal.clone());
         }
         if let Some(item) = self.explicit.get(name) {
-            return Ok(item.kind.is_type().then(|| item.internal.clone()));
+            return item.kind.is_type().then(|| item.internal.clone());
         }
-        let mut found: Option<&Name> = None;
-        for (alias, item) in &self.wildcards {
-            if alias == name && item.kind.is_type() {
-                if found.is_some_and(|previous| *previous != item.internal) {
-                    bail!("ambiguous wildcard import: {name}");
-                }
-                found = Some(&item.internal);
+        self.wildcards
+            .iter()
+            .find(|(alias, item)| alias == name && item.kind.is_type())
+            .map(|(_, item)| item.internal.clone())
+    }
+
+    /// Two wildcards offering different types under one name conflict,
+    /// as two wildcards offering different functions do, unless the file
+    /// declares or explicitly imports that name.
+    pub(crate) fn ensure_unambiguous_types(&self, own: &Map<Name, Name>) -> Result<()> {
+        let mut seen: Map<&Name, &Name> = Map::default();
+        for (name, item) in &self.wildcards {
+            if !item.kind.is_type() || own.contains_key(name) || self.explicit.contains_key(name) {
+                continue;
+            }
+            if seen
+                .insert(name, &item.internal)
+                .is_some_and(|previous| *previous != item.internal)
+            {
+                bail!("ambiguous wildcard import: {name}");
             }
         }
-        Ok(found.cloned())
+        Ok(())
     }
 }

@@ -131,3 +131,40 @@ fn types_enums_and_effects_cross_module_boundaries() {
         "{error}"
     );
 }
+
+#[test]
+fn wildcards_offering_the_same_name_conflict_unless_disambiguated() {
+    let project = Project::new(&[
+        (
+            "a.ush",
+            "pub enum Status {\n  A,\n}\npub fn label() -> String {\n  \"a\"\n}\n",
+        ),
+        (
+            "b.ush",
+            "pub enum Status {\n  B,\n}\npub fn label() -> String {\n  \"b\"\n}\n",
+        ),
+        (
+            "both.ush",
+            "mod \"a.ush\"\nmod \"b.ush\"\nuse a::*\nuse b::{Status}\nuse b::*\n",
+        ),
+        (
+            "types.ush",
+            "mod \"a.ush\"\nmod \"b.ush\"\nuse a::{label}\nuse a::*\nuse b::*\n",
+        ),
+        (
+            "chosen.ush",
+            "mod \"a.ush\"\nmod \"b.ush\"\nuse a::*\nuse b::{Status}\nuse b::{label as b_label}\nlet s = Status::B\nprint label + b_label\n",
+        ),
+    ]);
+    assert!(
+        project
+            .error("both.ush")
+            .contains("ambiguous wildcard import: label")
+    );
+    assert!(
+        project
+            .error("types.ush")
+            .contains("ambiguous wildcard import: Status")
+    );
+    assert_eq!(project.run_everywhere("chosen.ush"), "ab\n");
+}

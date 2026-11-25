@@ -42,6 +42,7 @@ pub(super) fn rename(program: &mut [Statement], scope: &Scope<'_>) -> Result<()>
         };
         own.insert(name.clone(), internal);
     }
+    scope.ensure_unambiguous_types(&own)?;
     let mut renamer = Renamer {
         scope,
         own,
@@ -73,10 +74,8 @@ impl Renamer<'_> {
         if self.bound.contains(name) {
             return;
         }
-        match self.scope.type_name(&self.own, name) {
-            Ok(Some(internal)) => *name = internal,
-            Ok(None) => {}
-            Err(error) => self.fail(error),
+        if let Some(internal) = self.scope.type_name(&self.own, name) {
+            *name = internal;
         }
     }
 
@@ -128,7 +127,7 @@ impl VisitMut for Renamer<'_> {
             let (scope, own, bound) = (self.scope, &self.own, &self.bound);
             scheme.rename_types(&mut |name| {
                 if !bound.contains(name)
-                    && let Ok(Some(internal)) = scope.type_name(own, name)
+                    && let Some(internal) = scope.type_name(own, name)
                 {
                     *name = internal;
                 }

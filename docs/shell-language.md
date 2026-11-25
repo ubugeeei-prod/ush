@@ -184,9 +184,11 @@ gh::annotate Level::Warning "  disk is nearly full  "
   `pub enum`, `pub trait`, `pub effect`, `pub extern … { … }`). Using a
   private item from another file is an error. Root scripts may use `pub`
   but need not.
-- A module's own declarations win over its imports, and explicit imports
-  win over `use m::*`; a name two wildcards provide is ambiguous. A local
-  type that is also imported by name is an error.
+- A file's own declarations win over its imports, and explicit imports win
+  over `use m::*`. Two wildcards that offer different items under one name
+  are an error unless the file declares or explicitly imports that name, as
+  with std wildcards. A local declaration that is also imported by name is
+  an error.
 - Each file is resolved against its own imports: a module's
   `use std::string::*` does not leak into the script that imports it.
 - `extern` libraries and `std::path::from_source` inside a module resolve
