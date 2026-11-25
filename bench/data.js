@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795605982526,
+  "lastUpdate": 1795607193467,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -4223,6 +4223,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 189061,
             "range": "± 2205",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "83cd1fef0d3c0af231ff44b66c8e590bb87b36ba",
+          "message": "feat: infer error rows for signatures that omit them (#177)\n\n* feat(compiler): infer the error row of a signature that omits it\n\nA function without `/ row` exposes the errors its body raises, as it\nalready did for effects, instead of failing with \"does not declare an error\nset\". Callers, `?` and typed failures see the inferred row; a written row\nis still a checked upper bound and `/ ()` still means pure.\n\nBoth row fixpoints run until stable and keep each previous row, so\nrecursive cycles settle on the least covering row. Rows are split into\nerrors and effects after linking, so they may name imported error types.\nThe effects report carries each body's error types.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat(tooling): show inferred rows in ush effects and hovers\n\n`ush effects` lists each function's error types ahead of its effects, and\na hover on a function shows its row, marked inferred or declared.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* docs: document inferred rows and drop redundant rows from scripts\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* test(compiler): infer rows through let mut assignments\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-25T20:40:53+09:00",
+          "tree_id": "393c70cf4aa52321e326d25223e087b68fb9a736",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/83cd1fef0d3c0af231ff44b66c8e590bb87b36ba"
+        },
+        "date": 1795607192982,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1050,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 155,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 389,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 945,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 925,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 875,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 163,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 100,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 181,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 90,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1004,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 885,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 789,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 543,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1848,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 9,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1222,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 6443,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 21215,
+            "range": "± 96",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 7001917,
+            "range": "± 22115",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 149755,
+            "range": "± 817",
             "unit": "ns/iter"
           }
         ]
