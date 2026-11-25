@@ -50,7 +50,13 @@ fn formatting_preserves_argument_bytes_and_variable_braces() {
 fn completion_after_a_sigil_offers_variable_names() {
     let source = "let name = \"ush\"\necho literal $na\n";
     let items = ush_tooling::completions_at(source, 1, 16);
-    assert!(items.iter().any(|item| item.label == "name"));
+    assert_eq!(
+        items
+            .iter()
+            .map(|item| item.label.as_str())
+            .collect::<Vec<_>>(),
+        ["name"]
+    );
     assert!(
         items
             .iter()
