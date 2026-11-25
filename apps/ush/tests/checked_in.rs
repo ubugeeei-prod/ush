@@ -40,7 +40,7 @@ fn output_is_deterministic_and_documents_regeneration() {
 
     assert_eq!(first_shell, second_shell);
     assert!(first_shell.starts_with(
-        "#!/bin/sh\n# Generated from 'greet.ush' by ush.\n# DO NOT EDIT MANUALLY.\n# Regenerate with: ush compile 'greet.ush' --checked-in -o 'greet.sh'\n"
+        "#!/bin/sh\n# Generated from 'greet.ush' by ush.\n# DO NOT EDIT MANUALLY.\n# Source: greet.ush\n# Source map: embedded __ush_at markers; ush explain SOURCE LINE\n# Regenerate with: ush compile 'greet.ush' --checked-in -o 'greet.sh'\n"
     ));
     assert!(!first_shell.contains(first.path().to_str().unwrap()));
     assert!(!first_shell.contains(second.path().to_str().unwrap()));
@@ -98,4 +98,27 @@ fn source_and_output_must_be_adjacent() {
         String::from_utf8_lossy(&output.stderr)
             .contains("checked-in source and output must be in the same directory")
     );
+}
+
+#[test]
+fn relative_script_filename_does_not_require_current_directory_on_path() {
+    let dir = tempdir().unwrap();
+    fs::write(dir.path().join("local.ush"), "print \"local\"\n").unwrap();
+    assert!(
+        compile(&dir.path().join("local.ush"), &dir.path().join("local.sh"))
+            .status
+            .success()
+    );
+    let output = Command::new("sh")
+        .arg("local.sh")
+        .current_dir(dir.path())
+        .env("PATH", "/usr/bin:/bin")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(output.stdout, b"local\n");
 }

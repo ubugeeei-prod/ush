@@ -4,32 +4,44 @@
 Release archives and the install script place it next to `ush`, so an editor can
 usually invoke `ush_lsp` directly after installation.
 
+## Editor installation
+
+```sh
+ush editor install vscode
+ush editor install cursor
+ush editor install vscodium
+# Export an offline VSIX or use an editor command outside PATH:
+ush editor install --output ush.vsix
+ush editor install cursor --cli /path/to/cursor
+```
+
+The complete extension is embedded in `ush`; installation needs no npm,
+network download or marketplace account. The package uses the adjacent
+`ush_lsp` executable when present. `ush.server.path` overrides it in the editor.
+TextMate highlighting works before the server starts; semantic tokens refine
+function names. The extension activates only in trusted workspaces.
+
 ## Capabilities
 
-Implemented LSP methods, with the engine that backs each one
-living in [`crates/ush_tooling`](../crates/ush_tooling):
+Diagnostics, formatting, semantic highlighting, completion, hover, definition,
+references, rename, signature help, document symbols and folding are available.
+The server accepts incremental or full changes, tracks document versions,
+invalidates cached tokens on edits and clears diagnostics when documents close.
+All protocol positions use UTF-16, including Japanese text and emoji. Invalid
+requests return JSON-RPC errors without terminating the server. CR, CRLF and LF
+documents are normalized internally to the same line model.
 
-| LSP method | Provides | Engine |
-| --- | --- | --- |
-| `textDocument/didOpen` / `didChange` / `didSave` | Full-document sync; triggers `publishDiagnostics`. | – |
-| `textDocument/publishDiagnostics` | Compile errors from `ush check`. | `diagnostic::check_source` |
-| `textDocument/formatting` | In-place format; idempotent rewriter. | `format::format_source` |
-| `textDocument/semanticTokens/full` | Syntax highlighting (keyword / string / number / comment / variable / function / type / property / operator / decorator). | `semantic::semantic_tokens` |
-| `textDocument/documentHighlight` | Every occurrence of the identifier under the cursor. | `highlight::document_highlights` |
-| `textDocument/documentSymbol` | Outline of top-level `fn` / `enum` / `trait` / `type` / `let` / `alias`. | `symbol::document_symbols` |
-| `textDocument/foldingRange` | `{ … }` block folding, ignoring braces inside strings / comments / `#[…]` attributes. | `folding::folding_ranges` |
-| `textDocument/hover` | Markdown tooltip: keyword help, or "role + declaring line" for an identifier. | `hover::hover` |
-| `textDocument/completion` | Every `.ush` keyword + every identifier the semantic tokenizer has classified in the open document. | `completion::completions` |
-| `textDocument/definition` | First occurrence of the identifier under the cursor (no scope analysis yet). | `references::definition` |
-| `textDocument/references` | Every occurrence of the identifier under the cursor. | `references::references` |
-| `textDocument/prepareRename` | Range to highlight before the rename popup. | `references::prepare_rename` |
-| `textDocument/rename` | `WorkspaceEdit` with one `TextEdit` per occurrence. Rejects new names that are not valid `.ush` identifiers with an LSP error. | `references::rename_locations` |
+Navigation distinguishes lexical bindings, function parameters, nested blocks
+and comprehensions. Renaming rejects keywords and existing bound names to avoid
+capture. Rename in documents containing `match` or `if let` patterns is conservatively
+rejected until pattern binding resolution is available. Extern function renames are
+also rejected because their names must match the sourced shell library. `includeDeclaration` is honored for references. Signature help handles
+generics, nested parameter types, parentheses and shell-style consecutive arguments.
 
-Not yet implemented: `signatureHelp`, `codeAction`, `inlayHint`,
-`callHierarchy`, `workspaceSymbol`. Most of these will land once
-the compiler exposes typed information; the current providers are
-all syntactic so they cannot answer "what type is this" without
-re-running the effects pass.
+The index is deliberately tolerant of incomplete programs. It currently works
+within each document; cross-file workspace symbols, type-directed member completion,
+inlay hints and call hierarchies are not implemented. Unknown or ambiguous symbols
+are left unresolved rather than renamed speculatively.
 
 ## Invocation
 

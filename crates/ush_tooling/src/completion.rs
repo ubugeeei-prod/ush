@@ -33,6 +33,12 @@ pub enum CompletionKind {
 }
 
 const KEYWORDS: &[(&str, &str)] = &[
+    ("in", "iterate over a collection"),
+    ("as", "name an extern module"),
+    ("try", "propagate a fallible result"),
+    ("do", "invoke an effect operation"),
+    ("effect", "declare an effect operation"),
+    ("with", "handle an effect"),
     ("alias", "alias name = …"),
     ("async", "spawn an asynchronous task"),
     ("await", "await an async task"),

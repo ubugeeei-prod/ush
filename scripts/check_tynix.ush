@@ -1,0 +1,13 @@
+# Validate typed package configuration and its Nix bootstrap artifact.
+shell """
+set -eu
+TYNIX=${TYNIX:-tynix}
+"$TYNIX" check flake.tynix
+work=$(mktemp -d)
+trap 'rm -rf "$work"' 0
+"$TYNIX" compile flake.tynix -o "$work/flake.nix"
+if ! cmp -s flake.nix "$work/flake.nix"; then
+  printf '%s\n' 'flake.nix is stale; run tynix compile flake.tynix -o flake.nix' >&2
+  exit 1
+fi
+"""

@@ -1,3 +1,6 @@
+# Paired benchmark orchestration, with Python for JSON/statistical processing.
+shell """
+python3 - "$@" <<'USH_BENCH_PY'
 """Compare the PR to its merge base on the same machine. Times are nanoseconds."""
 
 import json
@@ -100,3 +103,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+USH_BENCH_PY
+"""

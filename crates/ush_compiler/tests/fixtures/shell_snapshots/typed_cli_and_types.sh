@@ -1,6 +1,8 @@
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/typed_cli_and_types.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/typed_cli_and_types.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -10,7 +12,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/type
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -45,8 +57,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then

@@ -1,4 +1,5 @@
 mod cli;
+mod editor;
 mod effects_report;
 mod explain;
 mod panic_hook;
@@ -24,7 +25,14 @@ enum ScriptMode {
     Posix,
 }
 
-fn main() -> Result<()> {
+fn main() {
+    if let Err(error) = run() {
+        eprintln!("ush: {error:#}");
+        process::exit(1);
+    }
+}
+
+fn run() -> Result<()> {
     panic_hook::install();
 
     if script_docs::handle_raw_doc_request()? {
@@ -36,6 +44,10 @@ fn main() -> Result<()> {
 
     if let Some(action) = &cli.action {
         match action {
+            Action::Editor { action } => {
+                editor::run(action)?;
+                return Ok(());
+            }
             Action::Compile {
                 target,
                 input,

@@ -14,7 +14,7 @@ assignees: ""
 
 - `ush --version`:
 - OS / arch (e.g. `macos-aarch64`, `linux-x86_64-gnu`):
-- Install method (`curl|sh`, `cargo install`, Nix, Docker, from source):
+- Install method (`curl|sh`, `cargo install`, tynix/Nix, from source):
 - Shell (if relevant: invoking shell, `$SHELL`, terminal emulator):
 
 ## Reproduction

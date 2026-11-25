@@ -28,7 +28,8 @@ fn a_shell_line_number_maps_back_to_the_ush_source() {
     assert!(!run.status.success());
 
     assert!(
-        stderr.contains("boom.ush:3: command failed (exit 127)"),
+        stderr
+            .contains("boom.ush:3: command not found; check the command name and PATH (exit 127)"),
         "{stderr}"
     );
     assert!(!stderr.contains("__ush_"), "{stderr}");

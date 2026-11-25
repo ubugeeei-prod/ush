@@ -73,7 +73,7 @@ Implemented today:
 - Structured helpers: `len`, `lines`, `json`, `xml`, `html`, `car`, `cdr`, `head`, `tail`, `take`, `drop`, `nth`, `enumerate`, `swap`, `fst`, `snd`, `frev`, `fsort`, `funiq`, `fjoin`, `map`, `fmap`, `flat`, `ffmap`, `fzip`, `each`, `filter`, `ffilter`, `any`, `fany`, `some`, `fsome`
 - Environment-variable expansion, `~` expansion, and simple glob expansion
 - Criterion benchmark skeleton for parser/profiling work
-- GitHub Releases, `curl` installer, `nix`, and Docker packaging entry points
+- GitHub Releases, `curl` installer, tynix/Nix packaging entry points
 - Emacs-style and opt-in Vi-style REPL editing modes
 - `ush format` and `ush check` commands for formatter and typechecking passes
 - `ush_lsp` with document formatting, diagnostics, and semantic tokens for editor integration
@@ -118,7 +118,7 @@ If you want an explicit location instead:
 curl -fsSL https://raw.githubusercontent.com/ubugeeei/ush/main/install.sh | sh -s -- --bin-dir "$HOME/.local/bin"
 ```
 
-`nix profile install ...` and the Docker image already expose `ush` on `PATH`.
+`nix profile install ...` already exposes `ush` on `PATH`.
 
 ```bash
 cargo run -p ush
@@ -529,23 +529,29 @@ install -m 755 target/release/ush "$HOME/.local/bin/ush"
 install -m 755 target/release/ush_lsp "$HOME/.local/bin/ush_lsp"
 ```
 
-### Docker
+### tynix / Nix
 
-The Docker image is meant to be a distribution target and base image: a small environment where `ush` is already installed and ready to use.
+`flake.tynix` is the package and development-environment source; `flake.nix`
+is generated for Nix consumers. Docker is not required.
 
-```bash
-docker build -t ush .
-docker run --rm -it ush
+```sh
+nix develop
+nix profile install github:ubugeeei-prod/ush
+# After editing flake.tynix:
+tynix check flake.tynix
+tynix compile flake.tynix -o flake.nix
 ```
 
-Use it as a base image:
+### Editor support
 
-```dockerfile
-FROM ush
-
-RUN printf "a\nb\n" | len
-CMD ["ush"]
+```sh
+ush editor install vscode   # also: cursor, vscodium
 ```
+
+The extension and language client are bundled in ush. See [editor setup](docs/lsp.md).
+The installer and repository scripts are authored in `.ush`; their `.sh` files
+are generated bootstrap artifacts. Edit `install.ush` or `scripts/*.ush`, then
+run `ush compile SOURCE --checked-in -o OUTPUT.sh`.
 
 ## Benchmarks
 
@@ -583,7 +589,7 @@ Release qualification includes the following checks.
 - **Correctness gates** — `cargo test --workspace` on Ubuntu and macOS, `cargo test --release` on every published target (Linux `x86_64`/`aarch64`, macOS `x86_64`/`aarch64`), `no_std` test suite, MSRV gate (currently 1.88), rustdoc with `-D warnings`, and `ush check` + `ush format --check` over the committed example corpus.
 - **Static analysis** — clippy `-D warnings`, workspace-wide lints denying `todo!()` / `dbg!()` / `unimplemented!()` / `unused_must_use`, plus CodeQL (Rust, `security-and-quality` query pack) on every PR and a weekly cron.
 - **Supply chain** — `cargo audit`, `cargo deny` (licenses / sources / advisories / bans), weekly Gitleaks secret scan, a vendored-`rustyline` drift watcher, and Dependabot subscribed to GitHub Actions updates so action versions never silently age.
-- **Runtime hardening** — signal helpers use `sigaction(2)` with checked `pid_t` casts; the compiler enforces `match` exhaustiveness at the effects pass; `install.sh` pins HTTPS + TLS 1.2, sets `umask 077`, and best-effort `set -o pipefail`; the docker image runs as a non-root user.
+- **Runtime hardening** — signal helpers use `sigaction(2)` with checked `pid_t` casts; the compiler enforces `match` exhaustiveness at the effects pass; `install.sh` pins HTTPS + TLS 1.2, sets `umask 077`, and best-effort `set -o pipefail`.
 - **Release pipeline** — tag push (or the `Cut Release` workflow) triggers preflight (tag matches `Cargo.toml`), per-target build + test + attestation, installer smoke-test against the freshly-built archive, and a GitHub Release with `sha256sums.txt`. Procedure is documented in [`docs/release-process.md`](./docs/release-process.md).
 - **Performance gate** — parser and `.ush → sh` compile benchmarks are tracked against the `main` baseline on `gh-pages`; PRs fail when a microbench regresses by more than 25%.
 

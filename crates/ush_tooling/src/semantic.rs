@@ -12,7 +12,8 @@ use crate::token::{SemanticToken, SemanticTokenKind};
 const KEYWORDS: &[&str] = &[
     "alias", "async", "const", "do", "fail", "using", "unit", "where", "effect", "enum", "extern",
     "test", "fn", "impl", "let", "match", "print", "raise", "return", "shell", "trait", "try",
-    "type", "use", "with",
+    "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop", "break", "continue",
+    "true", "false", "await", "spawn",
 ];
 
 #[derive(Clone, Copy)]
@@ -30,7 +31,24 @@ pub fn semantic_tokens(source: &str) -> Vec<SemanticToken> {
     for (line_no, line) in source.lines().enumerate() {
         in_multiline = tokenize_line(line_no as u32, line, &mut out, in_multiline);
     }
+    let lines: Vec<_> = source.lines().collect();
+    let functions: std::collections::HashSet<_> = out
+        .windows(2)
+        .filter(|pair| text(&lines, pair[0]) == "fn")
+        .map(|pair| text(&lines, pair[1]))
+        .collect();
+    for token in &mut out {
+        if token.kind == SemanticTokenKind::Variable && functions.contains(text(&lines, *token)) {
+            token.kind = SemanticTokenKind::Function;
+        }
+    }
     out
+}
+
+fn text<'a>(lines: &[&'a str], token: SemanticToken) -> &'a str {
+    lines[token.line as usize]
+        .get(token.start as usize..(token.start + token.length) as usize)
+        .unwrap_or("")
 }
 
 fn tokenize_line(
@@ -51,7 +69,7 @@ fn tokenize_line(
             in_multiline = !closed;
             continue;
         }
-        let ch = bytes[index] as char;
+        let ch = line[index..].chars().next().expect("in bounds");
         if ch.is_ascii_whitespace() {
             index += 1;
             continue;

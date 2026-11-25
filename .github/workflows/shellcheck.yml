@@ -6,12 +6,16 @@ on:
       - main
     paths:
       - "install.sh"
+      - "install.ush"
       - "scripts/**.sh"
+      - "scripts/**.ush"
       - ".github/workflows/shellcheck.yml"
   pull_request:
     paths:
       - "install.sh"
+      - "install.ush"
       - "scripts/**.sh"
+      - "scripts/**.ush"
       - ".github/workflows/shellcheck.yml"
   workflow_dispatch:
 

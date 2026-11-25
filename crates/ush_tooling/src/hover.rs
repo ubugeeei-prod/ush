@@ -97,14 +97,28 @@ pub fn hover(source: &str, line: u32, character: u32) -> Option<Hover> {
         return None;
     }
 
-    let body = match cursor.kind {
-        SemanticTokenKind::Keyword => keyword_hover(&text)?,
-        SemanticTokenKind::Variable => identifier_hover(&text, "variable", &lines, &tokens),
-        SemanticTokenKind::Function => identifier_hover(&text, "function", &lines, &tokens),
-        SemanticTokenKind::Type => identifier_hover(&text, "type", &lines, &tokens),
-        SemanticTokenKind::Property => identifier_hover(&text, "property", &lines, &tokens),
-        SemanticTokenKind::Decorator => format!("**attribute** `{text}`"),
-        _ => return None,
+    let body = if let Some(decl) = crate::references::definition(source, line, character) {
+        let snippet = lines.get(decl.line as usize).copied().unwrap_or("").trim();
+        let role = match tokens
+            .iter()
+            .find(|t| t.line == decl.line && t.start == decl.start)
+            .map(|t| t.kind)
+        {
+            Some(SemanticTokenKind::Function) => "function",
+            Some(SemanticTokenKind::Type) => "type",
+            _ => "variable",
+        };
+        format!("**{role}** `{text}`\n\n```ush\n{snippet}\n```")
+    } else {
+        match cursor.kind {
+            SemanticTokenKind::Keyword => keyword_hover(&text)?,
+            SemanticTokenKind::Variable => identifier_hover(&text, "variable", &lines, &tokens),
+            SemanticTokenKind::Function => identifier_hover(&text, "function", &lines, &tokens),
+            SemanticTokenKind::Type => identifier_hover(&text, "type", &lines, &tokens),
+            SemanticTokenKind::Property => identifier_hover(&text, "property", &lines, &tokens),
+            SemanticTokenKind::Decorator => format!("**attribute** `{text}`"),
+            _ => return None,
+        }
     };
     Some(Hover {
         contents: body,

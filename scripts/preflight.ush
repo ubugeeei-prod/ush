@@ -1,0 +1,45 @@
+# Run the repository checks from its root directory.
+use $bin::*
+fn banner(name: String) -> () {
+  print "=== " + name + " ==="
+}
+banner "rustfmt"
+cargo "fmt" "--all" "--check"
+banner "clippy"
+cargo "clippy" "--locked" "--workspace" "--all-targets" "--no-deps" "--" "-D" "warnings"
+banner "workspace tests"
+cargo "test" "--locked" "--workspace"
+banner "release tests"
+cargo "test" "--locked" "--workspace" "--release"
+banner "no_std"
+cargo "check" "--locked" "-p" "ush_compiler" "--no-default-features"
+cargo "test" "--locked" "-p" "ush_compiler" "--no-default-features" "--lib"
+cargo "clippy" "--locked" "-p" "ush_compiler" "--no-default-features" "--lib" "--no-deps" "--" "-D" "warnings"
+banner "generated artifacts"
+sh "scripts/check_generated.sh"
+banner "line limit"
+sh "scripts/check_rs_line_limit.sh"
+banner "installer"
+sh "scripts/test_install.sh"
+banner "rustdoc"
+shell "RUSTDOCFLAGS='-D warnings' cargo doc --locked --workspace --no-deps --document-private-items"
+banner "shell targets"
+sh "scripts/test_targets.sh"
+banner "editor"
+shell "(cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build)"
+banner "bench builds"
+cargo "bench" "--locked" "-p" "ush_shell" "--no-run"
+cargo "bench" "--locked" "-p" "ush_compiler" "--no-run"
+banner "vendored dependency"
+sh "scripts/check_rustyline_upstream.sh"
+banner "examples and shellcheck"
+shell """
+for example in examples/*.ush; do
+  cargo run --locked -p ush --quiet -- check "$example"
+  cargo run --locked -p ush --quiet -- format --check "$example"
+done
+if command -v shellcheck >/dev/null 2>&1; then
+  shellcheck --severity=warning install.sh scripts/*.sh
+fi
+"""
+banner "preflight passed"

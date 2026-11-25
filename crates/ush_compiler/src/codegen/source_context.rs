@@ -47,6 +47,23 @@ pub(super) fn emit(
         &name.replace('\r', "\\r").replace('\n', "\\n"),
     ));
     out.push_str(" by ush.\n# DO NOT EDIT MANUALLY.\n");
+    out.push_str("# Source: ");
+    let source = match &context {
+        #[cfg(feature = "std")]
+        SourceContext::Absolute { path, .. } => {
+            out.push_str("file://");
+            *path
+        }
+        _ => name,
+    };
+    for byte in source.bytes() {
+        if byte.is_ascii_alphanumeric() || b"/-_.~".contains(&byte) {
+            out.push(byte as char);
+        } else {
+            out.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    out.push_str("\n# Source map: embedded __ush_at markers; ush explain SOURCE LINE\n");
     #[cfg(feature = "std")]
     if let SourceContext::CheckedIn {
         source_name,
@@ -82,7 +99,7 @@ pub(super) fn emit(
         }
         #[cfg(feature = "std")]
         SourceContext::CheckedIn { source_name, .. } => {
-            out.push_str("__ush_entrypoint=$0\ncase $__ush_entrypoint in\n  */*) ;;\n  *) __ush_entrypoint=$(command -v \"$__ush_entrypoint\") ;;\nesac\n__ush_source_dir=$(CDPATH= cd -P \"$(dirname \"$__ush_entrypoint\")\" && pwd -P)\n");
+            out.push_str("__ush_entrypoint=$0\ncase $__ush_entrypoint in\n  */*) ;;\n  *) if [ -f \"$__ush_entrypoint\" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v \"$__ush_entrypoint\"); fi ;;\nesac\n__ush_source_dir=$(CDPATH='' cd -P \"$(dirname \"$__ush_entrypoint\")\" && pwd -P)\n");
             out.push_str(&format!(
                 "__ush_source_path=$__ush_source_dir/{}\n",
                 shell_quote(source_name)
@@ -94,7 +111,17 @@ pub(super) fn emit(
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }

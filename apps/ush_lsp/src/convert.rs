@@ -37,27 +37,31 @@ pub fn full_document_edit(source: &str, formatted: &str) -> TextEdit {
     }
 }
 
-pub fn semantic_tokens(items: &[UshToken]) -> SemanticTokens {
+pub fn semantic_tokens(source: &str, items: &[UshToken]) -> SemanticTokens {
     let mut prev_line = 0u32;
     let mut prev_start = 0u32;
     let mut data = Vec::new();
 
+    let lines: Vec<_> = source.lines().collect();
     for item in items {
+        let line = lines.get(item.line as usize).copied().unwrap_or("");
+        let start = utf16_column(line, 0, item.start);
+        let end = utf16_column(line, 0, item.start + item.length);
         let delta_line = item.line - prev_line;
         let delta_start = if delta_line == 0 {
-            item.start - prev_start
+            start - prev_start
         } else {
-            item.start
+            start
         };
         data.push(SemanticToken {
             delta_line,
             delta_start,
-            length: item.length,
+            length: end - start,
             token_type: item.kind.index(),
             token_modifiers_bitset: 0,
         });
         prev_line = item.line;
-        prev_start = item.start;
+        prev_start = start;
     }
 
     SemanticTokens {
@@ -70,17 +74,20 @@ fn line_range(source: &str, line: usize) -> Range {
     let text = source.lines().nth(line).unwrap_or("");
     Range {
         start: Position::new(line as u32, 0),
-        end: Position::new(line as u32, text.chars().count() as u32),
+        end: Position::new(line as u32, text.encode_utf16().count() as u32),
     }
 }
 
-pub fn document_highlights(items: &[Highlight]) -> Vec<DocumentHighlight> {
+pub fn document_highlights(source: &str, items: &[Highlight]) -> Vec<DocumentHighlight> {
     items
         .iter()
         .map(|item| DocumentHighlight {
             range: Range {
-                start: Position::new(item.line, item.start),
-                end: Position::new(item.line, item.start + item.length),
+                start: Position::new(item.line, utf16_column(source, item.line, item.start)),
+                end: Position::new(
+                    item.line,
+                    utf16_column(source, item.line, item.start + item.length),
+                ),
             },
             kind: Some(match item.kind {
                 HighlightKind::Write => DocumentHighlightKind::WRITE,
@@ -113,25 +120,32 @@ pub fn signature_help(help: UshSignatureHelp) -> LspSignatureHelp {
     }
 }
 
-pub fn range_of_reference(reference: &Reference) -> Range {
+pub fn range_of_reference(source: &str, reference: &Reference) -> Range {
     Range {
-        start: Position::new(reference.line, reference.start),
-        end: Position::new(reference.line, reference.start + reference.length),
+        start: Position::new(
+            reference.line,
+            utf16_column(source, reference.line, reference.start),
+        ),
+        end: Position::new(
+            reference.line,
+            utf16_column(source, reference.line, reference.start + reference.length),
+        ),
     }
 }
 
-pub fn rename_workspace_edit(uri: &Uri, locations: &[Reference], new_name: &str) -> WorkspaceEdit {
-    // lsp_types' `Uri` has interior mutability (cached parse state)
-    // so `HashMap<Uri, _>` trips clippy's `mutable_key_type`. The
-    // entry is correctness-safe here — we never mutate the `Uri`
-    // after inserting — but suppress the lint at the use-site
-    // rather than reaching into a different container.
+pub fn rename_workspace_edit(
+    source: &str,
+    uri: &Uri,
+    locations: &[Reference],
+    new_name: &str,
+) -> WorkspaceEdit {
+    // Uri caches parse state internally; keys are never mutated after insertion.
     #[allow(clippy::mutable_key_type)]
     let mut changes: HashMap<Uri, Vec<TextEdit>> = HashMap::new();
     let edits: Vec<TextEdit> = locations
         .iter()
         .map(|reference| TextEdit {
-            range: range_of_reference(reference),
+            range: range_of_reference(source, reference),
             new_text: new_name.to_string(),
         })
         .collect();
@@ -143,15 +157,18 @@ pub fn rename_workspace_edit(uri: &Uri, locations: &[Reference], new_name: &str)
     }
 }
 
-pub fn hover(item: UshHover) -> LspHover {
+pub fn hover(source: &str, item: UshHover) -> LspHover {
     LspHover {
         contents: HoverContents::Markup(MarkupContent {
             kind: MarkupKind::Markdown,
             value: item.contents,
         }),
         range: Some(Range {
-            start: Position::new(item.line, item.start),
-            end: Position::new(item.line, item.start + item.length),
+            start: Position::new(item.line, utf16_column(source, item.line, item.start)),
+            end: Position::new(
+                item.line,
+                utf16_column(source, item.line, item.start + item.length),
+            ),
         }),
     }
 }
@@ -191,13 +208,16 @@ pub fn completion_items(items: &[UshCompletionItem]) -> Vec<LspCompletionItem> {
         .collect()
 }
 
-pub fn document_symbols(items: &[UshDocumentSymbol]) -> Vec<LspDocumentSymbol> {
+pub fn document_symbols(source: &str, items: &[UshDocumentSymbol]) -> Vec<LspDocumentSymbol> {
     items
         .iter()
         .map(|item| {
             let range = Range {
-                start: Position::new(item.line, item.start),
-                end: Position::new(item.line, item.start + item.length),
+                start: Position::new(item.line, utf16_column(source, item.line, item.start)),
+                end: Position::new(
+                    item.line,
+                    utf16_column(source, item.line, item.start + item.length),
+                ),
             };
             #[allow(deprecated)]
             LspDocumentSymbol {
@@ -210,6 +230,7 @@ pub fn document_symbols(items: &[UshDocumentSymbol]) -> Vec<LspDocumentSymbol> {
                     UshSymbolKind::Type => LspSymbolKind::STRUCT,
                     UshSymbolKind::Variable => LspSymbolKind::VARIABLE,
                     UshSymbolKind::Alias => LspSymbolKind::CONSTANT,
+                    UshSymbolKind::Module => LspSymbolKind::MODULE,
                 },
                 tags: None,
                 deprecated: None,
@@ -221,19 +242,8 @@ pub fn document_symbols(items: &[UshDocumentSymbol]) -> Vec<LspDocumentSymbol> {
         .collect()
 }
 
-fn end_position(source: &str) -> Position {
-    let mut line = 0u32;
-    let mut col = 0u32;
-    for ch in source.chars() {
-        if ch == '\n' {
-            line += 1;
-            col = 0;
-        } else {
-            col += 1;
-        }
-    }
-    Position::new(line, col)
-}
-
+use positions::end_position;
+pub use positions::{byte_character, utf16_column};
+mod positions;
 #[cfg(test)]
 mod tests;

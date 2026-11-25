@@ -1,7 +1,7 @@
-mapped 2 / 45 generated lines across 1 source lines
-mapped span G0044..G0045
+mapped 2 / 57 generated lines across 1 source lines
+mapped span G0056..G0057
 -- user-code --
-G0044 -> S0001 | __ush_at 1 'print "hello"'
+G0056 -> S0001 | __ush_at 1 'print "hello"'
              <= print "hello"
-G0045 -> S0001 | printf '%s\n' 'hello'
+G0057 -> S0001 | printf '%s\n' 'hello'
              <= print "hello"

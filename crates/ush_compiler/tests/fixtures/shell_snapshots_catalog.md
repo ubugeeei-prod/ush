@@ -43,6 +43,8 @@ print value + 2
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/async_blocks.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/async_blocks.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -52,7 +54,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/asyn
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -159,6 +171,7 @@ esac
 
 ush_fn_worker() {
   __ush_fn_worker_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_worker_arg_0}"
   __ush_at 2 'message'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -312,6 +325,8 @@ if let Option::Some(it) = maybe && it == 7 {
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/control_flow.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/control_flow.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -321,7 +336,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/cont
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -356,6 +381,7 @@ exec 3>&1
 
 ush_fn_pick() {
   __ush_fn_pick_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_pick_arg_0}"
   __ush_at 2 'if flag {'
   if {
@@ -493,6 +519,8 @@ print $ wrap (greet "team" 3)
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/core_runtime.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/core_runtime.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -502,7 +530,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/core
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -537,8 +575,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 12 'message + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -551,6 +591,7 @@ ush_fn_greet() {
 
 ush_fn_wrap() {
   __ush_fn_wrap_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 16 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -618,6 +659,8 @@ fn bin(#[alias("n")] name: String, #[default(2)] count: Int, verbose: Bool) {
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/docs_bin.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/docs_bin.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -627,7 +670,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/docs
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -780,6 +833,7 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -792,10 +846,13 @@ ush_fn_greet() {
 
 ush_fn_bin() {
   __ush_fn_bin_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_bin_arg_0}"
   __ush_fn_bin_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_bin_arg_1}"
   __ush_fn_bin_arg_2="${3}"
+  # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
   __ush_at 20 'print $ greet name'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)"
@@ -845,6 +902,8 @@ print $ wrap $ awaited ()
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/error_streams.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/error_streams.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -854,7 +913,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/erro
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -970,6 +1039,7 @@ ush_fn_fail() {
 
 ush_fn_wrap() {
   __ush_fn_wrap_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -1069,6 +1139,8 @@ copy.remove()
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/source_relative_paths.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/source_relative_paths.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -1078,7 +1150,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/sour
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -1321,6 +1403,8 @@ path.remove()
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -1330,7 +1414,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdl
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -1611,6 +1705,8 @@ print $ run ()
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/tail_expressions.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/tail_expressions.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -1620,7 +1716,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/tail
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -1667,6 +1773,7 @@ ush_fn_trace() {
 
 ush_fn_choose() {
   __ush_fn_choose_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_choose_arg_0}"
   __ush_at 7 'match flag {'
   if [ "${__ush_fn_choose_arg_0}" = "true" ]; then
@@ -1742,6 +1849,8 @@ print "ant" < "bee"
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/traits_and_methods.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/traits_and_methods.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -1751,7 +1860,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/trai
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -1899,6 +2018,8 @@ match user {
 #!/bin/sh
 # Generated from '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/typed_cli_and_types.ush' by ush.
 # DO NOT EDIT MANUALLY.
+# Source: file://$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/typed_cli_and_types.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
@@ -1908,7 +2029,17 @@ __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/type
 __ush_at() { __ush_line=$1; __ush_source=$2; }
 __ush_report() {
   if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
-    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "${2:-command failed}" "$1" "$__ush_source" >&2
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
     __ush_line=''
   fi
 }
@@ -1943,8 +2074,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then

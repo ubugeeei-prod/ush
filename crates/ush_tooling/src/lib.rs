@@ -37,3 +37,5 @@ pub use self::{
     symbol::{DocumentSymbol, SymbolKind, document_symbols},
     token::{SemanticToken, SemanticTokenKind, semantic_token_legend},
 };
+
+mod scope;

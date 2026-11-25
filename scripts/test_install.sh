@@ -1,4 +1,65 @@
 #!/bin/sh
+# Generated from 'test_install.ush' by ush.
+# DO NOT EDIT MANUALLY.
+# Source: test_install.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
+# Regenerate with: ush compile 'test_install.ush' --checked-in -o 'test_install.sh'
+set -eu
+
+__ush_entrypoint=$0
+case $__ush_entrypoint in
+  */*) ;;
+  *) if [ -f "$__ush_entrypoint" ]; then __ush_entrypoint=./$__ush_entrypoint; else __ush_entrypoint=$(command -v "$__ush_entrypoint"); fi ;;
+esac
+__ush_source_dir=$(CDPATH='' cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
+__ush_source_path=$__ush_source_dir/'test_install.ush'
+__ush_origin='test_install.ush'
+
+__ush_at() { __ush_line=$1; __ush_source=$2; }
+__ush_report() {
+  if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
+    __ush_line=''
+  fi
+}
+trap '__ush_report "$?"' 0
+
+case "${1:-}" in
+  -h|--help) printf '%s' 'test_install.ush
+
+Usage:
+  test_install.ush [--help]
+  test_install.ush [--man [ITEM]]
+  test_install.ush [--complete [PREFIX]]
+'; exit 0 ;;
+  man|--man)
+    if [ -n "${2:-}" ]; then printf 'No documented item named: %s\n' "$2" >&2; exit 1; fi
+    printf '%s' 'NAME
+test_install.ush
+
+SYNOPSIS
+test_install.ush [--help]
+test_install.ush [--man [ITEM]]
+test_install.ush [--complete [PREFIX]]
+'; exit 0 ;;
+  complete|--complete)
+    for item in --complete --help --man -h complete man; do
+      case $item in "${2:-}"*) printf '%s\n' "$item" ;; esac
+    done
+    exit 0 ;;
+esac
+
+__ush_at 2 'shell """'
 set -eu
 
 # Clear CDPATH so the cd does not print a path; the trailing space
@@ -207,6 +268,24 @@ test_checksum_lookup_requires_exact_asset_name() {
   rm -rf "$tmpdir" "$output_file"
 }
 
+test_profile_write_failure() {
+  tmpdir="$(mktemp -d)"
+  target="$(detect_target)"
+  make_archive "$tmpdir" "$target"
+  write_checksums "$tmpdir" "$target"
+  home_dir="$tmpdir/home"
+  mkdir -p "$home_dir/.zshrc"
+  if HOME="$home_dir" PATH="/usr/bin:/bin" SHELL=/bin/zsh \
+    USH_DOWNLOAD_URL="file://$tmpdir/ush.tar.gz" \
+    USH_CHECKSUM_URL="file://$tmpdir/sha256sums.txt" \
+    sh "$INSTALL_SH" >"$tmpdir/output" 2>&1; then
+    cat "$tmpdir/output" >&2
+    echo "installer hid a profile-write failure" >&2
+    exit 1
+  fi
+  rm -rf "$tmpdir"
+}
+
 main() {
   need_cmd mktemp
   need_cmd tar
@@ -215,6 +294,7 @@ main() {
   test_auto_path_update
   test_auto_path_disabled
   test_cli_flags
+  test_profile_write_failure
   test_checksum_lookup_requires_exact_asset_name
 }
 

@@ -3,14 +3,15 @@ mod requests;
 use anyhow::Result;
 use lsp_server::{Connection, Message, Notification, Request, Response};
 use lsp_types::{
-    CompletionOptions, DidChangeTextDocumentParams, DidOpenTextDocumentParams,
-    DidSaveTextDocumentParams, FoldingRangeProviderCapability, HoverProviderCapability, OneOf,
-    PublishDiagnosticsParams, RenameOptions, SemanticTokenType, SemanticTokensFullOptions,
-    SemanticTokensLegend, SemanticTokensOptions, SemanticTokensServerCapabilities,
-    ServerCapabilities, SignatureHelpOptions, TextDocumentSyncCapability, TextDocumentSyncKind,
-    WorkDoneProgressOptions,
+    CompletionOptions, DidChangeTextDocumentParams, DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams, DidSaveTextDocumentParams, FoldingRangeProviderCapability,
+    HoverProviderCapability, OneOf, PublishDiagnosticsParams, RenameOptions, SemanticTokenType,
+    SemanticTokensFullOptions, SemanticTokensLegend, SemanticTokensOptions,
+    SemanticTokensServerCapabilities, ServerCapabilities, SignatureHelpOptions,
+    TextDocumentSyncCapability, TextDocumentSyncKind, WorkDoneProgressOptions,
     notification::{
-        DidChangeTextDocument, DidOpenTextDocument, DidSaveTextDocument, Notification as _,
+        DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, DidSaveTextDocument,
+        Notification as _,
     },
     request::{
         Completion, DocumentHighlightRequest, DocumentSymbolRequest, FoldingRangeRequest,
@@ -32,10 +33,20 @@ pub fn run(connection: Connection) -> Result<()> {
                 if connection.handle_shutdown(&request)? {
                     return Ok(());
                 }
-                handle_request(&connection, &mut docs, request.clone())?;
+                if let Err(error) = handle_request(&connection, &mut docs, request.clone()) {
+                    connection.sender.send(Message::Response(Response::new_err(
+                        request.id.clone(),
+                        -32602,
+                        error.to_string(),
+                    )))?;
+                }
             }
             Message::Notification(notification) => {
-                handle_notification(&connection, &mut docs, notification.clone())?;
+                if let Err(error) =
+                    handle_notification(&connection, &mut docs, notification.clone())
+                {
+                    eprintln!("ush_lsp: {}: {error}", notification.method);
+                }
             }
             Message::Response(_) => {}
         }
@@ -46,7 +57,9 @@ pub fn run(connection: Connection) -> Result<()> {
 
 fn capabilities() -> ServerCapabilities {
     ServerCapabilities {
-        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+        text_document_sync: Some(TextDocumentSyncCapability::Kind(
+            TextDocumentSyncKind::INCREMENTAL,
+        )),
         document_formatting_provider: Some(OneOf::Left(true)),
         document_highlight_provider: Some(OneOf::Left(true)),
         document_symbol_provider: Some(OneOf::Left(true)),
@@ -60,11 +73,11 @@ fn capabilities() -> ServerCapabilities {
         })),
         completion_provider: Some(CompletionOptions {
             resolve_provider: Some(false),
-            trigger_characters: None,
+            trigger_characters: Some(vec![":".into(), ".".into()]),
             ..CompletionOptions::default()
         }),
         signature_help_provider: Some(SignatureHelpOptions {
-            trigger_characters: Some(vec!["(".to_string(), ",".to_string()]),
+            trigger_characters: Some(vec!["(".to_string(), ",".to_string(), " ".into()]),
             retrigger_characters: None,
             work_done_progress_options: WorkDoneProgressOptions::default(),
         }),
@@ -125,15 +138,19 @@ fn handle_notification(
             let params: DidOpenTextDocumentParams = serde_json::from_value(notification.params)?;
             let uri = params.text_document.uri;
             let text = params.text_document.text;
-            docs.open(uri.clone(), text.clone());
-            publish_diagnostics(connection, &uri, &text)
+            docs.open(uri.clone(), text.clone(), params.text_document.version);
+            publish_diagnostics(connection, &uri, &text, docs.version(&uri))
         }
         DidChangeTextDocument::METHOD => {
             let params: DidChangeTextDocumentParams = serde_json::from_value(notification.params)?;
             let uri = params.text_document.uri;
-            if let Some(change) = params.content_changes.into_iter().last() {
-                docs.update(&uri, change.text.clone());
-                return publish_diagnostics(connection, &uri, &change.text);
+            if docs.update(&uri, params.text_document.version, params.content_changes)? {
+                return publish_diagnostics(
+                    connection,
+                    &uri,
+                    &docs.read(&uri)?,
+                    docs.version(&uri),
+                );
             }
             Ok(())
         }
@@ -141,17 +158,27 @@ fn handle_notification(
             let params: DidSaveTextDocumentParams = serde_json::from_value(notification.params)?;
             let uri = params.text_document.uri;
             let text = docs.read(&uri)?;
-            publish_diagnostics(connection, &uri, &text)
+            publish_diagnostics(connection, &uri, &text, docs.version(&uri))
+        }
+        DidCloseTextDocument::METHOD => {
+            let params: DidCloseTextDocumentParams = serde_json::from_value(notification.params)?;
+            docs.close(&params.text_document.uri);
+            publish_diagnostics(connection, &params.text_document.uri, "", None)
         }
         _ => Ok(()),
     }
 }
 
-fn publish_diagnostics(connection: &Connection, uri: &lsp_types::Uri, source: &str) -> Result<()> {
+fn publish_diagnostics(
+    connection: &Connection,
+    uri: &lsp_types::Uri,
+    source: &str,
+    version: Option<i32>,
+) -> Result<()> {
     let params = PublishDiagnosticsParams {
         uri: uri.clone(),
         diagnostics: convert::diagnostics(source, &check_source(source)),
-        version: None,
+        version,
     };
     connection
         .sender

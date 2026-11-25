@@ -12,6 +12,9 @@
 # always reviews them.
 /.github/                        @ubugeeei
 /install.sh                      @ubugeeei
+/install.ush                     @ubugeeei
+/flake.tynix                     @ubugeeei
+/editors/                        @ubugeeei
 /scripts/                        @ubugeeei
 
 # Compiler + language surface.

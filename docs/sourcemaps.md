@@ -15,6 +15,11 @@ This is useful for:
 cargo run -p ush -- compile examples/hello.ush -o /tmp/hello.sh --sourcemap /tmp/hello.sh.map.json
 ```
 
+Every generated script starts with `DO NOT EDIT MANUALLY`, a `Source:` link,
+and an explanation of its embedded source markers. File compilations use an
+escaped `file://` URI; checked-in artifacts use a relative link so relocation
+works without recording the build machine's absolute path.
+
 The generated shell can still run on its own. The sourcemap file is extra
 metadata for humans and tools.
 
