@@ -77,3 +77,12 @@ for source in install.ush scripts/*.ush; do
     exit 1
   fi
 done
+# Expose the real foreign Python body to CodeQL, keeping .ush as the only editable source.
+{
+  printf '%s\n' '# Generated from ../scripts/compare_benchmarks.ush. DO NOT EDIT MANUALLY.'
+  awk '/^python3 - / { body=1; next } /^USH_BENCH_PY$/ { body=0 } body { print }' scripts/compare_benchmarks.ush
+} > "$work/benchmark_statistics.py"
+if ! cmp -s generated/benchmark_statistics.py "$work/benchmark_statistics.py"; then
+  printf '%s\n' 'generated/benchmark_statistics.py is stale; regenerate from scripts/compare_benchmarks.ush' >&2
+  exit 1
+fi
