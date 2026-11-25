@@ -33,6 +33,14 @@ pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
             }
             "process::chdir" => [Effect::Env, Effect::Fs].into_iter().collect(),
             "process::sleep" => EffectSet::of(Effect::Exec),
+            "time::sleep_millis" => EffectSet::of(Effect::Exec),
+            _ if rest.starts_with("time::")
+                || rest.starts_with("random::")
+                || rest.starts_with("runtime::") =>
+            {
+                EffectSet::of(Effect::Env)
+            }
+            _ if rest.starts_with("net::") => EffectSet::of(Effect::Net),
             "process::exec" => shell_effects(true),
             _ if rest.starts_with("process::") => shell_effects(false),
             "io::eprint" => EffectSet::of(Effect::Stderr),

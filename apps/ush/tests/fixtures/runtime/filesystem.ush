@@ -1,0 +1,30 @@
+use std::test::{assert, assert_eq}
+use std::fs::*
+
+write_bytes "-binary\n" [0, 1, 10, 255]
+assert_eq (read_bytes "-binary\n") [0, 1, 10, 255]
+assert_eq (size "-binary\n") 4
+chmod "-binary\n" "640"
+assert_eq (mode "-binary\n") 416
+assert_eq (owner "-binary\n") std::os::euid
+assert_eq (group "-binary\n") std::os::egid
+assert (modified "-binary\n" > 0)
+assert (accessed "-binary\n" > 0)
+assert (inode "-binary\n" > 0)
+assert_eq (links "-binary\n") 1
+hard_link "-binary\n" "hard"
+assert_eq (links "-binary\n") 2
+symlink "hard" "link"
+assert_eq (read_link "link") "hard"
+assert_eq (canonicalize "link") (canonicalize "hard")
+write_atomic "atomic" "old"
+chmod "atomic" "440"
+write_atomic "atomic" "new\n\n"
+assert_eq (read_bytes "atomic") [110, 101, 119, 10, 10]
+assert_eq (mode "atomic") 288
+assert (is_socket "socket")
+assert_eq (is_socket "hard") false
+assert_eq (is_socket "missing") false
+write_bytes (std::path::from_cwd "relative") [65]
+assert_eq (read_bytes "relative") [65]
+print "passed"

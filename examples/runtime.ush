@@ -1,0 +1,13 @@
+# These APIs need ush 0.15 or newer on PATH, or in USH_RUNTIME.
+use std::string::{length, to_upper}
+use std::bytes::{from_text, encode_base64}
+use std::time::{unix_seconds, format_utc}
+use std::test::assert_eq
+
+test "Unicode and bytes" {
+  assert_eq (length "ush 😀") 5
+  assert_eq (to_upper "Straße") "STRASSE"
+  assert_eq (encode_base64 (from_text "ush")) "dXNo"
+}
+
+print format_utc unix_seconds "%Y-%m-%dT%H:%M:%SZ"

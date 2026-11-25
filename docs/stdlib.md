@@ -116,17 +116,17 @@ with the everyday shell use cases surveyed in
 [modernish](https://github.com/modernish/modernish). Implementations are native
 to this project.
 
-| Area | Available baseline | Remaining work |
+| Area | Portable baseline | Runtime APIs and remaining work |
 | --- | --- | --- |
-| Text | Literal search/split/trim, ASCII case, quoting, joining | Unicode transforms, binary-safe codecs |
-| Filesystem | Text I/O, directories, links, permissions, access predicates | stat metadata, canonicalization, atomic writes, binary I/O |
+| Text | Literal search/split/trim, ASCII case, quoting, joining | Runtime: Unicode transforms and byte codecs; grapheme operations remain |
+| Filesystem | Text I/O, directories, links, permissions, access predicates | Runtime: metadata, canonicalization, atomic writes and binary I/O; streaming remains |
 | Process | Typed argv, status/streams, environment, cwd, sleep | Rich process control, signal and descriptor APIs |
-| System | Host name/architecture, user/group IDs | libc system queries, clocks, randomness |
-| Network | Existing HTTP helpers | DNS and sockets |
+| System | Host name/architecture, user/group IDs | Runtime: libc queries, clocks and randomness; resource controls remain |
+| Network | Existing HTTP helpers | Runtime: DNS; sockets remain |
 
-APIs requiring capabilities unavailable in POSIX sh will use an optional ush
-runtime. Portable programs remain standalone; the runtime-backed API surface
-will be introduced in separate changes.
+Additional Unicode, binary I/O, filesystem metadata, clock, randomness and
+system-query APIs use the [optional ush runtime](std-runtime.md). Portable
+programs remain standalone.
 
 ## Tests
 
