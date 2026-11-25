@@ -37,17 +37,6 @@ impl ErrorSet {
         self.items.iter().all(|item| other.items.contains(item))
     }
 
-    /// Renames named error types, as the module linker does.
-    pub(crate) fn rename(&mut self, mut rename: impl FnMut(&mut String)) {
-        for item in &mut self.items {
-            if let ErrorType::Known(name) = item {
-                rename(name);
-            }
-        }
-        self.items.sort();
-        self.items.dedup();
-    }
-
     pub(crate) fn iter(&self) -> impl Iterator<Item = &ErrorType> {
         self.items.iter()
     }

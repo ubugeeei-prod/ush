@@ -15,7 +15,7 @@ use super::{
 };
 use crate::{
     ast::{ModuleDecl, Statement, StatementKind as S},
-    parse::{FileRole, parse_file},
+    parse::{FileRole, parse_file, resolve_rows},
     types::{AstString as Name, HeapVec as Vec, Map, Set},
 };
 
@@ -30,7 +30,8 @@ pub(crate) fn link(root: &str, loader: &mut dyn ModuleLoader) -> Result<Linked> 
     if !program.iter().any(|s| matches!(s.kind, S::Module(_))) {
         // Without modules the script is resolved on its own, as before.
         space.push(root, String::new(), String::new(), 0);
-        let program = crate::imports::resolve_file(program, &Scope::default())?;
+        let mut program = crate::imports::resolve_file(program, &Scope::default())?;
+        resolve_rows(&mut program)?;
         return Ok(Linked { program, space });
     }
     let (key, display) = loader.root();
@@ -60,6 +61,7 @@ pub(crate) fn link(root: &str, loader: &mut dyn ModuleLoader) -> Result<Linked> 
         program = modules;
         distinct_shell_names(&program)?;
     }
+    resolve_rows(&mut program)?;
     Ok(Linked {
         program,
         space: linker.space,

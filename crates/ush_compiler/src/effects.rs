@@ -69,14 +69,24 @@ pub(crate) fn analyze_function_errors(
         }
     }
 
-    for _ in 0..=registry.len() {
+    // A function without a written row exposes what its body raises,
+    // and callers see that row as if it had been written. Calls make
+    // this a fixpoint: every round re-walks the bodies with the rows
+    // found so far. Rows only grow (each round keeps the previous one)
+    // and a program names finitely many error types, so it stops, and
+    // recursive cycles settle on the least row that covers the cycle.
+    loop {
         let mut changed = false;
         for statement in program {
             let StatementKind::Function(def) = &statement.kind else {
                 continue;
             };
-            let inferred = analyze_function(def, globals, functions, impls, enums, &registry)?;
-            let errors = exposed_errors(def, &inferred);
+            let inferred = analyze_function(def, globals, functions, impls, enums, &registry)
+                .with_context(|| format!("line {}", statement.line))?;
+            let mut errors = exposed_errors(def, &inferred);
+            if let Some(previous) = registry.get(&def.name) {
+                errors.extend(previous);
+            }
             if registry.get(&def.name) != Some(&errors) {
                 registry.insert(def.name.clone(), errors);
                 changed = true;
@@ -112,6 +122,27 @@ pub(crate) fn analyze_function_errors(
     )?;
 
     Ok(registry)
+}
+
+/// What each function's body can raise, for reports: the row a
+/// signature would need, whether or not it has one. Callers see
+/// [`analyze_function_errors`]'s rows, where a written row wins.
+pub(crate) fn body_errors(
+    program: &[Statement],
+    globals: &Env,
+    functions: &FunctionRegistry,
+    impls: &TraitImplRegistry,
+    enums: &EnumRegistry,
+    rows: &FunctionErrorRegistry,
+) -> Result<FunctionErrorRegistry> {
+    let mut bodies = FunctionErrorRegistry::default();
+    for statement in program {
+        if let StatementKind::Function(def) = &statement.kind {
+            let inferred = analyze_function(def, globals, functions, impls, enums, rows)?;
+            bodies.insert(def.name.clone(), inferred);
+        }
+    }
+    Ok(bodies)
 }
 
 fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {

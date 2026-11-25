@@ -17,6 +17,7 @@ mod format;
 mod highlight;
 mod hover;
 mod references;
+mod rows;
 mod semantic;
 mod signature;
 mod symbol;
@@ -28,7 +29,7 @@ pub use self::{
     folding::{FoldingRange, folding_ranges},
     format::format_source,
     highlight::{Highlight, HighlightKind, document_highlights},
-    hover::{Hover, hover},
+    hover::{Hover, hover, hover_at},
     references::{
         Reference, RenameError, definition, prepare_rename, references, rename_locations,
     },

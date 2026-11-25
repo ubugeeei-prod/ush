@@ -8,7 +8,7 @@ use lsp_types::{
 };
 use ush_tooling::{
     completions, definition as ush_definition, document_highlights, document_symbols,
-    folding_ranges, format_source, hover as ush_hover, prepare_rename as ush_prepare_rename,
+    folding_ranges, format_source, hover_at as ush_hover, prepare_rename as ush_prepare_rename,
     references as ush_refs, rename_locations, signature_help as ush_signature_help,
 };
 
@@ -102,10 +102,12 @@ pub(super) fn hover(
     request: Request,
 ) -> Result<()> {
     let params: HoverParams = serde_json::from_value(request.params)?;
-    let source = docs.read(&params.text_document_position_params.text_document.uri)?;
+    let uri = &params.text_document_position_params.text_document.uri;
+    let source = docs.read(uri)?;
     let position = params.text_document_position_params.position;
     let result = ush_hover(
         &source,
+        crate::paths::file_path(uri).as_deref(),
         position.line,
         convert::byte_character(&source, position),
     )

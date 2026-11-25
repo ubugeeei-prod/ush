@@ -51,8 +51,11 @@ fn deploy(target: String) -> String / exec, net, audit
 ```
 
 `/ ()` is the empty row: this function may need nothing at all.
-Omitting the row entirely means "infer it, don't check it" — nothing
-has to be annotated for the analysis to run.
+Omitting the row entirely means "infer it, don't check it" — for
+effects and for errors alike. Callers see the inferred row as if it
+had been written, so nothing has to be annotated for the analysis to
+run; see [inferred rows](./typed-errors.md#inferred-rows) for
+recursion and function values.
 
 A row is an **upper bound**, not an exact set. Declaring more than the
 body currently needs is allowed on purpose, so a published signature
@@ -109,13 +112,14 @@ ush effects examples/effects.ush
 
 ```text
 default_target  env  (declared)
-deploy          stdout, env, ask, audit  (declared)
+deploy          stdout, env, ask, audit  (declared: stdin, stdout, stderr, env, ask, audit)
 slug            pure  (declared)
 (top level)     stdout, env
 ```
 
-`(top level)` is the row of the statements outside any function — the
-program itself.
+Each row lists the error types a function can raise, then its
+effects. `(top level)` is the row of the statements outside any
+function — the program itself.
 
 Rows propagate through calls, so `deploy` above picks up `env` from
 `default_target` without mentioning it in its own body. Propagation is

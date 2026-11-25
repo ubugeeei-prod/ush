@@ -46,8 +46,8 @@ fn raise_requires_an_error_adt() {
 }
 
 #[test]
-fn effectful_functions_must_declare_error_sets() {
-    let error = compile_error(
+fn omitted_error_rows_are_inferred_for_callers() {
+    let output = run_program(
         r#"
         enum Problem {
           Nope,
@@ -56,11 +56,18 @@ fn effectful_functions_must_declare_error_sets() {
         fn fail() -> String {
           fail Problem::Nope
         }
+
+        fn caller() -> String {
+          let value = fail?
+          value
+        }
+
+        print caller
     "#,
     );
 
-    assert!(error.contains("does not declare an error set"));
-    assert!(error.contains("-> String / Problem"));
+    assert_eq!(output.status.code(), Some(1));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("Problem::Nope"));
 }
 
 #[test]

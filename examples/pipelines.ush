@@ -3,7 +3,7 @@ use $bin::*
 use std::fs::temp_dir
 use std::io::{append_to, from_file, to_file}
 
-fn shout() -> () / unknown, io {
+fn shout() -> () {
   print (std::string::to_upper_ascii (std::io::read_all))
 }
 

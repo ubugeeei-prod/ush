@@ -12,7 +12,7 @@ fn value(file: String, key: String) -> String {
   }
   ""
 }
-fn first(text: String, separator: String) -> String / unknown {
+fn first(text: String, separator: String) -> String {
   for part in split text separator {
     return part
   }

@@ -49,6 +49,7 @@ fn runnable_examples_exit_successfully() {
         ("effects.ush", &[]),
         ("functional.ush", &[]),
         ("hello.ush", &[]),
+        ("inferred_rows.ush", &[]),
         ("http_regex.ush", &[]),
         ("literal_match.ush", &[]),
         ("modules.ush", &[]),

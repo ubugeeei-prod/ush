@@ -46,8 +46,10 @@ fn parse_row(row: &str) -> Result<Vec<String>> {
     Ok(names)
 }
 
-/// Resolve the shared row by declaration, including forward declarations.
-pub(super) fn resolve_rows(program: &mut [Statement]) -> Result<()> {
+/// Splits each written row into error types and effects. This runs on the
+/// linked program, so a row may name types and effects imported from
+/// modules, and declarations anywhere in the program.
+pub(crate) fn resolve_rows(program: &mut [Statement]) -> Result<()> {
     let mut types = Set::default();
     let mut operations = Set::default();
     for statement in program.iter() {

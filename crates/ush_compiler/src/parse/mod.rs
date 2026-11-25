@@ -37,6 +37,7 @@ use crate::scan::{continues_pipeline, triple_quote_toggles};
 use crate::types::HeapVec as Vec;
 
 pub(super) type SourceLine<'a> = (usize, &'a str);
+pub(crate) use returns::resolve_rows;
 
 /// How the top level of a file is read.
 #[derive(Clone, Copy)]
@@ -57,14 +58,13 @@ pub(crate) fn parse_file(source: &str, role: FileRole<'_>) -> Result<Vec<Stateme
     let arena = Bump::new();
     let lines = join_pipeline_lines(collect_source_lines(source, &arena)?, &arena)?;
     let mut cursor = 0usize;
-    let mut program = statement::parse_block(&lines, &mut cursor, Some(role), false)?;
+    let program = statement::parse_block(&lines, &mut cursor, Some(role), false)?;
 
     if cursor < lines.len() {
         let (line_no, line) = &lines[cursor];
         bail!("line {line_no}: unexpected closing brace: {}", line.trim());
     }
 
-    returns::resolve_rows(&mut program)?;
     Ok(program)
 }
 

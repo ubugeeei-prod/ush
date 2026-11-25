@@ -44,6 +44,8 @@ mod imports;
 mod matching;
 mod modules;
 mod parse;
+mod report;
+pub use report::EffectReport;
 mod scan;
 mod sourcemap;
 mod string_literal;
@@ -151,50 +153,6 @@ impl UshCompiler {
     pub fn describe_source(&self, source: &str) -> ScriptDocs {
         ScriptDocs::parse(source)
     }
-
-    /// The effect row of every function in `path`, plus the effects
-    /// of the top-level program.
-    #[cfg(feature = "std")]
-    pub fn effects_file(&self, path: &Path) -> Result<EffectReport> {
-        let source = fs::read_to_string(path)
-            .with_context(|| format!("failed to read {}", path.display()))?;
-        let mut loader = file::FsLoader::new(path, path.to_str().unwrap_or("<source>"))?;
-        self.effects_with(&source, &mut loader)
-            .with_context(|| format!("failed to analyze {}", path.display()))
-    }
-
-    pub fn effects_source(&self, source: &str) -> Result<EffectReport> {
-        self.effects_with(source, &mut modules::NoModules)
-    }
-
-    fn effects_with(
-        &self,
-        source: &str,
-        loader: &mut dyn modules::ModuleLoader,
-    ) -> Result<EffectReport> {
-        let modules::Linked { program, space } =
-            modules::link(source, loader).map_err(|error| anyhow::anyhow!("{error:#}"))?;
-        let report = || {
-            bindings::validate(&program)?;
-            let mut functions = effects::describe_function_effects(&program)?;
-            let lowered = contracts::elaborate(program.clone())?;
-            for actual in effects::describe_function_effects(&lowered)? {
-                let name = actual
-                    .name
-                    .strip_prefix("__ush_inst_")
-                    .and_then(|name| name.rsplit_once('_').map(|(name, _)| name))
-                    .unwrap_or(&actual.name);
-                if let Some(original) = functions.iter_mut().find(|f| f.name == name) {
-                    original.inferred.merge(&actual.inferred);
-                }
-            }
-            Ok(EffectReport {
-                functions,
-                top_level: effects::top_level_effects(&lowered)?,
-            })
-        };
-        report().map_err(|error| space.render_error(error))
-    }
 }
 
 /// Generated shell and the source space its positions refer to.
@@ -211,13 +169,6 @@ impl Compiled {
     fn into_script(self) -> CompiledScript {
         self.out.into_compiled(&self.space)
     }
-}
-
-/// What a whole program touches, function by function.
-#[derive(Debug, Clone)]
-pub struct EffectReport {
-    pub functions: alloc::vec::Vec<FunctionEffects>,
-    pub top_level: EffectSet,
 }
 
 #[cfg(test)]

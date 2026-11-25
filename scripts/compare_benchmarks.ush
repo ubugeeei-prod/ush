@@ -15,7 +15,7 @@ fn report(text: String, summary: String) -> () {
   }
 }
 
-fn build(checkout: String, package: String, suite: String, destination: String, target: String, work: String) -> String / unknown, exec, env, fs, stderr, stdin, stdout, net {
+fn build(checkout: String, package: String, suite: String, destination: String, target: String, work: String) -> String {
   cd checkout
   set "CARGO_TARGET_DIR" target
   let log = work + "/cargo.jsonl"
@@ -30,7 +30,7 @@ fn build(checkout: String, package: String, suite: String, destination: String, 
   destination
 }
 
-fn cases(binary: String) -> String / unknown, stderr, exec, env, fs, stdin, net {
+fn cases(binary: String) -> String {
   let mut names = ""
   for line in lines (output binary ["--list"]) {
     if ends_with line ": benchmark" {
@@ -43,7 +43,7 @@ fn cases(binary: String) -> String / unknown, stderr, exec, env, fs, stdin, net 
   names
 }
 
-fn measure(binary: String, name: String) -> String / unknown, exec, env, fs, stderr, stdin, stdout, net {
+fn measure(binary: String, name: String) -> String {
   let run = temp_dir
   set "CRITERION_HOME" run
   let code = redirect binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")
@@ -66,11 +66,11 @@ fn measure(binary: String, name: String) -> String / unknown, exec, env, fs, std
   value
 }
 
-fn geometric(first: String, second: String) -> String / unknown, exec, env, fs, stdin, stderr, net {
+fn geometric(first: String, second: String) -> String {
   output "jq" ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]
 }
 
-fn compare(base: String, head: String, summary: String) -> Int / unknown, exec, env, fs, stderr, stdin, stdout, net {
+fn compare(base: String, head: String, summary: String) -> Int {
   let before_cases = cases base + "\n"
   let after_cases = cases head + "\n"
   let mut seen = "\n"
