@@ -21,12 +21,12 @@ fn ush_script_raise_exits_with_typed_error() {
             "  Nope,\n",
             "}\n",
             "fn fail() -> String / Problem, stderr {\n",
-            "  fail Problem::Nope\n",
+            "  fail (Problem::Nope)\n",
             "}\n",
             "fn wrap(message: String) -> String {\n",
             "  message\n",
             "}\n",
-            "print $ wrap $ fail ()\n",
+            "print wrap (fail ())\n",
         ),
     )
     .expect("write script");
@@ -52,7 +52,7 @@ fn ush_script_try_operator_propagates_function_failure() {
             "  Nope,\n",
             "}\n",
             "fn fail() -> () / Problem, stderr {\n",
-            "  fail Problem::Nope\n",
+            "  fail (Problem::Nope)\n",
             "}\n",
             "fn outer() -> () / Problem, stderr, stdout {\n",
             "  fail()?\n",

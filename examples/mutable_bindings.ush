@@ -6,13 +6,13 @@ test "mutable state and immutable shadowing" {
   while count < 3 {
     count = count + 1
   }
-  assert_eq count 3
+  assert_eq $count 3
   if true {
     let name = "inner"
-    assert_eq name "inner"
+    assert_eq $name "inner"
   }
-  assert_eq name "ush"
+  assert_eq $name "ush"
   let mut items = [1, 2]
   items = [n + count for n in items]
-  assert_eq items [4, 5]
+  assert_eq $items [4, 5]
 }

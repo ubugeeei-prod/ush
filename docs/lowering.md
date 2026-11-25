@@ -184,7 +184,7 @@ ush_fn_run() {
 Source:
 
 ```text
-let value = $ label greet wrap
+let value = $ label $greet $wrap
 ```
 
 Compiled `sh`:

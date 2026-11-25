@@ -6,4 +6,4 @@ echo "main"
 let task = async worker "worker"
 echo "after"
 let result = task.await
-echo result
+echo $result

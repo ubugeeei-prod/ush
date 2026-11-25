@@ -4,5 +4,5 @@ let article = """
   </article>
 """
 
-echo article
+echo $article
 echo (article.starts_with("<article>"))

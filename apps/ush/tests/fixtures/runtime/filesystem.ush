@@ -7,8 +7,8 @@ test "binary files metadata and atomic replacement" {
   assert_eq (size "-binary\n") 4
   chmod "-binary\n" "640"
   assert_eq (mode "-binary\n") 416
-  assert_eq (owner "-binary\n") std::os::euid
-  assert_eq (group "-binary\n") std::os::egid
+  assert_eq (owner "-binary\n") (std::os::euid)
+  assert_eq (group "-binary\n") (std::os::egid)
   assert (modified "-binary\n" > 0)
   assert (accessed "-binary\n" > 0)
   assert (inode "-binary\n" > 0)

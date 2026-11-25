@@ -5,15 +5,15 @@ use std::string::{lines, starts_with, trim_prefix, trim, split}
 use std::process::output
 
 fn value(file: String, key: String) -> String {
-  for line in lines (read_text file) {
-    if starts_with line key {
-      return trim (trim_prefix line key)
+  for line in lines (read_text $file) {
+    if starts_with $line $key {
+      return trim (trim_prefix $line $key)
     }
   }
   ""
 }
 fn first(text: String, separator: String) -> String {
-  for part in split text separator {
+  for part in split $text $separator {
     return part
   }
   ""
@@ -25,15 +25,15 @@ if pinned == "" || vendored != pinned {
 }
 let work = temp_dir
 let index = work + "/index.jsonl"
-curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" index
+curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" $index
 # jq performs JSON decoding and numeric version ordering; policy stays in ush.
 let versions = output "jq" ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]
 let mut latest = ""
 let mut patch = ""
-let major = first pinned "."
-for version in lines versions {
+let major = first $pinned "."
+for version in lines $versions {
   latest = version
-  if first version "." == major {
+  if first $version "." == major {
     patch = version
   }
 }

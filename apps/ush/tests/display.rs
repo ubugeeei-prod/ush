@@ -29,7 +29,7 @@ fn ush_scripts_support_display_trait_and_methods() {
         }
         let user = User { name: "ush", age: 7 }
         print user
-        print format user
+        print format $user
         print user.prefixed("id")
         "#,
     )

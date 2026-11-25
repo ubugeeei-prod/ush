@@ -11,7 +11,7 @@ enum Envelope {
 let payload = Envelope::Wrap(Result::Ok("done"))
 
 match payload {
-  Envelope::Wrap(Result::Ok(message)) => echo message
+  Envelope::Wrap(Result::Ok(message)) => echo $message
   Envelope::Wrap(Result::Err(message)) => echo ("error: " + message)
   _ => echo "missing"
 }

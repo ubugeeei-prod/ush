@@ -1,0 +1,12 @@
+# Bare words are strings; variable arguments have an explicit sigil.
+fn greet(name: String) -> String {
+  "hello " + name
+}
+
+let name = "ush"
+let count = 2
+echo Hello $name
+echo (greet world)
+echo --output=./dist/${name}.txt
+echo "count:" (count + 1)
+echo "one argument with spaces"

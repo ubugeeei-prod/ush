@@ -26,7 +26,7 @@ let arguments = args
 assert_eq (arg 0) "--help"
 assert_eq (arg 1) "a b'\"$PATH;*\n日本語"
 assert_eq (arg 2) ""
-assert_eq arguments ["--help", "a b'\"$PATH;*\n日本語", ""]
+assert_eq $arguments ["--help", "a b'\"$PATH;*\n日本語", ""]
 assert_eq (output "printf" ["%s", arg 1]) (arg 1)
 assert_eq (status "test" ["a", "=", "b"]) 1
 assert_eq (status "exit" ["17"]) 17

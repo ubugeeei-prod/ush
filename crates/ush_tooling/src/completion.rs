@@ -165,9 +165,34 @@ fn identifier_text(lines: &[&str], token: SemanticToken) -> String {
         .and_then(|line| {
             let start = token.start as usize;
             let end = start + token.length as usize;
-            line.get(start..end).map(str::to_string)
+            line.get(start..end).map(|text| {
+                text.strip_prefix("${")
+                    .and_then(|s| s.strip_suffix('}'))
+                    .or_else(|| text.strip_prefix('$'))
+                    .unwrap_or(text)
+                    .to_string()
+            })
         })
         .unwrap_or_default()
+}
+
+/// Variable sigils request variable names; the editor keeps the written sigil.
+pub fn completions_at(source: &str, line: u32, byte: u32) -> Vec<CompletionItem> {
+    let prefix = source
+        .lines()
+        .nth(line as usize)
+        .and_then(|line| line.get(..byte as usize))
+        .unwrap_or("");
+    let variable = prefix
+        .rsplit_once('$')
+        .map(|(_, tail)| tail.trim_start_matches('{'))
+        .filter(|tail| tail.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
+    let mut items = completions(source);
+    if let Some(prefix) = variable {
+        items
+            .retain(|item| item.kind == CompletionKind::Variable && item.label.starts_with(prefix));
+    }
+    items
 }
 
 #[cfg(test)]

@@ -13,8 +13,22 @@ pub(crate) struct Index<'a> {
 
 impl<'a> Index<'a> {
     pub fn new(source: &'a str) -> Self {
-        let tokens = semantic_tokens(source);
+        let mut tokens = semantic_tokens(source);
         let lines: Vec<_> = source.lines().collect();
+        for token in &mut tokens {
+            if token.kind != SemanticTokenKind::Variable {
+                continue;
+            }
+            let text = &lines[token.line as usize]
+                [token.start as usize..(token.start + token.length) as usize];
+            if text.starts_with("${") && text.ends_with('}') {
+                token.start += 2;
+                token.length -= 3;
+            } else if text.starts_with('$') && token.length > 1 {
+                token.start += 1;
+                token.length -= 1;
+            }
+        }
         let names: Vec<_> = tokens
             .iter()
             .map(|t| {

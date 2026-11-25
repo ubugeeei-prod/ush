@@ -157,7 +157,7 @@ exec 3>&1
 
 # raises: Problem
 ush_fn_fail() {
-  __ush_at 6 'fail Problem::Nope'
+  __ush_at 6 'fail (Problem::Nope)'
   __ush_report 1 'Problem::Nope'
   return 1
 }
@@ -242,9 +242,9 @@ ush_fn_awaited() {
   )
 }
 
-__ush_at 29 'print $ wrap $ awaited ()'
+__ush_at 29 'print wrap (awaited ())'
 __ush_task_init
-__ush_at 29 'print $ wrap $ awaited ()'
+__ush_at 29 'print wrap (awaited ())'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)" || exit "$?"
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_4}" 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_5}"

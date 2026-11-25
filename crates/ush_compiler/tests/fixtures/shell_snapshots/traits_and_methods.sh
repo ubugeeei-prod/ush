@@ -108,7 +108,7 @@ return 0
 }
 __ush_value_4="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
 printf '%s\n' "${__ush_value_4}"
-__ush_at 24 'print format user'
+__ush_at 24 'print format $user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {

@@ -30,7 +30,7 @@ fn capture_and_pipelines_preserve_stdout() {
 use $bin::*
 
 let text = echo "hello" "world"
-echo text
+echo $text
 echo "hello" | tr "a-z" "A-Z"
 echo | wc "-l" | tr "-d" " "
 fn greet() -> () {
@@ -61,9 +61,9 @@ fn value(text: String) -> String {
     text
 }
 let label = Label::Value("display")
-echo label (value "first") (value "second")
-let text = echo label 7
-echo text
+echo $label (value "first") (value "second")
+let text = echo $label 7
+echo $text
 "#,
         "first\nsecond\ndisplay first second\ndisplay 7\n",
     );
@@ -76,7 +76,7 @@ fn argument_errors_are_not_silently_discarded() {
     assert_eq!(status, 7, "{stderr}");
     assert!(stdout.is_empty(), "{stdout}");
     for (source, message) in [
-        ("echo missing\n", "unknown variable"),
+        ("echo $missing\n", "unknown variable"),
         ("echo text: \"hello\"\n", "positional"),
         ("echo [1, 2]\n", "Display"),
         ("fn quiet() -> () / () {\n echo \"no\"\n}\n", "stdout"),

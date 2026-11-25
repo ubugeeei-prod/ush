@@ -25,11 +25,11 @@ fn mutable_declaration_and_assignments_share_one_symbol() {
 #[test]
 fn formatter_separates_imports_and_formats_both_binding_forms() {
     let source =
-        "use std::test::assert_eq\nuse std::string::*\nlet mut x=1\nx=x + 1\nassert_eq x 2\n";
+        "use std::test::assert_eq\nuse std::string::*\nlet mut x=1\nx=x + 1\nassert_eq $x 2\n";
     let formatted = format_source(source);
     assert_eq!(
         formatted,
-        "use std::test::assert_eq\nuse std::string::*\n\nlet mut x = 1\nx = x + 1\nassert_eq x 2\n"
+        "use std::test::assert_eq\nuse std::string::*\n\nlet mut x = 1\nx = x + 1\nassert_eq $x 2\n"
     );
     assert_eq!(format_source(&formatted), formatted);
     ush_compiler::UshCompiler

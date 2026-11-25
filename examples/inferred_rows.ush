@@ -15,14 +15,14 @@ fn kernel() -> String {
 # Raises `ConfigError`, inferred from the `fail`.
 fn require(name: String) -> String {
   if name == "" {
-    fail ConfigError::Missing
+    fail (ConfigError::Missing)
   }
   name
 }
 
 # `?` works as if the row had been written.
 fn banner(name: String) -> () {
-  let found = require name?
+  let found = require $name?
   echo (found + " on " + kernel)
 }
 

@@ -119,7 +119,7 @@ ush_fn_report__line() {
   name="${__ush_fn_report__line_arg_1}"
   __ush_at 9 'match status {' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
   if [ "${__ush_fn_report__line_arg_0__tag}" = 'report::Status::Passed' ]; then
-    __ush_at 10 'Status::Passed => label + ": " + text::shout name,' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
+    __ush_at 10 'Status::Passed => label + ": " + text::shout $name,' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
     __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_report__label 4>&1 >&3)" || return "$?"
     __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_text__shout "${__ush_fn_report__line_arg_1}" 4>&1 >&3)" || return "$?"
     if [ -n "${__ush_return_path:-}" ]; then
@@ -150,7 +150,7 @@ ush_fn_report__label() {
   return 0
 }
 
-__ush_at 6 'print line Status::Passed "build"'
+__ush_at 6 'print line (Status::Passed) "build"'
 __ush_match_3__tag='report::Status::Passed'
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_report__line "$(__ush_walk_record_6_report_6_Status ush_fn_std__write_cell __ush_match_3)" 'build' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_5}"

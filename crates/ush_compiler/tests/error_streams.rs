@@ -54,7 +54,7 @@ fn omitted_error_rows_are_inferred_for_callers() {
         }
 
         fn fail() -> String {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         fn caller() -> String {
@@ -83,7 +83,7 @@ fn declared_error_sets_must_cover_inferred_errors() {
         }
 
         fn fail() -> String / Other, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
     "#,
     );
@@ -105,7 +105,7 @@ fn call_sites_use_declared_error_sets_as_the_function_contract() {
         }
 
         fn fail() -> String / Other, Problem, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         fn outer() -> String / Problem, stderr {
@@ -128,7 +128,7 @@ fn function_error_streams_are_inferred_and_composed() {
         }
 
         fn leaf() -> String / Problem, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         fn wrap(message: String) -> String {
@@ -162,7 +162,7 @@ fn raise_aborts_runtime_with_typed_message() {
         }
 
         fn fail() -> String / Problem, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         print $ fail ()
@@ -183,14 +183,14 @@ fn piped_raise_aborts_runtime_with_typed_message() {
         }
 
         fn fail() -> String / Problem, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         fn wrap(message: String) -> String {
           message
         }
 
-        print $ wrap $ fail ()
+        print wrap (fail ())
     "#,
     );
 
@@ -208,7 +208,7 @@ fn try_operator_returns_from_the_current_function() {
         }
 
         fn fail() -> String / Problem, stderr {
-          fail Problem::Nope
+          fail (Problem::Nope)
         }
 
         fn outer() -> String / Problem, stderr {

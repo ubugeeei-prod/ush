@@ -69,7 +69,7 @@ fn unused_generic_bodies_and_kinds_are_checked() {
             "without returning",
         ),
         (
-            "enum E {\n  Nope,\n}\nfn bad<T>(x:T) -> T / () {\n  fail E::Nope\n}\n",
+            "enum E {\n  Nope,\n}\nfn bad<T>(x:T) -> T / () {\n  fail (E::Nope)\n}\n",
             "error row",
         ),
         (
@@ -127,7 +127,7 @@ fn load(found: Bool) -> Config / ConfigError, stderr, stdout {
     print "loading"
     return Config { name: "a b'$;*" }
   }
-  fail ConfigError::Missing
+  fail (ConfigError::Missing)
 }
 fn keep<T>(x: T) -> T / () {
   x

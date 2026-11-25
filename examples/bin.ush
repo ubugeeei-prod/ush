@@ -2,6 +2,6 @@
 #| Run with: ush examples/bin.ush --name ush --verbose
 fn bin(#[alias("n")] name: String, #[default(2)] count: Int, verbose: Bool) {
   echo (name + ":" + count)
-  echo verbose
+  echo $verbose
 }
 

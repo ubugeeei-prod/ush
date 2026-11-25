@@ -1,0 +1,100 @@
+mod support;
+
+use ush_compiler::UshCompiler;
+
+fn outputs(source: &str, expected: &str) {
+    support::each_program(source, |shell, _, (status, stdout, stderr)| {
+        assert_eq!(status, 0, "{shell}: {stderr}");
+        assert_eq!(stdout, expected, "{shell}");
+        assert!(stderr.is_empty(), "{shell}: {stderr}");
+    });
+}
+
+#[test]
+fn native_and_external_calls_accept_cli_words() {
+    outputs(
+        r#"
+use $bin::*
+
+fn greet(name: String) -> String {
+  "hello " + name
+}
+let name = "two words"
+echo Hello world
+echo (greet $name)
+echo (greet ush)
+mkdir -p ./dist
+printf "%s\n" ./dist --flag=value https://example.test/a?q=b+c a*b file?
+echo -n -e a+b ./a..b
+"#,
+        "Hello world\nhello two words\nhello ush\n./dist\n--flag=value\nhttps://example.test/a?q=b+c\na*b\nfile?\n-n -e a+b ./a..b\n",
+    );
+}
+
+#[test]
+fn variable_expansion_never_splits_evaluates_or_globs() {
+    outputs(
+        r#"
+use $bin::*
+
+let name = "two words * $(touch injected); '"
+let empty = ""
+let count = 2
+let enabled = true
+printf "<%s>\n" $name $empty --output=${name}/file item-$count enabled-$enabled
+echo (count + 1)
+echo name
+echo "literal $name"
+"#,
+        "<two words * $(touch injected); '>\n<>\n<--output=two words * $(touch injected); '/file>\n<item-2>\n<enabled-true>\n3\nname\nliteral $name\n",
+    );
+}
+
+#[test]
+fn captures_pipelines_and_named_arguments_keep_their_types() {
+    outputs(
+        r#"
+use $bin::*
+
+fn repeat(text: String, count: Int) -> String {
+  std::string::repeat $text $count
+}
+let count = 2
+let text = repeat text: hi count: $count
+echo $text | tr a-z A-Z
+let captured = echo bare words
+echo $captured
+let a = "a"
+echo (repeat($a, 2))
+"#,
+        "HIHI\nbare words\naa\n",
+    );
+}
+
+#[test]
+fn undefined_explicit_variables_are_errors_and_words_are_stable() {
+    outputs(
+        "echo name\nlet name = \"value\"\necho name $name\n",
+        "name\nname value\n",
+    );
+    for (source, message) in [
+        ("echo $missing\n", "unknown variable: missing"),
+        (
+            "fn name() -> String {\n \"function\"\n}\necho $name\n",
+            "unknown variable: name",
+        ),
+        ("echo ${missing}\n", "unknown variable: missing"),
+        ("echo $\n", "invalid variable reference"),
+        ("echo ${name\n", "unclosed variable reference"),
+        (
+            "fn add(value: Int) -> Int {\n value + 1\n}\nadd typo\n",
+            "expected Int",
+        ),
+    ] {
+        let error = UshCompiler.compile_source(source).unwrap_err();
+        assert!(
+            format!("{error:#}").contains(message),
+            "{source}: {error:#}"
+        );
+    }
+}

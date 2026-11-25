@@ -5,4 +5,4 @@ extern "helpers.sh" as helpers {
 use helpers::*
 
 echo (greet "ush")
-echo answer
+echo (answer)

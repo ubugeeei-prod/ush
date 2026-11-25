@@ -173,7 +173,7 @@ fn a_string_function_feeds_its_value_and_question_marks_cover_the_pipeline() {
 greeting "ush" | tr "a-z" "A-Z"
 print ""
 let upper = (greeting "ada" | tr "a-z" "A-Z")?
-print (printf "%s" upper | wc "-c" | tr "-d" " ")
+print (printf "%s" $upper | wc "-c" | tr "-d" " ")
 printf "x\n" | cat?
 "#,
         "HELLO USH\n9\nx\n",

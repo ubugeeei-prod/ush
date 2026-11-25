@@ -23,9 +23,9 @@ test "lexical paths process state and host information" {
   assert (std::process::pid > 0)
   assert (std::os::uid >= 0)
   assert (std::os::gid >= 0)
-  assert_eq (std::string::is_empty std::os::name) false
-  assert_eq (std::string::is_empty std::os::arch) false
-  assert_eq (std::string::is_empty std::os::hostname) false
+  assert_eq (std::string::is_empty (std::os::name)) false
+  assert_eq (std::string::is_empty (std::os::arch)) false
+  assert_eq (std::string::is_empty (std::os::hostname)) false
   assert_eq (std::terminal::is_tty 1) false
   std::process::sleep 0
   print "passed"

@@ -7,13 +7,13 @@ use std::process::exit
 let mut failed = 0
 for file in lines (find "apps" "crates" "-type" "f" "-name" "*.rs") {
   let mut count = ""
-  for word in split (trim (wc "-l" file)) " " {
+  for word in split (trim (wc "-l" $file)) " " {
     count = word
     break
   }
-  if to_int count > 250 {
+  if to_int $count > 250 {
     eprint (file + " has " + count + " lines (limit: 250)")
     failed = 1
   }
 }
-exit failed
+exit $failed

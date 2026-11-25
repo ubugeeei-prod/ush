@@ -20,8 +20,8 @@ fn file_sources_and_sinks_take_any_path_as_one_word() {
 let computed = "with space/" + "line\nbreak"
 "one\n" | to_file "with space/odd\nname"
 "two\n" | append_to "with space/odd\nname"
-from_file "with space/odd\nname" | to_file computed
-from_file computed | tr "a-z" "A-Z"
+from_file "with space/odd\nname" | to_file $computed
+from_file $computed | tr "a-z" "A-Z"
 "#,
         |shell, dir, (status, stdout, stderr)| {
             assert_eq!(status, 0, "{shell}: {stderr}");

@@ -20,8 +20,8 @@ fn std_http_helpers_can_read_and_download_file_urls() {
         let payload = source_root.join("payload.txt").resolve()
         let url = "file://" + payload
         let copy = tmpfile()
-        print $ get url
-        download url copy
+        print $ get $url
+        download $url $copy
         print $ copy.read_text()
         copy.remove()
         "#,

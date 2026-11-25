@@ -178,7 +178,7 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   __ush_binding_9_count=''
   # shellcheck disable=SC2034
   count="${__ush_binding_9_count}"
-  __ush_at 10 'for word in split (trim (wc "-l" file)) " " {'
+  __ush_at 10 'for word in split (trim (wc "-l" $file)) " " {'
   __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' command wc '-l' "${file}")" || exit "$?"
   __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || exit "$?"
   __ush_packed_8="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_value_7}" ' ')" || exit "$?"
@@ -197,7 +197,7 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
     __ush_at 12 'break'
     break
   done
-  __ush_at 14 'if to_int count > 250 {'
+  __ush_at 14 'if to_int $count > 250 {'
   if {
   __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__to_int "${__ush_binding_9_count}")" || exit "$?"
   [ "$(if [ "${__ush_value_11}" -gt 250 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -210,5 +210,5 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
     failed="${__ush_binding_7_failed}"
   fi
 done
-__ush_at 19 'exit failed'
+__ush_at 19 'exit $failed'
 ush_fn_std__process__exit "${__ush_binding_7_failed}"

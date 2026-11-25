@@ -1,14 +1,14 @@
 use anyhow::Result;
 use lsp_server::{Connection, Message, Request, Response};
 use lsp_types::{
-    CompletionParams, DocumentFormattingParams, DocumentHighlightParams, DocumentSymbolParams,
+    DocumentFormattingParams, DocumentHighlightParams, DocumentSymbolParams,
     DocumentSymbolResponse, FoldingRangeParams, GotoDefinitionParams, GotoDefinitionResponse,
     HoverParams, Location, ReferenceParams, RenameParams, SemanticTokensParams,
     SignatureHelpParams, TextDocumentPositionParams,
 };
 use ush_tooling::{
-    completions, definition as ush_definition, document_highlights, document_symbols,
-    folding_ranges, format_source, hover_at as ush_hover, prepare_rename as ush_prepare_rename,
+    definition as ush_definition, document_highlights, document_symbols, folding_ranges,
+    format_source, hover_at as ush_hover, prepare_rename as ush_prepare_rename,
     references as ush_refs, rename_locations, signature_help as ush_signature_help,
 };
 
@@ -83,17 +83,6 @@ pub(super) fn folding(
     let source = docs.read(&params.text_document.uri)?;
     let ranges = convert::folding_ranges(&folding_ranges(&source));
     respond_ok(connection, request.id, serde_json::to_value(ranges)?)
-}
-
-pub(super) fn completion(
-    connection: &Connection,
-    docs: &mut DocumentStore,
-    request: Request,
-) -> Result<()> {
-    let params: CompletionParams = serde_json::from_value(request.params)?;
-    let source = docs.read(&params.text_document_position.text_document.uri)?;
-    let items = convert::completion_items(&completions(&source));
-    respond_ok(connection, request.id, serde_json::to_value(items)?)
 }
 
 pub(super) fn hover(
@@ -237,7 +226,7 @@ pub(super) fn rename(
     }
 }
 
-fn respond_ok(
+pub(super) fn respond_ok(
     connection: &Connection,
     id: lsp_server::RequestId,
     value: serde_json::Value,

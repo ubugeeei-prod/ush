@@ -92,7 +92,7 @@ __ush_binding_19_wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
 if [ "${__ush_binding_19_wrapped__tag}" = 'Envelope::Wrap' ] && [ "${__ush_binding_19_wrapped__0__tag}" = 'Response::Ok' ]; then
   message="${__ush_binding_19_wrapped__0__0-}"
-  __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
+  __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap $message'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
 elif :; then

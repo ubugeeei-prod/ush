@@ -393,13 +393,15 @@ Small example:
 
 ```text
 let greeting = "hello"
-echo greeting "world"
+echo $greeting "world"
 $ printf '%s\n' from-ush
 match greeting {
   "hello" => echo "matched"
   _ => echo "fallback"
 }
 ```
+
+Whitespace calls accept CLI-style arguments: `echo Hello $name`, `mkdir -p ./dist`, and `echo (count + 1)`. Bare words are strings; variable values stay one argument without extra quoting. See [argument rules](docs/native-scripting.md#cli-style-arguments).
 
 Current highlights:
 
@@ -454,14 +456,14 @@ fn greet(name: String) -> String {
 }
 
 fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in items]
+  [f $x for x in items]
 }
 
 echo (greet "ush")
 let greetings = map ["Ada", "Lin"] &greet
 
 test "greetings" {
-  assert_eq greetings ["hello Ada", "hello Lin"]
+  assert_eq $greetings ["hello Ada", "hello Lin"]
   assert (starts_with (greet "ush") "hello")
 }
 ```

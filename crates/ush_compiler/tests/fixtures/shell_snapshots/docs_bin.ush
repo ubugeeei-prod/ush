@@ -17,7 +17,7 @@ fn greet(name: String) -> String {
 #| @param name target user
 #| @param count repeat count
 fn bin(#[alias("n")] name: String, #[default(2)] count: Int, verbose: Bool) {
-  print $ greet name
+  print $ greet $name
   print count
   print verbose
 }

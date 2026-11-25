@@ -18,7 +18,7 @@ fn wrap(message: String) -> String {
 
 let wrapped = Envelope::Wrap(Response::Ok("done"))
 match wrapped {
-  Envelope::Wrap(Response::Ok(message)) => print $ wrap message
+  Envelope::Wrap(Response::Ok(message)) => print $ wrap $message
   _ => print "fallback"
 }
 

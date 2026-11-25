@@ -214,7 +214,7 @@ fn omitted_unit_return_types_behave_like_explicit_unit() {
 }
 
 #[test]
-fn dollar_operator_and_grouped_calls_work() {
+fn grouped_calls_compose_without_an_application_operator() {
     let output = run_program(
         r#"
         fn greet(name: String) -> String {
@@ -223,7 +223,7 @@ fn dollar_operator_and_grouped_calls_work() {
         fn wrap(message: String) -> String {
           "<" + message + ">"
         }
-        print $ wrap $ greet "ush"
+        print wrap (greet "ush")
         print $ wrap (greet "team")
     "#,
     );

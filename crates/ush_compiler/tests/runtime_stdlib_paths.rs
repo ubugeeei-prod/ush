@@ -74,8 +74,8 @@ fn mkdir_p_creates_nested_directories() {
         r#"
         use std::path::{mkdir_p, is_dir, from_cwd}
         let target = from_cwd "a/b/c"
-        mkdir_p target
-        print $ is_dir target
+        mkdir_p $target
+        print $ is_dir $target
     "#,
     );
 
@@ -93,7 +93,7 @@ fn cwd_relative_paths_resolve_against_the_working_directory() {
         r#"
         use std::path::{from_cwd, resolve, basename}
         let file = from_cwd "file.txt"
-        print $ basename (resolve file)
+        print $ basename (resolve $file)
     "#,
     );
 
@@ -106,8 +106,8 @@ fn a_temporary_file_is_created_and_writable() {
         use std::path::tmpfile
         use std::fs::{write_text, read_text}
         let file = tmpfile()
-        write_text file "from-fs"
-        print $ read_text file
+        write_text $file "from-fs"
+        print $ read_text $file
     "#);
 
     assert_eq!(output, "from-fs\n");
@@ -122,9 +122,9 @@ fn files_round_trip_through_read_and_write() {
         use std::path::from_cwd
         use std::fs::{write_text, read_text}
         let file = from_cwd "out.txt"
-        write_text file "first"
-        write_text file "second"
-        print $ read_text file
+        write_text $file "first"
+        write_text $file "second"
+        print $ read_text $file
     "#,
     );
 

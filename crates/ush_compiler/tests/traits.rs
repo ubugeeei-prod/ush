@@ -89,7 +89,7 @@ fn display_trait_and_format_work_for_type_structs() {
         }
         let user = User { name: "ush", age: 7 }
         print user
-        print format user
+        print format $user
     "#,
     );
 

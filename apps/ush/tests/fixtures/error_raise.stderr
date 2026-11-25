@@ -1,4 +1,4 @@
 <SCRIPT>:5: Problem::Nope (exit 1)
-  fail Problem::Nope
+  fail (Problem::Nope)
 <SCRIPT>:10: command failed (exit 1)
-  print $ wrap $ fail ()
+  print wrap (fail ())

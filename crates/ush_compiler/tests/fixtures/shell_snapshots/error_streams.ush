@@ -3,7 +3,7 @@ enum Problem {
 }
 
 fn fail() -> String / Problem, stderr {
-  fail Problem::Nope
+  fail (Problem::Nope)
 }
 
 fn wrap(message: String) -> String {
@@ -26,4 +26,4 @@ fn awaited() -> String / Problem, stderr, task {
   value
 }
 
-print $ wrap $ awaited ()
+print wrap (awaited ())

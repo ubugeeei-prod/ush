@@ -21,13 +21,13 @@ fn head_sha() -> String {
 
 fn load(path: String) -> String {
   if path == "" {
-    fail ConfigError::Missing
+    fail (ConfigError::Missing)
   }
   path
 }
 
 let config = load "app.toml"?
-echo head_sha
+echo $head_sha
 ```
 
 `ush effects` prints every function's row, written or inferred, error
@@ -70,7 +70,7 @@ fn load(found: Bool) -> Config / ConfigError, fs {
   if found {
     return Config { name: "production" }
   }
-  fail ConfigError::Missing
+  fail (ConfigError::Missing)
 }
 
 let config = load(true)?
@@ -93,7 +93,7 @@ External programs choose their own exit codes. The error row calls that possibil
 
 ```ush
 let branch = $bin::git("branch", "--show-current")?
-echo branch
+echo $branch
 ```
 
 The generated script writes the failure location, exit status and original source line to standard error. The same diagnostic works on a host without ush or the original source. Native command diagnostics pass through. Use `ush explain` to inspect the lowering for a shell line.

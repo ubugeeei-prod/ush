@@ -27,10 +27,10 @@ test "literal filesystem paths links and permissions" {
   assert (is_fifo "pipe")
   let mut count = 0
   for entry in read_dir "." {
-    assert_eq entry (std::path::join "." (std::path::basename entry))
+    assert_eq $entry (std::path::join "." (std::path::basename $entry))
     count = count + 1
   }
-  assert_eq count 7
+  assert_eq $count 7
   mkdir "empty"
   assert_eq (std::string::join (read_dir "empty") ",") ""
   rmdir "empty"

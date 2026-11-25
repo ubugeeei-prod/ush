@@ -62,7 +62,7 @@ fn twice(x: Int) -> Int {
   x + x
 }
 fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in items]
+  [f $x for x in items]
 }
 fn keep<F<_>, T>(x: F<T>) -> F<T> {
   x
@@ -109,7 +109,7 @@ fn id<T>(x: T) -> T {
   x
 }
 fn map<A, B>(xs: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in xs]
+  [f $x for x in xs]
 }
 for word in map ["one", "two"] &id {
   print word
@@ -127,7 +127,7 @@ fn noisy(x: Int) -> Int {
   x
 }
 fn apply(f: Fn<Int, Int>, x: Int) -> Int / () {
-  f x
+  f $x
 }
 print apply &noisy 1
 "#;

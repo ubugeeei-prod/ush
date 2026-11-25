@@ -17,9 +17,9 @@ use std::bytes::{encode_base64, decode_base64}
 use std::time::{unix_seconds, format_utc}
 
 let contents = read_bytes "input.bin"
-write_bytes "copy.bin" contents
-write_atomic "timestamp.txt" (format_utc unix_seconds "%Y-%m-%dT%H:%M:%SZ")
-echo (encode_base64 contents)
+write_bytes "copy.bin" $contents
+write_atomic "timestamp.txt" (format_utc $unix_seconds "%Y-%m-%dT%H:%M:%SZ")
+echo (encode_base64 $contents)
 ```
 
 All runtime-backed operations except `available` can raise `unknown`, including

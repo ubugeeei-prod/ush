@@ -13,7 +13,7 @@ let mut count = 0
 while count < 3 {
   count = count + 1
 }
-assert_eq count 3
+assert_eq $count 3
 ```
 
 `greeting = "goodbye"` is a compile error that suggests `let mut greeting`.
@@ -43,9 +43,9 @@ fn label() -> String {
   "ush"
 }
 
-echo (greet "hello" label)
+echo (greet "hello" $label)
 let branch = git "branch" "--show-current"?
-echo (trim_suffix branch "\n")
+echo (trim_suffix $branch "\n")
 echo (greet (trim_prefix "@Ada" "@") "Lovelace")
 ```
 
@@ -380,13 +380,13 @@ pub enum Level {
 
 pub fn annotate(level: Level, message: String) {
   match level {
-    Level::Notice => echo ("::notice::" + clean message),
-    Level::Warning => echo ("::warning::" + clean message),
+    Level::Notice => echo ("::notice::" + clean $message),
+    Level::Warning => echo ("::warning::" + clean $message),
   }
 }
 
 fn clean(message: String) -> String {
-  trim message
+  trim $message
 }
 ```
 
@@ -395,8 +395,8 @@ fn clean(message: String) -> String {
 mod "../lib/github.ush" as gh
 use gh::{Level, annotate}
 
-annotate Level::Notice "starting"
-gh::annotate Level::Warning "  disk is nearly full  "
+annotate (Level::Notice) "starting"
+gh::annotate (Level::Warning) "  disk is nearly full  "
 ```
 
 - `mod "path.ush" as name` imports the file at `path`, relative to the
@@ -459,7 +459,7 @@ fn keep<F<_>, T>(value: F<T>) -> F<T> {
   value
 }
 fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in items]
+  [f $x for x in items]
 }
 fn greet(name: String) -> String {
   "hello " + name
@@ -587,7 +587,7 @@ extern "helpers.sh" as helpers {
 use helpers::*
 
 echo (greet "ush")
-echo answer
+echo $answer
 ```
 
 The optional module name provides qualified calls such as `helpers::greet`;

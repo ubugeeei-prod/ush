@@ -86,15 +86,15 @@ fn stdin_readers_preserve_empty_lines_and_unterminated_records() {
     each_shell(|shell, target| {
         for (source, input) in [
             (
-                r#"std::test::assert_eq std::io::read_lines ["a\r", "", "b\\c"]"#,
+                r#"std::test::assert_eq (std::io::read_lines) ["a\r", "", "b\\c"]"#,
                 b"a\r\n\nb\\c".as_slice(),
             ),
             (
-                r#"std::test::assert_eq std::io::read_all "a\n\nb""#,
+                r#"std::test::assert_eq (std::io::read_all) "a\n\nb""#,
                 b"a\n\nb\n\n".as_slice(),
             ),
             (
-                r#"std::test::assert_eq (std::string::join std::io::read_lines ",") """#,
+                r#"std::test::assert_eq (std::string::join (std::io::read_lines) ",") """#,
                 b"".as_slice(),
             ),
         ] {

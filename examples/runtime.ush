@@ -10,4 +10,4 @@ test "Unicode and bytes" {
   assert_eq (encode_base64 (from_text "ush")) "dXNo"
 }
 
-echo (format_utc unix_seconds "%Y-%m-%dT%H:%M:%SZ")
+echo (format_utc (unix_seconds) "%Y-%m-%dT%H:%M:%SZ")

@@ -238,14 +238,14 @@ __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__t
 __ush_binding_7_work="${__ush_value_1}"
 # shellcheck disable=SC2034
 work="${__ush_binding_7_work}"
-__ush_at 8 'exec compiler ["check", "flake.tynix"]'
+__ush_at 8 'exec $compiler ["check", "flake.tynix"]'
 __ush_match_2__len='2'
 # shellcheck disable=SC2034
 __ush_match_2__0='check'
 # shellcheck disable=SC2034
 __ush_match_2__1='flake.tynix'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${__ush_binding_6_compiler}" "$(ush_fn_std__pack __ush_match_2)" )
-__ush_at 9 'exec compiler ["compile", "flake.tynix", "-o", work + "/flake.nix"]'
+__ush_at 9 'exec $compiler ["compile", "flake.tynix", "-o", work + "/flake.nix"]'
 __ush_match_4__len='4'
 # shellcheck disable=SC2034
 __ush_match_4__0='compile'
