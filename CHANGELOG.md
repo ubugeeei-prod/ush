@@ -10,6 +10,39 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Interpolating strings: `$"…"` reads `$name` and `${name}` exactly as
+  CLI-style words do, `$env::NAME` reads the environment, and `${expr}`
+  takes any String, Int or Bool expression, including fields, calls and
+  method calls. `$"""…"""` is the dedented multi-line form, and `\$` writes a
+  dollar sign. Strings lower to quoted parameter expansion and
+  concatenation, never `eval`, so `$`, backticks, quotes, newlines and `*`
+  in a value stay data. `"…"`, `'…'` and `"""…"""` stay literal.
+- `$env::NAME` reads a required environment variable as a String, in
+  expressions, words (`--dir=$env::RUNNER_TEMP`) and interpolating strings.
+  An unset or empty variable stops the program with its name and source
+  line; the read infers `env` and `unknown`. `std::env::get_or` remains the
+  optional form.
+- List API: `len`, `is_empty`, `contains`, `first`, `last`, `join` and
+  `enumerate` methods, bounds-checked `xs[i]`, `xs + ys` concatenation,
+  `for (i, x) in xs.enumerate()` and tuple element access `pair.0`. An
+  out-of-range index or `first`/`last` on an empty list fails with the
+  source line, the contracts checker rejects indexes it can prove out of
+  range, and `xs = xs + ys` on a `let mut` list appends in place.
+- `glob "*.ts"` match patterns and `a | b` alternatives. A String `match`
+  over literals, globs and `_` lowers to one POSIX `case`; quoted pattern
+  text, spaces and `$` match literally, and ranges such as `[a-z]` expand to
+  their ASCII characters so they match the same in every locale. Editors
+  highlight interpolations and `glob`, and the formatter ignores braces
+  inside `${…}`.
+
+### Changed
+
+- `shell` and `alias` reject an interpolating string, because the value would
+  run as shell code.
+- A String `match` lowers to `case` instead of an `if` chain.
+
 ## [0.16.0] — 2026-11-25
 
 ### Breaking changes

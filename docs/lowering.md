@@ -64,6 +64,10 @@ If the source has doc comments or a `bin(...)` entrypoint, the compiler also emi
 | `job.kill()` | `__ush_task_kill`: signal the task, then stop, list, signal and continue each descendant |
 | `defer { … }` | `__ush_defer_N() { … }` pushed onto `__ush_defers`, run by the exit trap |
 | `mod "lib/gh.ush"` + `gh::run` | module inlined; `ush_fn_gh__run() { ... }` |
+| `$"a-$side"` | `'a-'"${__ush_binding_1_side}"`; holes are hoisted into variables first |
+| `$env::NAME` | copy `${NAME-}` into a temporary; empty → `__ush_report` and exit |
+| `xs.len()`, `xs[i]` | `${P__len}`; bounds check, then `eval` of `P__<i>` |
+| `match s { glob "*.ts" \| "x" => … }` | `case "${s}" in *'.ts'\|'x') … ;; esac` |
 
 ## `let` and `print`
 
@@ -240,6 +244,76 @@ ADT values are flattened into related shell variables:
 - `<value>__field`
 
 Pattern matching lowers to a combination of tag extraction, `case`, and `if`.
+
+## Interpolation and environment reads
+
+Source:
+
+```text
+let side = "left"
+let dir = $env::RUNNER_TEMP
+print $"$dir/ambient-$side.jsonl"
+```
+
+Compiled `sh`:
+
+```sh
+__ush_binding_1_side='left'
+__ush_env_0=${RUNNER_TEMP-}
+if [ -z "${__ush_env_0}" ]; then __ush_report 1 'environment variable RUNNER_TEMP is not set or is empty'; exit 1; fi
+__ush_binding_2_dir="${__ush_env_0}"
+printf '%s\n' "${__ush_binding_2_dir}"'/ambient-'"${__ush_binding_1_side}"'.jsonl'
+```
+
+Each hole is first evaluated into a variable, the way any call or method
+argument is, and the string becomes one shell word: quoted text and quoted
+parameter expansions side by side. Nothing is evaluated twice and nothing
+passes through `eval`. Inside a function the failed read is `return 1`.
+
+## Lists
+
+A list is stored as the variables `P__len`, `P__0`, `P__1`, …, where `P`
+is its binding's storage name, such as `__ush_binding_3_files`.
+`xs.len()` reads `P__len`. `xs[i]` checks the index, then reads one
+element with `eval "item=\"\${P__${i}}\""`: only the variable name is
+built, from a checked integer, and the element's value is never evaluated. `contains` and
+`join` call the small runtime helpers `__ush_std_list_contains` and
+`__ush_std_list_join` without a subshell, `+` copies elements into a new
+list, and `for (i, x) in xs.enumerate()` writes each pair into the loop's
+variables without building the list of pairs. Assigning `xs = xs + ys` to
+a `let mut` list writes the new items after the existing ones in place.
+
+## `match` on Strings
+
+Source:
+
+```text
+match file {
+  glob "*.ts" | glob "*.mts" => print "typescript"
+  "Makefile" => print "make"
+  _ => print "other"
+}
+```
+
+Compiled `sh`:
+
+```sh
+case "${file}" in
+  *'.ts'|*'.mts')
+    printf '%s\n' 'typescript'
+    ;;
+  'Makefile')
+    printf '%s\n' 'make'
+    ;;
+  *)
+    printf '%s\n' 'other'
+    ;;
+esac
+```
+
+Literal text in a pattern is quoted and only `*`, `?` and bracket
+expressions stay bare, so spaces, quotes and `$` in a pattern match
+themselves.
 
 ## `async` and `.await`
 

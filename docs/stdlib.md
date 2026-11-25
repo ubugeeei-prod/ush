@@ -43,6 +43,10 @@ therefore lose trailing LF bytes. List elements preserve them. For exact file
 contents use streaming APIs or `write_text` with a literal/concatenated string;
 do not use a captured String as a binary container.
 
+Lists have methods rather than a module: `len`, `is_empty`, `contains`,
+`first`, `last`, `join` and `enumerate`, plus `xs[i]` and `xs + ys`. See
+[lists](shell-language.md#lists).
+
 ## Files and paths
 
 | API in `std::fs` | Result and contract |

@@ -98,7 +98,7 @@ type Config {
 fn fetch_avatar(config: Config) -> Path / Result {
   let out = from_source("tmp").join("avatar.png")
   let bytes = http::get_bytes(
-    "https://api.github.com/users/${config.owner}"
+    $"https://api.github.com/users/${config.owner}"
   )?
   out.write_bytes(bytes)?
   out
