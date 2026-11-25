@@ -45,6 +45,9 @@ for target in targets {
   assert_eq (output target [work + "/script"]) "2\n3\n4\n3"
   exec compiler ["compile", "examples/extern.ush", "--target", target, "-o", work + "/script"]
   assert_eq (output target [work + "/script"]) "hello ush\n42"
+  exec compiler ["compile", "examples/pipelines.ush", "--target", target, "-o", work + "/script"]
+  let piped = "first: apple\nSHOUTED\nTO STDERR\nhello from a child process\n1"
+  assert_eq (output target [work + "/script"]) piped
   exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush"]
   exec compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]
   assert_eq (redirect target [work + "/script"] (work + "/out") (work + "/err")) 1

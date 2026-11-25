@@ -81,6 +81,12 @@ so no handler can take them back — nothing un-writes a file:
 | `exec` | `$ command`, `shell`, `std::command::*` |
 | `task` | `async`, `spawn`, `.await`, `async` blocks |
 
+A pipeline needs what its stages need. Only the stage that writes to the
+script's stdout adds `stdout`: earlier stages write into the pipe, a file sink
+takes the last stage's output, and a captured pipeline's output becomes a
+value. `from_file`, `to_file` and `append_to` add `fs`; `export` and scoped
+blocks add `env`, and a `cd` block also adds `fs`.
+
 Inline shell is opaque to the checker. It conservatively requires `exec`, `fs`, `env`, `net`, `stdin` and `stderr`. A shell statement also streams `stdout`. A typed `$bin::` call can provide a smaller row. User-method calls with the same name share a conservative upper bound in effect inference.
 
 `std::string` and `std::regex` are pure: they are text

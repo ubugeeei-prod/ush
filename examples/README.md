@@ -61,6 +61,7 @@ and adding `;` keeps that expression as a statement instead.
 - `alias.ush`: `alias name = ...` lowering to shell aliases
 - `hello.ush`: inline `$ command ...` shell escape
 - `shell_string.ush`: dynamic shell command strings
+- `pipelines.ush`: `|` and `|&` pipelines, `from_file` / `to_file` / `append_to`, String stdin, and `cd` / `export` blocks
 - `traits.ush`: marker traits and builtin trait impl examples
 
 ## Data Files for Helper Demos
