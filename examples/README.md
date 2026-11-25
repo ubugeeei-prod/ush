@@ -19,8 +19,8 @@ and adding `;` keeps that expression as a statement instead.
 ## Language Basics
 
 - `hello.ush`: minimal `let`, `print`, inline `$ command`, and `match`
-- `functional.ush`: `$` application and grouped calls
-- `zero_arg.ush`: zero-arg functions with `()`
+- `functional.ush`: space-separated calls and grouped nested arguments
+- `zero_arg.ush`: zero-argument calls using bare names
 - `unit.ush`: omitted `-> ()`, tail `()`, and `== ()`
 - `named_args.ush`: labeled arguments and `#[default(...)]`
 - `literal_match.ush`: literal `match` arms
@@ -29,6 +29,8 @@ and adding `;` keeps that expression as a statement instead.
 - `std_modules.ush`: `std::env`, `from_cwd` / `from_source` path refs, plus method-style `path.resolve()`, `path.exists()`, `path.read_text()`, `std::fs`, `std::command`, and `std::string`
 - `http_regex.ush`: `std::http::{get, download}` plus `std::regex::{is_match, find, capture, replace}` and String regex methods
 - `control_flow.ush`: `if` tail values, `for in`, ranges, `while`, `loop`, and `if let ... && ...`
+- `collections.ush`: generic higher-order functions and filtered list comprehensions
+- `extern.ush`: source-relative typed functions from `helpers.sh`
 - `contracts.ush` exercises higher-kinded parameters, indexed sequences, quantities, shell captures and tasks.
 - `effects.ush`: Effekt-style effect rows (`-> T / …`), `effect` declarations, `do`, and `try … with` handlers
 
@@ -52,7 +54,7 @@ and adding `;` keeps that expression as a statement instead.
 - `bin.ush`: minimal generated CLI entrypoint
 - `bin_defaults.ush`: defaults, aliases, and bool flags
 - `docs.ush`: `#|` comments with std-like generated `--help`, `--man`, and `--complete`
-- `smoke_test.ush`: a tiny passing script you can run with `ush test`
+- `smoke_test.ush`: named and anonymous tests with explicitly imported assertions
 
 ## Shell Integration
 

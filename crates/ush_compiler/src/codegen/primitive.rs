@@ -25,6 +25,8 @@ pub(crate) fn infer(
 ) -> Result<Type> {
     match expr {
         Expr::ShellCapture(_) | Expr::String(_) => Ok(Type::String),
+        Expr::FunctionRef(_) => bail!("function reference must be checked before lowering"),
+        Expr::Comprehension(c) => super::comprehension::infer(c, env, functions, impls, enums),
         Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
         Expr::Int(_) => Ok(Type::Int),
         Expr::Bool(_) => Ok(Type::Bool),

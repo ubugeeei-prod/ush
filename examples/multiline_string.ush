@@ -5,4 +5,4 @@ let article = """
 """
 
 print article
-print $ article.starts_with("<article>")
+print article.starts_with("<article>")

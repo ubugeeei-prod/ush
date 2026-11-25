@@ -64,9 +64,11 @@ fn main() -> Result<()> {
             Action::Explain { input, lines } => {
                 process::exit(explain::explain(input, lines, cli.target)?)
             }
-            Action::Test { targets } => {
-                process::exit(test_runner::run(targets, cli.config.as_deref())?)
-            }
+            Action::Test { targets } => process::exit(test_runner::run(
+                targets,
+                cli.config.as_deref(),
+                cli.target,
+            )?),
         }
     }
 

@@ -123,6 +123,7 @@ pub(super) fn validate_type(
         "Int" | "String" | "Bool" | "()" => 0,
         "List" | "Task" => 1,
         "Tuple" => ty.args.len(),
+        "Fn" if !ty.args.is_empty() => ty.args.len(),
         name if nominal.contains(name) => 0,
         _ => match scheme.variables.get(&ty.name) {
             Some(Kind::Type(n)) => *n,

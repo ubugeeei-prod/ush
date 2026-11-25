@@ -24,6 +24,18 @@ pub(super) fn emit_sequence(
     out: &mut OutputBuffer,
 ) -> Result<()> {
     match (expected, expr) {
+        (Type::List(item), Expr::Comprehension(c)) => super::comprehension::emit(
+            target,
+            c,
+            item,
+            env,
+            functions,
+            impls,
+            enums,
+            state,
+            inside_function,
+            out,
+        ),
         (Type::Tuple(types), Expr::Tuple(items)) if types.len() == items.len() => {
             out.push_str(&format!("{target}__len='{}'\n", items.len()));
             for (index, (ty, item)) in types.iter().zip(items).enumerate() {
@@ -83,7 +95,7 @@ pub(super) fn emit_sequence(
             )?;
             let index = state.temp_var("range_index");
             let current = state.temp_var("range_current");
-            out.push_str(&format!("{target}__len=$(({end} - {start}))\n"));
+            out.push_str(&format!("{target}__len=$(({end} - {start}))\n[ \"${{{target}__len}}\" -ge 0 ] || {target}__len=0\n"));
             out.push_str(&format!("{index}=0\n{current}={start}\n"));
             out.push_str(&format!("while [ \"$${current}\" -lt {end} ]; do\n").replace("$$", "$"));
             out.push_str(

@@ -13,6 +13,10 @@ use crate::types::HeapVec as Vec;
 use crate::util::parse_paren_body;
 
 pub(super) fn parse_member_chain(source: &str) -> Result<Option<Expr>> {
+    let words = crate::util::split_top_level_whitespace(source);
+    if words.len() > 1 && super::path::looks_like_call_target(words[0]) {
+        return Ok(None);
+    }
     let parts = split_members(source);
     if parts.len() <= 1 {
         return Ok(None);

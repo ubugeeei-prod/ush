@@ -124,7 +124,13 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     if trimmed == "()" {
         return Ok(Expr::Unit);
     }
+    if let Some(name) = trimmed.strip_prefix('&') {
+        return Ok(Expr::FunctionRef(super::path::parse_call_target(name)?));
+    }
     if trimmed.starts_with('[') && trimmed.ends_with(']') {
+        if let Some(c) = super::comprehension::parse(&trimmed[1..trimmed.len() - 1])? {
+            return Ok(Expr::Comprehension(Box::new(c)));
+        }
         return Ok(Expr::List(parse_list(
             &trimmed[1..trimmed.len() - 1],
             parse_expr,
@@ -174,7 +180,7 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     if let Some(call) = signature::parse_expr_call(trimmed)? {
         return Ok(Expr::Call(call));
     }
-    if is_identifier(trimmed) {
+    if super::path::looks_like_call_target(trimmed) {
         return Ok(Expr::Var(trimmed.into()));
     }
     bail!("unsupported expression: {trimmed}")

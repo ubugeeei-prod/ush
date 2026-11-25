@@ -72,3 +72,69 @@ fn test_command_defaults_to_tests_directory() {
     assert!(output.stderr.is_empty());
     assert_eq!(stdout, include_str!("fixtures/test_runner_success.stdout"));
 }
+
+#[test]
+fn named_and_anonymous_blocks_are_isolated_and_all_run() {
+    let dir = tempdir().unwrap();
+    let source = dir.path().join("blocks.ush");
+    fs::write(
+        &source,
+        r#"
+use std::test::*
+fn inc(x: Int) -> Int {
+  x + 1
+}
+test "generic list" {
+  assert_eq [inc x for x in 0..2] [1, 2]
+  $ export USH_TEST_BLOCK_LEAK=yes
+}
+test {
+  assert_eq (std::env::get_or "USH_TEST_BLOCK_LEAK" "no") "no"
+}
+test "failure" {
+  assert_eq "actual" "expected"
+  print "unreachable"
+}
+test "after failure" {
+  assert true
+}
+"#,
+    )
+    .unwrap();
+    let ordinary = ush().arg(&source).output().unwrap();
+    assert!(
+        ordinary.status.success(),
+        "{}",
+        String::from_utf8_lossy(&ordinary.stderr)
+    );
+    assert!(ordinary.stdout.is_empty());
+    let output = ush().arg("test").arg(&source).output().unwrap();
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(output.status.code(), Some(1), "{stdout}");
+    assert!(stdout.contains("3 passed; 1 failed"), "{stdout}");
+    assert!(stdout.contains("assert_eq failed"), "{stdout}");
+    assert!(stdout.contains("after failure"), "{stdout}");
+    assert!(!stdout.contains("unreachable"), "{stdout}");
+}
+
+#[test]
+fn assertions_require_an_import_and_matching_types() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("assertions.ush");
+    for (source, diagnostic) in [
+        ("test {\n assert_eq 1 1\n}\n", "unknown function: assert_eq"),
+        (
+            "use std::test::assert_eq\ntest {\n assert_eq 1 \"1\"\n}\n",
+            "same type",
+        ),
+    ] {
+        fs::write(&path, source).unwrap();
+        let output = ush().arg("check").arg(&path).output().unwrap();
+        assert!(!output.status.success());
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains(diagnostic),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+}

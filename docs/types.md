@@ -31,8 +31,8 @@ fn length<const N: Int>(items: [String; N]) -> Int / () {
   N
 }
 
-print delay(5ms + 10ms)
-print length(["a", "b"])
+print delay (5ms + 10ms)
+print length ["a", "b"]
 ```
 
 Units are nominal. Declare each suffix once. Addition and comparison require compatible units. The runtime representation of a quantity is an integer in its declared unit.
@@ -42,14 +42,14 @@ A length can be a nonnegative integer, a const parameter, or the name of an inte
 ## Calling installed commands
 
 ```ush
-using $bin::
+use $bin::*
 
-cd("tools")?
-let status_text = git("status", "--short")?
+cd "tools"?
+let status_text = git "status" "--short"?
 print status_text
 ```
 
-Fully qualified calls work without an import, for example `$bin::git("status", "--short")`. Local functions and explicit imports take precedence over the wildcard. The catalog covers the 155 named entries in the POSIX.1-2024 utilities index and common tools including git, curl, jq, and package managers. Availability depends on the target host. [POSIX utilities index](https://pubs.opengroup.org/onlinepubs/9799919799/idx/utilities.html)
+Fully qualified calls work without an import, for example `$bin::git "status" "--short"`. Local functions and explicit imports take precedence over the wildcard. The catalog covers the 155 named entries in the POSIX.1-2024 utilities index and common tools including git, curl, jq, and package managers. Availability depends on the target host. [POSIX utilities index](https://pubs.opengroup.org/onlinepubs/9799919799/idx/utilities.html)
 
 The checker validates positional arguments, accepted arity, return type and effect row. Each argument becomes one quoted argv entry. Arguments generally accept `String` or `Int`. `cd` takes an optional string path and changes the current shell directory when called as a statement. Text commands can stream output as statements or return it in an expression, actions return `()`, and `$bin::test(...)` returns a Boolean. General-purpose tools such as git, curl, and jq accept variadic argv. Their option grammars, subcommands and output schemas remain the responsibility of the tool.
 
@@ -64,7 +64,7 @@ print text
 fn build(path: String) -> String {
   "built " + path
 }
-let job = async build("release")
+let job = async build "release"
 let result = job.await
 print result
 ```
@@ -72,3 +72,5 @@ print result
 Inside a capture the selected shell handles quotes, pipes, redirections, here-documents and variable expansion. For multiline captures, put the final `)?` at the indentation of the opening source line. `ush script.ush` inherits standard input. Inline shell code follows the dialect of the chosen interpreter.
 
 Launching a task evaluates the call arguments in the parent and starts a background shell process. Handles can be awaited more than once, including from sibling tasks that capture the handle. Each waiter observes the same completed value or exit status. The enclosing task scope waits for unfinished children before cleaning up its private result directory. Task processes inherit a snapshot of shell state and can share files and other external resources.
+
+See [shell-style language](shell-language.md) for `Fn<A, B>` callbacks, list comprehensions, test blocks, and `.sh` extern modules.

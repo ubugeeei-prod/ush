@@ -46,6 +46,14 @@ pub(super) fn parse_block(
             }
             break;
         }
+        if allow_declarations && trimmed.starts_with("extern ") {
+            statements.extend(super::external::parse(*line_no, trimmed, lines, cursor)?);
+            continue;
+        }
+        if allow_declarations && (trimmed == "test {" || trimmed.starts_with("test ")) {
+            statements.push(super::testing::parse(*line_no, trimmed, lines, cursor)?);
+            continue;
+        }
         let (trimmed, terminated) = trim_statement_terminator(trimmed);
         let tail_position = allow_tail_expr && !terminated && is_tail_position(lines, *cursor);
         let statement = parse_statement(

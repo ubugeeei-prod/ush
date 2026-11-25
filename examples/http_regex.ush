@@ -10,11 +10,11 @@ let text = get url
 
 download url copy
 
-print $ text.starts_with("{")
-print $ "module-ready".is_match("^module")
-print $ find "ush-v0.3.4" "v[0-9.]+"
-print $ capture "release-v0.3.4" "v([0-9.]+)" 1
-print $ regex_replace "v0.3.4" "[.]" "-"
-print $ copy.read_text().starts_with("{")
+print text.starts_with("{")
+print "module-ready".is_match("^module")
+print find "ush-v0.3.4" "v[0-9.]+"
+print capture "release-v0.3.4" "v([0-9.]+)" 1
+print regex_replace "v0.3.4" "[.]" "-"
+print copy.read_text().starts_with("{")
 
 copy.remove()

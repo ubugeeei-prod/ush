@@ -28,6 +28,7 @@ pub(super) fn shell_effects(streams_stdout: bool) -> EffectSet {
 pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
     if let Some(rest) = name.strip_prefix("std::") {
         return match rest {
+            _ if rest.starts_with("test::") => EffectSet::of(Effect::Stderr),
             _ if rest.starts_with("fs::") => EffectSet::of(Effect::Fs),
             _ if rest.starts_with("http::") => EffectSet::of(Effect::Net),
             "command::run" => shell_effects(true),

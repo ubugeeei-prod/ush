@@ -3,14 +3,14 @@ use super::{
     types::{Index, Ty},
     unify::Substitution,
 };
-use crate::{
-    ast::{Call, FunctionDef, Statement, StatementKind},
-    types::{AstString as Name, HeapVec as Vec},
-};
+use crate::{ast::Call, types::HeapVec as Vec};
 use anyhow::{Result, bail, ensure};
 
 impl Checker {
     pub(super) fn call(&mut self, call: &mut Call, locals: &super::Locals) -> Result<Ty> {
+        if let Some(ty) = locals.get(&call.name).cloned() {
+            return self.callback(call, &ty, locals);
+        }
         let mut args = Vec::new();
         for arg in &mut call.args {
             args.push(self.expr(&mut arg.expr, locals)?);
@@ -44,7 +44,7 @@ impl Checker {
                 );
                 ordered[i] = Some((actual, &arg.expr));
             }
-            let ordered: Vec<_> = ordered.into_iter().flatten().collect();
+            let mut ordered: Vec<_> = ordered.into_iter().flatten().collect();
             for ((name, _), (actual, expr)) in scheme.params.iter().zip(&ordered) {
                 if actual.name == "Int" {
                     let index = if actual.min == actual.max {
@@ -60,15 +60,37 @@ impl Checker {
                 }
             }
             for ((_, formal), (actual, _)) in scheme.params.iter().zip(&ordered) {
-                sub.unify(scheme, formal, actual)?;
+                if formal.name != "Fn" {
+                    sub.unify(scheme, formal, actual)?;
+                }
             }
-            if scheme.variables.is_empty() && !self.symbolic {
+            for ((_, formal), (actual, _)) in scheme.params.iter().zip(&mut ordered) {
+                if formal.name == "Fn" {
+                    self.contextual_callback(actual, &sub.apply(formal))?;
+                    sub.unify(scheme, formal, actual)?;
+                }
+            }
+            if scheme.variables.is_empty()
+                && !self.symbolic
+                && !scheme.params.iter().any(|p| p.1.name == "Fn")
+            {
                 let args = scheme.params.iter().map(|p| p.1.clone()).collect();
                 let (name, ty) = self.instance(&def, args, Substitution::default())?;
                 call.name = name;
                 return Ok(sub.apply(&ty));
             }
-            let concrete = scheme.params.iter().map(|(_, t)| sub.apply(t)).collect();
+            let concrete = scheme
+                .params
+                .iter()
+                .zip(&ordered)
+                .map(|((_, t), (actual, _))| {
+                    let mut t = sub.apply(t);
+                    if t.name == "Fn" {
+                        t.function = actual.function.clone();
+                    }
+                    t
+                })
+                .collect();
             let (name, result) = self.instance(&def, concrete, sub)?;
             if !self.symbolic {
                 call.name = name;
@@ -89,6 +111,14 @@ impl Checker {
                 );
             }
             return Ok(Ty::from_type(&cmd.ty()));
+        }
+        if call.name == "std::test::assert_eq" {
+            ensure!(args.len() == 2, "assert_eq expects two arguments");
+            ensure!(
+                args[0].erase() == args[1].erase(),
+                "assert_eq arguments must have the same type"
+            );
+            return Ok(Ty::named("()"));
         }
         if call.name == "format" {
             return Ok(Ty::named("String"));
@@ -112,117 +142,5 @@ impl Checker {
             .return_type
             .as_ref()
             .map_or_else(|| Ty::named("()"), Ty::from_type))
-    }
-
-    pub(super) fn instance(
-        &mut self,
-        original: &FunctionDef,
-        args: Vec<Ty>,
-        sub: Substitution,
-    ) -> Result<(Name, Ty)> {
-        let scheme = original.scheme.as_ref().unwrap();
-        let result = scheme.result.as_ref().map(|t| sub.apply(t));
-        let mut indices: Vec<_> = sub
-            .indices
-            .iter()
-            .filter(|(n, _)| scheme.variables.contains_key(*n))
-            .map(|(n, i)| (n.clone(), i.clone()))
-            .collect();
-        indices.sort_by(|a, b| a.0.cmp(&b.0));
-        let key = (original.name.clone(), args.clone(), indices);
-        if !self.symbolic
-            && let Some(done) = self.instances.get(&key)
-        {
-            return Ok(done.clone());
-        }
-        if !self.checking.insert(original.name.clone()) {
-            if self.symbolic
-                && let Some(ty) = result
-            {
-                return Ok((original.name.clone(), ty));
-            }
-            bail!(
-                "recursive specialization of {} requires a stable annotated return type",
-                original.name
-            );
-        }
-        let mut def = original.clone();
-        let name: Name = if self.symbolic || scheme.variables.is_empty() {
-            def.name.clone()
-        } else {
-            format!("__ush_inst_{}_{}", def.name, self.instances.len()).into()
-        };
-        if !self.symbolic
-            && let Some(ty) = &result
-        {
-            self.instances
-                .insert(key.clone(), (name.clone(), ty.clone()));
-        }
-        let mut locals = self.globals.clone();
-        for (param, t) in def.params.iter_mut().zip(&args) {
-            locals.insert(param.name.clone(), t.clone());
-            param.ty = t.erase();
-        }
-        for (n, kind) in &scheme.variables {
-            if *kind == super::signature::Kind::Const {
-                let ty = match sub.indices.get(n) {
-                    Some(Index::Literal(v)) => Ty::integer(*v),
-                    _ if self.symbolic => Ty::named("Int"),
-                    _ => bail!("cannot infer const parameter {n}"),
-                };
-                if let Some(Index::Literal(value)) = sub.indices.get(n)
-                    && !self.symbolic
-                {
-                    def.body.insert(
-                        0,
-                        Statement::new(
-                            self.templates[&original.name].0,
-                            StatementKind::Let {
-                                name: n.clone(),
-                                expr: crate::ast::Expr::Int(*value),
-                            },
-                        ),
-                    );
-                }
-                locals.insert(n.clone(), ty);
-            }
-        }
-        let parent = core::mem::replace(
-            &mut self.declared_failures,
-            original.declared_errors.clone(),
-        );
-        let returns = self.body(&mut def.body, &mut locals)?;
-        self.declared_failures = parent;
-        let inferred = result.unwrap_or_else(|| {
-            returns
-                .first()
-                .cloned()
-                .unwrap_or_else(|| Ty::named("()"))
-                .widened()
-        });
-        ensure!(
-            inferred.name == "()" || super::completes(&def.body, true),
-            "function {} can finish without returning {}",
-            original.name,
-            inferred.describe()
-        );
-        for ty in returns {
-            inferred.check(&ty)?;
-        }
-        self.checking.remove(&original.name);
-        if !self.symbolic {
-            def.name = name.clone();
-            def.return_type = Some(inferred.erase());
-            if def.name != "bin" {
-                def.scheme = None;
-            }
-            self.functions.insert(name.clone(), def.clone());
-            self.generated.push(Statement::new(
-                self.templates[&original.name].0,
-                StatementKind::Function(def),
-            ));
-            self.instances.insert(key, (name.clone(), inferred.clone()));
-        }
-        Ok((name, inferred))
     }
 }

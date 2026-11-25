@@ -1,10 +1,12 @@
 mod env;
+mod external;
 mod fs;
 mod http;
 mod path;
 mod process;
 mod regex;
 mod string;
+pub(crate) mod testing;
 
 use anyhow::{Result, bail};
 
@@ -19,11 +21,13 @@ pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
     for def in env::definitions()
         .into_iter()
         .chain(fs::definitions())
+        .chain(external::definitions())
         .chain(http::definitions())
         .chain(path::definitions())
         .chain(process::definitions())
         .chain(regex::definitions())
         .chain(string::definitions())
+        .chain(testing::definitions())
     {
         if functions.insert(def.name.clone(), def).is_some() {
             bail!("duplicate function");

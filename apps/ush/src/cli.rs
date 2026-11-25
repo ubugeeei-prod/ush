@@ -179,7 +179,7 @@ pub enum Action {
         #[arg(value_name = "LINE", required = true)]
         lines: Vec<String>,
     },
-    /// Run inline `#[test]` blocks in one or more `.ush` files.
+    /// Run inline `test` blocks in one or more `.ush` files.
     Test {
         #[arg(value_name = "TARGET")]
         targets: Vec<String>,

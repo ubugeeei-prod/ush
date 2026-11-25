@@ -10,7 +10,16 @@ use anyhow::{Result, anyhow, ensure};
 
 impl Checker {
     pub(super) fn expr(&mut self, expr: &mut Expr, locals: &Locals) -> Result<Ty> {
+        if let Expr::FunctionRef(n) = expr {
+            let ty = self.function_ref(n, locals)?;
+            if !self.symbolic {
+                *expr = Expr::String(n.clone());
+            }
+            return Ok(ty);
+        }
         Ok(match expr {
+            Expr::FunctionRef(_) => unreachable!(),
+            Expr::Comprehension(c) => self.comprehension(c, locals)?,
             Expr::Int(n) => Ty::integer(*n),
             Expr::Quantity(n, unit) => {
                 ensure!(

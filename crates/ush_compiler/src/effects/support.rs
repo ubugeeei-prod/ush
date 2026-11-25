@@ -1,9 +1,9 @@
-use anyhow::{Result, bail};
+use anyhow::Result;
 
 use crate::traits::TraitImplRegistry;
 use crate::{
-    ast::{Call, Expr, ExprFields, Type},
-    codegen::{FunctionRegistry, infer},
+    ast::{Call, Expr, ExprFields},
+    codegen::FunctionRegistry,
     env::{Binding, EnumRegistry, Env, Storage},
     errors::{ErrorSet, ErrorType},
 };
@@ -20,13 +20,22 @@ pub(super) fn expr_errors(
 ) -> Result<ErrorSet> {
     let mut errors = ErrorSet::default();
     match expr {
-        Expr::Quantity(..)
+        Expr::FunctionRef(_)
+        | Expr::Quantity(..)
         | Expr::String(_)
         | Expr::Int(_)
         | Expr::Bool(_)
         | Expr::Unit
         | Expr::Var(_)
         | Expr::AsyncBlock(_) => {}
+        Expr::Comprehension(c) => errors.extend(&super::comprehension::errors(
+            c,
+            env,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        )?),
         Expr::Field { base, name } => {
             if name == "await"
                 && let Expr::Var(n) = &**base
@@ -226,25 +235,4 @@ pub(super) fn call_arg_errors(
     Ok(errors)
 }
 
-pub(super) fn raised_error(
-    expr: &Expr,
-    env: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-) -> Result<ErrorType> {
-    match infer(expr, env, functions, impls, enums)? {
-        Type::Adt(name) => Ok(ErrorType::Known(name)),
-        other => bail!("raise expects an error ADT value, found {other:?}"),
-    }
-}
-
-pub(super) fn binding_for_type(name: &str, ty: Type) -> Binding {
-    let storage = match &ty {
-        Type::Adt(_) => Storage::Adt(name.into()),
-        Type::Tuple(_) | Type::List(_) => Storage::Aggregate(name.into()),
-        Type::String | Type::Int | Type::Bool | Type::Unit => Storage::Primitive(name.into()),
-        Type::Task(_) => Storage::Task(name.into(), Default::default()),
-    };
-    Binding { ty, storage }
-}
+pub(super) use super::bindings::{binding_for_type, raised_error};

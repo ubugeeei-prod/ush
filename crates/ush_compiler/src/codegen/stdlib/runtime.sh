@@ -429,3 +429,41 @@ ush_fn_std__read_cell() {
   __ush_cell=${__ush_cell%.}
   eval "$1=\$__ush_cell"
 }
+
+ush_fn_std__test__assert() {
+  if [ "$1" = true ]; then return 0; fi
+  printf '%s\n' 'assert failed: expected true' >&2
+  return 1
+}
+
+ush_fn_std__test__assert_eq() {
+  if [ "$1" = "$2" ]; then return 0; fi
+  printf 'assert_eq failed\n  actual: %s\n  expected: %s\n' "$1" "$2" >&2
+  return 1
+}
+
+ush_fn_std____extern__int() {
+  __ush_sign=''
+  __ush_limit=9223372036854775807
+  case $1 in
+    -*) __ush_sign=-; __ush_digits=${1#-}; __ush_limit=9223372036854775808 ;;
+    *) __ush_digits=$1 ;;
+  esac
+  case $__ush_digits in
+    ''|*[!0-9]*) printf '%s\n' 'extern returned an invalid Int' >&2; return 1 ;;
+  esac
+  while [ "${__ush_digits#0}" != "$__ush_digits" ]; do __ush_digits=${__ush_digits#0}; done
+  if [ -z "$__ush_digits" ]; then printf 0; return 0; fi
+  if [ "${#__ush_digits}" -gt 19 ] || { [ "${#__ush_digits}" -eq 19 ] && [ "$(printf '%s\n%s\n' "$__ush_digits" "$__ush_limit" | LC_ALL=C sort | tail -n 1)" != "$__ush_limit" ]; }; then
+    printf '%s\n' 'extern Int is outside the signed 64-bit range' >&2
+    return 1
+  fi
+  printf '%s%s' "$__ush_sign" "$__ush_digits"
+}
+
+ush_fn_std____extern__bool() {
+  case $1 in
+    true|false) printf '%s' "$1" ;;
+    *) printf '%s\n' 'extern returned an invalid Bool' >&2; return 1 ;;
+  esac
+}

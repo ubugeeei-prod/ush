@@ -40,6 +40,8 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("continue", "skip to the next iteration"),
     ("else", "else branch"),
     ("enum", "declare an enum"),
+    ("extern", "import typed functions from a .sh library"),
+    ("test", "declare an isolated test block"),
     ("false", "boolean false"),
     ("fn", "declare a function"),
     ("for", "for-in loop"),
@@ -84,7 +86,9 @@ pub fn completions(source: &str) -> Vec<CompletionItem> {
         })
         .collect();
 
-    let imported = source.lines().any(|line| line.trim() == "using $bin::");
+    let imported = source
+        .lines()
+        .any(|line| matches!(line.trim(), "use $bin::*" | "using $bin::"));
     if imported || source.contains("$bin::") {
         for word in ush_compiler::command_names() {
             out.push(CompletionItem {

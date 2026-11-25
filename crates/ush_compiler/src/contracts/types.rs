@@ -14,6 +14,7 @@ pub(crate) enum Index {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct Ty {
     pub name: Name,
+    pub function: Option<Name>,
     pub args: Vec<Ty>,
     pub length: Option<Index>,
     pub min: i64,
@@ -24,6 +25,7 @@ impl Ty {
     pub fn named(name: &str) -> Self {
         Self {
             name: name.into(),
+            function: None,
             args: Vec::new(),
             length: None,
             min: i64::MIN,
@@ -46,7 +48,7 @@ impl Ty {
     pub fn erase(&self) -> Type {
         match self.name.as_str() {
             "Int" => Type::Int,
-            "String" => Type::String,
+            "String" | "Fn" => Type::String,
             "Bool" => Type::Bool,
             "()" => Type::Unit,
             "List" if self.args.len() == 1 => Type::List(Box::new(self.args[0].erase())),
@@ -84,6 +86,9 @@ impl Ty {
         .into()
     }
     pub fn check(&self, found: &Self) -> Result<()> {
+        if self.function.is_some() && self.function != found.function {
+            bail!("runtime selection between different function values is not supported");
+        }
         if self.name != found.name || self.args.len() != found.args.len() {
             bail!("expected {}, found {}", self.describe(), found.describe());
         }

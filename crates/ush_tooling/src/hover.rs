@@ -73,7 +73,15 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("trait", "Declares a trait."),
     ("true", "Boolean true literal."),
     ("type", "Declares a type alias or `type { ... }`."),
-    ("use", "Imports items from a `std::module::path`."),
+    (
+        "use",
+        "Import a function or all exports with `use module::*`.",
+    ),
+    (
+        "extern",
+        "Declare typed functions from a source-relative `.sh` library.",
+    ),
+    ("test", "An isolated test block executed by `ush test`."),
     ("while", "While loop."),
 ];
 

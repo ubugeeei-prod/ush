@@ -2,4 +2,4 @@ fn label() -> String {
   "ush"
 }
 
-print $ label ()
+print label
