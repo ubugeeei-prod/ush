@@ -56,6 +56,13 @@ If the source has doc comments or a `bin(...)` entrypoint, the compiler also emi
 | `a \|& b`, `\| to_file p` | `2>&1`, `> p` on the stage itself |
 | `cd dir { … }` | save `$PWD`, `ush_fn_std__process__chdir`, body, `cd` back |
 | `export A = v { … }` | save value and set state, `export A=…`, body, restore or `unset` |
+| `if cmd { … }`, `! cmd` | `if command cmd; then`, `if ! { …; }; then` |
+| `status_of cmd` | `if command cmd; then s=0; else s=$?; fi` |
+| `allow_fail cmd` | `command cmd \|\| :` |
+| `\| discard_stderr`, `\| stderr_to p`, `\| to_stderr` | `2>/dev/null`, `2> p`, `>&2` on the stage itself |
+| `let job = spawn cmd` | an `async` block running `cmd` as a statement |
+| `job.kill()` | `__ush_task_kill`: signal the task, then stop, list, signal and continue each descendant |
+| `defer { … }` | `__ush_defer_N() { … }` pushed onto `__ush_defers`, run by the exit trap |
 | `mod "lib/gh.ush"` + `gh::run` | module inlined; `ush_fn_gh__run() { ... }` |
 
 ## `let` and `print`
@@ -337,6 +344,86 @@ restore code at the end of the body and before each `break` or `continue`
 that leaves the block. Other early exits end the process the change was made
 in: `fail`, `?` and failing commands exit the script at top level, and a
 function body always runs in a subshell or command substitution of its own.
+
+## Command status
+
+Source:
+
+```text
+if ! git "diff" "--quiet" {
+  print "dirty"
+}
+let code = status_of cargo "test"
+```
+
+Compiled `sh`:
+
+```sh
+if ! {
+command git 'diff' '--quiet'
+}; then
+  printf '%s\n' 'dirty'
+fi
+if command cargo 'test'; then __ush_status_0=0; else __ush_status_0=$?; fi
+code="${__ush_status_0}"
+```
+
+A command is the condition itself, so `set -e` never sees its failure and
+its streams are untouched. A function returning `()` runs in a
+`( … )` subshell as it does as a statement. A pipeline uses the pipeline
+lowering with empty diagnostics, so `__ush_pipe_check` returns the leftmost
+failing status without reporting it; a pipeline that is a single process
+after its redirections, such as `cmd | discard_stderr`, is that process with
+its redirections and no status bookkeeping. `allow_fail` appends `|| :`.
+`status_of task.await` and `allow_fail task.await` test `__ush_wait_job`,
+which records a status a signal produced in the task's status file, so every
+later await sees it.
+
+## Background commands and `defer`
+
+Source:
+
+```text
+let server = spawn python3 "-m" "http.server"
+defer server.kill()
+```
+
+Compiled `sh`:
+
+```sh
+ush_fn___ush_task_block_0() {
+  command python3 '-m' 'http.server' || { …; return "$__ush_status"; }
+}
+__ush_task_slot
+…
+( __ush_task_scope "${__ush_task_1__result}.status"; …; ush_fn___ush_task_block_0 ) &
+__ush_task_1__pid=$!
+__ush_defer_2() {
+  __ush_task_kill "${…__pid}" TERM "${…__result}.status" || { …; return "$__ush_status"; }
+}
+__ush_defers="__ush_defer_2 ${__ush_defers:-}"
+```
+
+`spawn cmd` is `async { cmd }` with `cmd` run as a statement, so it shares
+the task machinery: a private result slot, `$!` as the handle's PID and the
+scope's job list. `__ush_task_kill` waits until the task has dropped the
+traps it inherited, lists the task's children with `ps -A -o pid= -o ppid=`
+and signals the task. For each process below it, it sends `STOP`, lists its
+children, sends the signal, recurses and sends `CONT`. The task itself is not
+stopped, because some shells report a child's stop to a later `wait` as its
+status. The task's PID joins `__ush_killed`, which the scope's
+join skips when it decides the exit status.
+
+A deferred block becomes a shell function defined where `defer` runs; its
+name is pushed onto the front of `__ush_defers`. The exit trap the task
+runtime installs, `__ush_finish` at top level and `__ush_end_scope` in a
+task or function scope, reports the failure, pops and runs each block with
+its status checked explicitly, then joins tasks and removes the private
+directory. A function that defers wraps its body in `( __ush_defer_scope; … )`,
+which resets the list and installs `EXIT`, `HUP`, `INT` and `TERM` traps for
+that call only. The signal traps record the status in `__ush_signal` before
+exiting, because some shells pass a different `$?` to an exit trap that a
+signal trap started.
 
 ## `alias`
 

@@ -87,8 +87,16 @@ so no handler can take them back — nothing un-writes a file:
 A pipeline needs what its stages need. Only the stage that writes to the
 script's stdout adds `stdout`: earlier stages write into the pipe, a file sink
 takes the last stage's output, and a captured pipeline's output becomes a
-value. `from_file`, `to_file` and `append_to` add `fs`; `export` and scoped
-blocks add `env`, and a `cd` block also adds `fs`.
+value. `from_file`, `to_file`, `append_to`, `stderr_to` and
+`stderr_append_to` add `fs`, and `to_stderr` adds `stderr`; `export` and
+scoped blocks add `env`, and a `cd` block also adds `fs`.
+
+A command used for its status, as a condition, with `status_of` or with
+`allow_fail`, streams like a statement and needs what the statement would.
+Its own failure is handled, so it adds no `unknown` to the error row; the
+evaluation of its arguments still can. `spawn` needs `task` and what its
+command needs, as an `async` block does; `job.kill()` needs `task`. A deferred block needs what its body needs, in the row of the
+function or program that registers it.
 
 Inline shell is opaque to the checker. It conservatively requires `exec`, `fs`, `env`, `net`, `stdin` and `stderr`. A shell statement also streams `stdout`. A typed `$bin::` call can provide a smaller row. User-method calls with the same name share a conservative upper bound in effect inference.
 

@@ -1,0 +1,30 @@
+# Command status, stderr redirection, background commands and deferred cleanup.
+use $bin::*
+use std::fs::temp_dir
+use std::io::{discard_stderr, to_file, to_stderr}
+
+let work = temp_dir
+defer print "cleaned up"
+
+"ready\n" | to_file (work + "/status.txt")
+if grep "-Fxq" "ready" (work + "/status.txt") && ! test "-e" (work + "/lock") {
+  print "ready"
+}
+if ls (work + "/missing") | discard_stderr {
+  print "unreachable"
+}
+else {
+  print "missing, quietly"
+}
+let code = status_of sh "-c" "echo checking; exit 3"
+print "status " + code
+allow_fail sh "-c" "exit 1"
+printf "a warning\n" | to_stderr
+
+let server = spawn sleep "30"
+defer server.kill()
+let job = spawn sh "-c" "echo from the background"
+job.await
+if server.pid > 0 {
+  print "server running"
+}

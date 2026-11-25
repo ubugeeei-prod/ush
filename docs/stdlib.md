@@ -89,6 +89,10 @@ extension.
 | `std::io::from_file path` | Pipeline source, first stage only: `from_file path \| cmd` lowers to `cmd < path` |
 | `std::io::to_file path` | Pipeline sink, last stage only: `cmd \| to_file path` lowers to `cmd > path` (truncate) |
 | `std::io::append_to path` | Pipeline sink, last stage only: `cmd \| append_to path` lowers to `cmd >> path` |
+| `std::io::to_stderr` | Pipeline sink, last stage only: `cmd \| to_stderr` lowers to `cmd >&2` |
+| `std::io::stderr_to path` | After a stage: `cmd \| stderr_to path` lowers to `cmd 2> path`; stdout carries on |
+| `std::io::stderr_append_to path` | After a stage: `cmd \| stderr_append_to path` lowers to `cmd 2>> path` |
+| `std::io::discard_stderr` | After a stage: `cmd \| discard_stderr` lowers to `cmd 2>/dev/null` |
 | `std::terminal::is_tty fd` | `Bool`; descriptor must be nonnegative |
 | `std::process::pid` | Shell process ID as `Int`; retains POSIX `$$` semantics in subshells |
 | `std::process::sleep seconds` | Sleep for a nonnegative whole number of seconds |
@@ -96,9 +100,16 @@ extension.
 | `std::os::name`, `arch`, `hostname` | Values from `uname -s`, `-m`, `-n` |
 | `std::os::uid`, `gid` | Effective user/group IDs from `id -u` and `id -g` |
 
-The three pipeline stages are redirections, not functions: they add no process,
+The seven pipeline stages are redirections, not functions: they add no process,
 calling one outside a pipeline is a compile error, and a computed path follows
 the `std::fs` path rules. See [pipelines and redirection](shell-language.md#pipelines-and-redirection).
+
+`std::process::status` silences both streams. To see a command's output and
+still get its status, use [`status_of`](shell-language.md#command-status);
+to run it and ignore a failure, `allow_fail`. Background commands, their
+`pid` and `kill`, and `defer` are language forms rather than library calls:
+see [background commands](shell-language.md#background-commands) and
+[deferred cleanup](shell-language.md#deferred-cleanup).
 
 Directory changes inside captured functions or async tasks stay in that process
 scope. I/O and process operations infer their corresponding effects; APIs that
@@ -127,7 +138,7 @@ to this project.
 | --- | --- | --- |
 | Text | Literal search/split/trim, ASCII case, quoting, joining | Runtime: Unicode transforms and byte codecs; grapheme operations remain |
 | Filesystem | Text I/O, directories, links, permissions, access predicates | Runtime: metadata, canonicalization, atomic writes and binary I/O; streaming remains |
-| Process | Typed argv, status/streams, environment, cwd, sleep | Rich process control, signal and descriptor APIs |
+| Process | Typed argv, status/streams, environment, cwd, sleep, background commands with `pid`/`kill`, `defer` | Process groups, signal handlers and descriptor APIs |
 | System | Host name/architecture, user/group IDs | Runtime: libc queries, clocks and randomness; resource controls remain |
 | Network | Existing HTTP helpers | Runtime: DNS; sockets remain |
 
