@@ -26,11 +26,15 @@ pub(super) fn parse_use(source: &str) -> Result<StatementKind> {
         anyhow::bail!("wildcard imports must use `use module::*`");
     }
     if let Some((head, inner)) = parse_brace_body(trimmed) {
-        let prefix = parse_import_path(
-            head.trim()
-                .strip_suffix("::")
-                .ok_or_else(|| anyhow!("grouped imports must use `module::{{item}}`"))?,
-        )?;
+        let head = head
+            .trim()
+            .strip_suffix("::")
+            .ok_or_else(|| anyhow!("grouped imports must use `module::{{item}}`"))?;
+        let prefix = if head == "$bin" {
+            head.into()
+        } else {
+            parse_import_path(head)?
+        };
         let mut items = Vec::new();
         for item in split_top_level(inner, ',') {
             if item.is_empty() {
@@ -45,6 +49,9 @@ pub(super) fn parse_use(source: &str) -> Result<StatementKind> {
 
 fn parse_group_item(prefix: &str, source: &str) -> Result<UseItem> {
     let (name, alias) = split_alias(source)?;
+    if prefix == "$bin" {
+        return parse_program(name, alias);
+    }
     let name = parse_identifier(name)?;
     Ok(UseItem {
         path: format!("{prefix}::{name}").into(),
@@ -58,6 +65,29 @@ fn parse_item(source: &str) -> Result<UseItem> {
     Ok(UseItem {
         alias: alias.map_or_else(|| default_import_alias(&path), Ok)?,
         path,
+    })
+}
+
+/// `vp` or `"apt-get" as apt_get`: a quoted name must be given a ush alias.
+fn parse_program(name: &str, alias: Option<crate::types::AstString>) -> Result<UseItem> {
+    let (program, quoted) = match name
+        .strip_prefix('"')
+        .and_then(|rest| rest.strip_suffix('"'))
+    {
+        Some(program) => (program, true),
+        None => (name, false),
+    };
+    if !crate::commands::is_program_name(program) {
+        anyhow::bail!("invalid program name: {name}");
+    }
+    let alias = match alias {
+        Some(alias) => alias,
+        None if !quoted => parse_identifier(program)?,
+        None => anyhow::bail!("give the program {name} a ush name: `{name} as name`"),
+    };
+    Ok(UseItem {
+        path: format!("$bin::{program}").into(),
+        alias,
     })
 }
 

@@ -6,8 +6,8 @@ use crate::{
 use anyhow::{Result, bail};
 
 #[derive(Clone, Copy)]
-pub(crate) struct CommandSpec {
-    pub word: &'static str,
+pub(crate) struct CommandSpec<'a> {
+    pub word: &'a str,
     pub min: usize,
     pub max: Option<usize>,
     pub output: Output,
@@ -21,7 +21,7 @@ pub(crate) enum Output {
     Predicate,
 }
 
-impl CommandSpec {
+impl CommandSpec<'_> {
     pub fn ty(self) -> Type {
         match self.output {
             Output::Text => Type::String,
@@ -56,7 +56,7 @@ use Output::{Predicate, Text, Unit};
 
 macro_rules! commands {
     ($(($min:expr, $max:expr, $ty:expr, $effects:expr) => [$($name:literal),+]),+ $(,)?) => {
-        static CATALOG: phf::Map<&'static str, CommandSpec> = phf::phf_map! {
+        static CATALOG: phf::Map<&'static str, CommandSpec<'static>> = phf::phf_map! {
             $($($name => CommandSpec { word: $name, min: $min, max: $max, output: $ty, effects: $effects },)+)+
         };
     };
@@ -116,8 +116,31 @@ commands! {
     ],
 }
 
-pub(crate) fn lookup(path: &str) -> Option<CommandSpec> {
-    CATALOG.get(path.strip_prefix("$bin::")?).copied()
+/// A program named explicitly, as `use $bin::{vp}` or `use $bin::{"apt-get" as apt_get}`,
+/// need not be in the catalog: it takes any argv, may print, and may use every capability.
+const DECLARED: CommandSpec<'static> = CommandSpec {
+    word: "",
+    min: 0,
+    max: None,
+    output: Text,
+    effects: &[Stdin, Fs, Net, Env],
+};
+
+pub(crate) fn lookup(path: &str) -> Option<CommandSpec<'_>> {
+    let word = path.strip_prefix("$bin::")?;
+    if let Some(spec) = CATALOG.get(word) {
+        return Some(*spec);
+    }
+    is_program_name(word).then_some(CommandSpec { word, ..DECLARED })
+}
+
+/// A program name is one shell word that needs no quoting and is not an option.
+pub(crate) fn is_program_name(word: &str) -> bool {
+    !word.is_empty()
+        && !word.starts_with('-')
+        && word
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.' | b'+'))
 }
 
 pub(super) fn contains(word: &str) -> bool {
