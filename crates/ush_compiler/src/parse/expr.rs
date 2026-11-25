@@ -18,6 +18,10 @@ use super::{
 };
 
 pub(super) fn parse_expr(source: &str) -> Result<Expr> {
+    // A pipe binds more loosely than anything else in an expression.
+    if let Some(pipeline) = super::pipeline::parse_pipeline(source)? {
+        return Ok(Expr::Pipeline(Box::new(pipeline)));
+    }
     // `let answer = do ask("name?")` — performing an effect in value
     // position. The operation is a generated shell function, so the
     // rest of the pipeline sees an ordinary call.

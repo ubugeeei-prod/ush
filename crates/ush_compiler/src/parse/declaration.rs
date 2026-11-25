@@ -4,7 +4,7 @@ use anyhow::{Context, Result, anyhow};
 
 use super::{
     super::{
-        ast::{Attribute, EnumDef, FunctionDef, StatementKind, VariantDef, VariantFields},
+        ast::{Attribute, EnumDef, FunctionDef, StatementKind, Type, VariantDef, VariantFields},
         util::{parse_brace_body, parse_paren_body},
     },
     SourceLine,
@@ -178,7 +178,10 @@ fn parse_function(
     let (name, params, return_type, declared_effects) = signature::parse_function_header(simple)?;
     let mut scheme = extended.map(|(_, scheme)| Box::new(scheme));
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, return_type.is_some())?;
+    // A declared `-> ()` has no tail value, so its last line is a statement.
+    let declared_unit = !tail.is_empty() && return_type == Some(Type::Unit);
+    let tail_values = return_type.is_some() && !declared_unit;
+    let body = super::statement::parse_block(lines, cursor, false, tail_values)?;
     let _ = finish_block(lines, cursor, "function body")?;
     if scheme.is_none()
         && tail.is_empty()

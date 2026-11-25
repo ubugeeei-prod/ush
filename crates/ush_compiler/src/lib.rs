@@ -59,7 +59,7 @@ extern crate alloc;
 use anyhow::Result;
 pub use docs::ScriptDocs;
 pub use effects::{Effect, EffectSet, FunctionEffects};
-pub use scan::{closes_shell_capture, opens_shell_capture};
+pub use scan::{closes_shell_capture, continues_pipeline, opens_shell_capture};
 pub use sourcemap::{
     CompiledScript, SourceMap, SourceMapLine, SourceMapSection, SourceMapSectionSummary,
     SourceMapSourceLine, SourceMapSummary,

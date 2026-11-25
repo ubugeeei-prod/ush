@@ -96,6 +96,9 @@ fn parse_statement(
     {
         return Ok(Statement::new(line_no, kind));
     }
+    if let Some(kind) = super::scoped::parse(trimmed, lines, cursor)? {
+        return Ok(Statement::new(line_no, kind));
+    }
     if let Some(rest) = trimmed.strip_prefix("let ") {
         return Ok(Statement::new(
             line_no,
@@ -187,6 +190,9 @@ fn parse_statement(
     if tail_position && let Ok(expr) = parse_expr(trimmed) {
         return Ok(Statement::new(line_no, StatementKind::Expr(expr)));
     }
+    if let Some(pipeline) = super::pipeline::parse_pipeline(trimmed)? {
+        return Ok(Statement::new(line_no, StatementKind::Pipeline(pipeline)));
+    }
     if let Some(base) = strip_top_level_suffix(trimmed, '?')
         && signature::looks_like_call(base)
     {
@@ -220,6 +226,7 @@ fn is_block_statement(statement: &Statement) -> bool {
             | StatementKind::For { .. }
             | StatementKind::Loop { .. }
             | StatementKind::Handle { .. }
+            | StatementKind::Scoped { .. }
             | StatementKind::Let {
                 expr: Expr::AsyncBlock(_),
                 ..

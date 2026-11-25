@@ -297,18 +297,12 @@ ush_fn_compile() {
   __ush_at 9 'chmod "+x" (work + "/job.sh")'
   command chmod '+x' "${__ush_fn_compile_arg_2}"'/job.sh' || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 10 'remove (work + "/job.ush")'
-  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_fn_compile_arg_2}"'/job.ush')" || return "$?"
-  if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' '' > "$__ush_return_path"
-  elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' '' >&4
-  fi
-  return 0
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__remove "${__ush_fn_compile_arg_2}"'/job.ush' ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
 }
 
 __ush_at 13 'let compiler = arg 0'
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 0)" || exit "$?"
-compiler="${__ush_value_3}"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 0)" || exit "$?"
+compiler="${__ush_value_2}"
 __ush_at 14 'if compiler == "" {'
 if {
 [ "$(if [ "${compiler}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -320,8 +314,8 @@ if {
   exit "$__ush_status"
 fi
 __ush_at 17 'let target = arg 1'
-__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 1)" || exit "$?"
-target="${__ush_value_4}"
+__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 1)" || exit "$?"
+target="${__ush_value_3}"
 __ush_at 18 'if target == "" {'
 if {
 [ "$(if [ "${target}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -332,53 +326,53 @@ fi
 __ush_at 21 'let work = temp_dir'
 __ush_task_init
 __ush_at 21 'let work = temp_dir'
-__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_5}"
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
+work="${__ush_value_4}"
 __ush_at 22 'write_text (work + "/job.ush") """'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${work}"'/job.ush' 'fn build() -> Int / unknown, stderr {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'print job.await' )
 __ush_at 29 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${compiler}" "${target}" "${work}" )
 __ush_at 30 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23'
-__ush_match_6__len='1'
+__ush_match_5__len='1'
 # shellcheck disable=SC2034
-__ush_match_6__0="${work}"'/job.sh'
-__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_6)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_8}" 23 )
+__ush_match_5__0="${work}"'/job.sh'
+__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_5)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_7}" 23 )
 __ush_at 31 'assert_eq (test "-s" (work + "/out")) false'
-__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_9}" 'false' )
+__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_8}" 'false' )
 __ush_at 32 'assert_eq (read_text (work + "/err")) """'
-__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_10}" 'job.ush:2: missing input (exit 23)'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'job.ush:5: command failed (exit 23)'"${__ush_lf}"'  print job.await' )
+__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_9}" 'job.ush:2: missing input (exit 23)'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'job.ush:5: command failed (exit 23)'"${__ush_lf}"'  print job.await' )
 __ush_at 39 'write_text (work + "/job.ush") """'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${work}"'/job.ush' 'use $bin::*'"${__ush_lf}"'fn build() -> Int / unknown, exec, stderr {'"${__ush_lf}"'  sleep "0.05"'"${__ush_lf}"'  41'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let first = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 1'"${__ush_lf}"'}'"${__ush_lf}"'let second = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 2'"${__ush_lf}"'}'"${__ush_lf}"'print first.await'"${__ush_lf}"'print second.await'"${__ush_lf}"'print job.await'"${__ush_lf}"'print job.await' )
 __ush_at 59 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${compiler}" "${target}" "${work}" )
 __ush_at 60 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 0'
-__ush_match_11__len='1'
+__ush_match_10__len='1'
 # shellcheck disable=SC2034
-__ush_match_11__0="${work}"'/job.sh'
-__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_11)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_13}" 0 )
+__ush_match_10__0="${work}"'/job.sh'
+__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_10)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_12}" 0 )
 __ush_at 61 'assert_eq (read_text (work + "/out")) "42\n43\n41\n41"'
-__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_14}" '42'"${__ush_lf}"'43'"${__ush_lf}"'41'"${__ush_lf}"'41' )
+__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_13}" '42'"${__ush_lf}"'43'"${__ush_lf}"'41'"${__ush_lf}"'41' )
 __ush_at 62 'assert_eq (test "-s" (work + "/err")) false'
-__ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_15}" 'false' )
+__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_14}" 'false' )
 __ush_at 64 'write_text (work + "/job.ush") """'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${work}"'/job.ush' 'fn build() -> Int / unknown, stderr {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let sibling = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value'"${__ush_lf}"'}'"${__ush_lf}"'print sibling.await' )
 __ush_at 75 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${compiler}" "${target}" "${work}" )
 __ush_at 76 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23'
-__ush_match_16__len='1'
+__ush_match_15__len='1'
 # shellcheck disable=SC2034
-__ush_match_16__0="${work}"'/job.sh'
-__ush_value_18="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_16)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_18}" 23 )
+__ush_match_15__0="${work}"'/job.sh'
+__ush_value_17="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_15)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_17}" 23 )
 __ush_at 77 'assert_eq (test "-s" (work + "/out")) false'
-__ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_19}" 'false' )
+__ush_value_18="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_18}" 'false' )
 __ush_at 78 'assert_eq (read_text (work + "/err")) """'
-__ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_20}" 'job.ush:2: missing input (exit 23)'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'job.ush:6: command failed (exit 23)'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'job.ush:9: command failed (exit 23)'"${__ush_lf}"'  print sibling.await' )
+__ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_19}" 'job.ush:2: missing input (exit 23)'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'job.ush:6: command failed (exit 23)'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'job.ush:9: command failed (exit 23)'"${__ush_lf}"'  print sibling.await' )

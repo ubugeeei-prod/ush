@@ -5,6 +5,7 @@ pub fn format_source(source: &str) -> String {
     let mut in_multiline = false;
 
     let mut shell_indent = None;
+    let mut continued = false;
     for raw in source.lines() {
         if let Some(indent) = shell_indent {
             out.push_str(raw);
@@ -39,8 +40,12 @@ pub fn format_source(source: &str) -> String {
 
         let dedent = usize::from(line.starts_with('}'));
         indent = indent.saturating_sub(dedent);
-        out.push_str(&"  ".repeat(indent));
+        // The stages after a trailing `|` sit one level deeper.
+        out.push_str(&"  ".repeat(indent + usize::from(continued)));
         out.push_str(&normalize_line(line));
+        if !line.starts_with('#') {
+            continued = ush_compiler::continues_pipeline(line);
+        }
         out.push('\n');
         // The leading `}` was already paid for by `dedent`; counting
         // it again would cancel the brace that reopens on the same
@@ -83,8 +88,13 @@ fn normalize_line(line: &str) -> String {
 
 fn assignment_parts(line: &str) -> Option<(String, String)> {
     let (left, right) = line.split_once('=')?;
-    let head = left.trim_start();
-    if !matches!(head.split_whitespace().next(), Some("let" | "alias")) {
+    let mut words = left.split_whitespace();
+    let keyword = words.next()?;
+    let name = words.next()?;
+    let is_name = name
+        .chars()
+        .all(|ch| ch == '_' || ch.is_ascii_alphanumeric());
+    if !matches!(keyword, "let" | "alias" | "export") || !is_name || words.next().is_some() {
         return None;
     }
     Some((left.trim().to_string(), right.trim().to_string()))
@@ -173,6 +183,30 @@ mod tests {
             formatted,
             "let page = \"\"\"\n  <div>\n    ok\n  </div>\n\"\"\"\n"
         );
+    }
+
+    #[test]
+    fn indents_pipeline_continuations_and_export_bindings() {
+        let formatted = format_source(
+            "cd \"x\" {\nexport A=\"1\" {\ngit \"log\" |\n# first only\nhead \"-n1\"\n}\n}\n",
+        );
+        assert_eq!(
+            formatted,
+            concat!(
+                "cd \"x\" {\n",
+                "  export A = \"1\" {\n",
+                "    git \"log\" |\n",
+                "      # first only\n",
+                "      head \"-n1\"\n",
+                "  }\n",
+                "}\n",
+            ),
+        );
+    }
+
+    #[test]
+    fn leaves_the_export_command_and_its_strings_alone() {
+        assert_eq!(format_source("export \"A=b\"\n"), "export \"A=b\"\n");
     }
 
     #[test]

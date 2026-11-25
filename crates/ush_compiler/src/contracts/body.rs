@@ -112,6 +112,22 @@ impl Checker {
                 self.branch(body, &mut inner, returns, false)?;
             }
             S::Loop { body } => self.branch(body, &mut locals.clone(), returns, false)?,
+            S::Pipeline(pipeline) => {
+                for stage in pipeline.exprs_mut() {
+                    self.expr(stage, locals)?;
+                }
+            }
+            S::Export(bindings) => {
+                for binding in bindings {
+                    Ty::named("String").check(&self.expr(&mut binding.value, locals)?)?;
+                }
+            }
+            S::Scoped { scope, body } => {
+                for value in scope.exprs_mut() {
+                    Ty::named("String").check(&self.expr(value, locals)?)?;
+                }
+                self.branch(body, &mut locals.clone(), returns, false)?;
+            }
             S::Handle { body, handlers } => {
                 self.branch(body, &mut locals.clone(), returns, false)?;
                 for h in handlers {

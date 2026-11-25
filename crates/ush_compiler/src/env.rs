@@ -26,6 +26,20 @@ pub(crate) struct CodegenState {
     pub mapped: bool,
     pub wire_types: crate::types::HeapVec<Type>,
     pub(crate) source_lines: crate::types::HeapVec<String>,
+    /// How many loops enclose the statement being compiled.
+    pub(crate) loop_depth: usize,
+    /// Scoped blocks being compiled, innermost last.
+    pub(crate) scopes: crate::types::HeapVec<ScopeFrame>,
+}
+
+/// A `cd` or `export` block whose body is being compiled. `break` and
+/// `continue` leave it early, so they run its restore code first.
+#[derive(Debug)]
+pub(crate) struct ScopeFrame {
+    /// The loop depth the block was entered at.
+    pub loop_depth: usize,
+    /// Shell code that undoes the block's change.
+    pub restore: crate::types::OutputString,
 }
 
 impl CodegenState {
@@ -35,6 +49,8 @@ impl CodegenState {
             next_id: 0,
             mapped,
             wire_types: Default::default(),
+            loop_depth: 0,
+            scopes: Default::default(),
         }
     }
     pub(crate) fn temp_var(&mut self, prefix: &str) -> String {

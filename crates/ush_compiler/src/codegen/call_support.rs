@@ -59,6 +59,9 @@ pub(super) fn function_for_call<'a>(
     name: &str,
     functions: &'a FunctionRegistry,
 ) -> Result<&'a FunctionDef> {
+    if let Some(message) = super::stdlib::pipe::misuse(name) {
+        bail!("{message}");
+    }
     functions
         .get(name)
         .ok_or_else(|| anyhow!("unknown function: {name}"))

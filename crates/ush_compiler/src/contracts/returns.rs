@@ -32,7 +32,7 @@ fn ends(s: &Statement, tail: bool) -> bool {
                     .iter()
                     .all(|(_, arm)| ends(arm, tail && *returns_value))
         }
-        S::Loop { body } => completes(body, false),
+        S::Loop { body } | S::Scoped { body, .. } => completes(body, false),
         _ => false,
     }
 }

@@ -10,6 +10,36 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Native pipelines: `a | b | c` streams as a statement and captures the last
+  stage's stdout as a value. A stage is a command, `std::process::exec` or
+  `output`, or a function returning `()`. A pipeline fails like bash
+  `pipefail` on every target, including dash, and the diagnostic names the
+  leftmost failing stage and its line. A stage cut off by a reader that
+  stopped early, as `head` does, is not a failure, whether it died of SIGPIPE
+  or saw a write error because SIGPIPE was ignored. A line ending in `|`
+  continues on the next line.
+- `|&` sends a stage's stderr into the pipe.
+- `std::io::from_file`, `to_file` and `append_to`: pipeline sources and sinks
+  that lower to `<`, `>` and `>>` on the neighbouring stage, so
+  `cmd |& to_file log` is `cmd > log 2>&1`.
+- A String as the first stage feeds its exact bytes to stdin, covering
+  here-strings and here-documents; no newline is added.
+- `cd path { … }` and `export NAME = value, … { … }` scope the working
+  directory and environment variables to a block, restoring the previous
+  value or unset state afterwards, including on `break` and `continue`.
+  `export NAME = value` sets and exports a variable for the rest of the
+  script.
+- `ush effects` reports pipeline, `export` and `cd` effects; the formatter
+  indents continued pipelines; editors highlight `export`.
+
+### Changed
+
+- The last line of a function declared `-> ()` is always a statement. A
+  trailing command or pipeline there streams instead of failing to compile as
+  a returned String.
+
 ## [0.15.0] — 2026-11-25
 
 ### Added

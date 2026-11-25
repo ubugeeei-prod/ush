@@ -52,6 +52,10 @@ If the source has doc comments or a `bin(...)` entrypoint, the compiler also emi
 | `expr?` | `|| return "$?"` or `|| exit "$?"` |
 | `bin(...)` | CLI parser wrapper around `ush_fn_bin` |
 | `alias ll = "ls -la"` | `alias ll='ls -la'` |
+| `a \| b` | stages in `{ …; } \| { …; }` inside a status capture, then `__ush_pipe_check` |
+| `a \|& b`, `\| to_file p` | `2>&1`, `> p` on the stage itself |
+| `cd dir { … }` | save `$PWD`, `ush_fn_std__process__chdir`, body, `cd` back |
+| `export A = v { … }` | save value and set state, `export A=…`, body, restore or `unset` |
 
 ## `let` and `print`
 
@@ -250,6 +254,88 @@ The parent joins unfinished children before removing its private directory.
 stderr and returns status 1. `fail(code, message)` reports the supplied
 message and status. A call ending in `?` checks its status before continuing.
 The emitted script contains the source text necessary to locate a failure.
+
+## Pipelines
+
+Source:
+
+```text
+git "log" "--oneline" | head "-n1"
+```
+
+Compiled `sh`:
+
+```sh
+{ __ush_pipe=$(
+  exec 7>&1 >&8 8>&-
+  set +e
+  { (command git 'log' '--oneline') 7>&-; printf ' 1:%s' "$?" >&7; } |
+  { (command head '-n1') 7>&-; printf ' 2:%s' "$?" >&7; }
+); } 8>&1
+__ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: git "log" "--oneline"' 'pipeline stage 2 failed: head "-n1"' || exit "$?"
+```
+
+POSIX `sh` has no `pipefail`, so every target, bash and zsh included, uses
+this one lowering. The command substitution captures exit statuses rather
+than output: descriptor 8 is the enclosing stdout, which the last stage
+writes to, and descriptor 7 is the substitution's own stdout, where each
+stage reports ` INDEX:STATUS` once its program exits. `set +e` keeps a
+failing program from ending the stage before it reports. Every program runs
+in a subshell of its own, so a builtin or function stage killed by SIGPIPE
+cannot take the report with it, and it does not inherit descriptor 7, so a
+daemon it starts cannot hold the pipeline open.
+
+`__ush_pipe_check` is emitted only when a program has a pipeline. It walks
+the stages left to right and reports the first failure with `__ush_report`,
+returning its status. A stage holds its pipe ends until it has reported, so a
+failure recorded after the next stage's report comes from writing into a pipe
+that reader closed early; the check skips it, whether the writer died of
+SIGPIPE or got a write error because SIGPIPE was ignored.
+
+A captured pipeline runs the same block inside `"$(…)"`, where descriptor 8
+becomes the capture. The check reports from inside the capture, so the
+enclosing shell clears `__ush_line` before propagating the status, and the
+failure is reported once.
+
+Arguments, String stdin values and computed paths are evaluated into
+variables before the block. `from_file`, `to_file` and `append_to` become
+`<`, `>` and `>>` on their neighbouring stage, and `|&` adds `2>&1` after them,
+so `cmd |& to_file log` is `cmd > log 2>&1`. A String first stage is
+`(printf '%s' "$value")`.
+
+## Scoped blocks
+
+Source:
+
+```text
+cd "crates" {
+  export RUSTFLAGS = "-D warnings" {
+    cargo "build"
+  }
+}
+```
+
+Compiled `sh`:
+
+```sh
+__ush_cwd_0=$PWD
+ush_fn_std__process__chdir 'crates' || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+  __ush_had_RUSTFLAGS_1=${RUSTFLAGS+x} __ush_saved_RUSTFLAGS_1=${RUSTFLAGS-}
+  export RUSTFLAGS='-D warnings'
+    command cargo 'build'
+  if [ -n "$__ush_had_RUSTFLAGS_1" ]; then export RUSTFLAGS="$__ush_saved_RUSTFLAGS_1"; else unset RUSTFLAGS; fi
+cd "$__ush_cwd_0" || { __ush_status=$?; __ush_report "$__ush_status" 'cannot return to the directory the cd block started in'; exit "$__ush_status"; }
+```
+
+The body runs in the current shell rather than a `( … )` subshell. A
+subshell would restore everything for free, but assignments to outer
+bindings would silently vanish, `return` would leave only the subshell, and
+`break` and `continue` could not reach the enclosing loop. Saving and
+restoring keeps blocks consistent with `if` and loops. The compiler emits the
+restore code at the end of the body and before each `break` or `continue`
+that leaves the block. Other early exits end the process the change was made
+in: `fail`, `?` and failing commands exit the script at top level, and a
+function body always runs in a subshell or command substitution of its own.
 
 ## `alias`
 

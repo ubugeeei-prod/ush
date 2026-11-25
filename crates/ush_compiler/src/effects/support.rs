@@ -136,6 +136,14 @@ pub(super) fn expr_errors(
             )?);
         }
         Expr::ShellCapture(_) => errors.insert(ErrorType::Unknown),
+        Expr::Pipeline(p) => errors.extend(&super::shell::pipeline_errors(
+            p,
+            env,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        )?),
         Expr::Try(inner) => {
             errors.extend(&expr_errors(
                 inner,

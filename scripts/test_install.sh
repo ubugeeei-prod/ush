@@ -481,97 +481,91 @@ ush_fn_archive() {
   command tar '-czf' "${__ush_fn_archive_arg_0}"'/ush.tar.gz' '-C' "${__ush_fn_archive_arg_0}" 'ush-'"${__ush_fn_archive_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 49 'write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tar.gz\n")'
   __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${__ush_fn_archive_arg_0}"'/ush.tar.gz')" || return "$?"
-  __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${__ush_fn_archive_arg_0}"'/sha256sums.txt' "${__ush_value_9}"'  ush-'"${__ush_fn_archive_arg_1}"'.tar.gz'"${__ush_lf}"'')" || return "$?"
-  if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' '' > "$__ush_return_path"
-  elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' '' >&4
-  fi
-  return 0
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_fn_archive_arg_0}"'/sha256sums.txt' "${__ush_value_9}"'  ush-'"${__ush_fn_archive_arg_1}"'.tar.gz'"${__ush_lf}"'' ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
 }
 
 __ush_at 52 'let installer = resolve (source_root + "/../install.sh")'
-__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__source_root)" || exit "$?"
-__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_value_11}"'/../install.sh')" || exit "$?"
-installer="${__ush_value_12}"
+__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__source_root)" || exit "$?"
+__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_value_10}"'/../install.sh')" || exit "$?"
+installer="${__ush_value_11}"
 __ush_at 53 'let target = target'
-__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_target 4>&1 >&3)" || exit "$?"
-target="${__ush_value_13}"
+__ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_target 4>&1 >&3)" || exit "$?"
+target="${__ush_value_12}"
 __ush_at 54 'let tools_path = get "PATH"'
-__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')" || exit "$?"
-tools_path="${__ush_value_14}"
+__ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')" || exit "$?"
+tools_path="${__ush_value_13}"
 __ush_at 55 'let fixture = fixture_binary'
-__ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_fixture_binary 4>&1 >&3)" || exit "$?"
-fixture="${__ush_value_15}"
+__ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_fixture_binary 4>&1 >&3)" || exit "$?"
+fixture="${__ush_value_14}"
 __ush_at 56 'let root = std::path::cwd'
-__ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
-root="${__ush_value_16}"
+__ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
+root="${__ush_value_15}"
 __ush_at 57 'for name in ["USH_PREFIX", "UBSH_PREFIX", "USH_BIN_DIR", "UBSH_BIN_DIR", "USH_VERSION", "UBSH_VERSION", "USH_BRANCH", "UBSH_BRANCH", "UBSH_AUTO_PATH"] {'
-__ush_match_17__len='9'
+__ush_match_16__len='9'
 # shellcheck disable=SC2034
-__ush_match_17__0='USH_PREFIX'
+__ush_match_16__0='USH_PREFIX'
 # shellcheck disable=SC2034
-__ush_match_17__1='UBSH_PREFIX'
+__ush_match_16__1='UBSH_PREFIX'
 # shellcheck disable=SC2034
-__ush_match_17__2='USH_BIN_DIR'
+__ush_match_16__2='USH_BIN_DIR'
 # shellcheck disable=SC2034
-__ush_match_17__3='UBSH_BIN_DIR'
+__ush_match_16__3='UBSH_BIN_DIR'
 # shellcheck disable=SC2034
-__ush_match_17__4='USH_VERSION'
+__ush_match_16__4='USH_VERSION'
 # shellcheck disable=SC2034
-__ush_match_17__5='UBSH_VERSION'
+__ush_match_16__5='UBSH_VERSION'
 # shellcheck disable=SC2034
-__ush_match_17__6='USH_BRANCH'
+__ush_match_16__6='USH_BRANCH'
 # shellcheck disable=SC2034
-__ush_match_17__7='UBSH_BRANCH'
+__ush_match_16__7='UBSH_BRANCH'
 # shellcheck disable=SC2034
-__ush_match_17__8='UBSH_AUTO_PATH'
-__ush_for_list_index_18=0
-while [ "${__ush_for_list_index_18}" -lt "${__ush_match_17__len}" ]; do
-  __ush_for_value_19=''
-  eval "__ush_for_value_19=\"\${__ush_match_17__${__ush_for_list_index_18}}\""
-  name="${__ush_for_value_19}"
-  __ush_for_list_index_18=$((__ush_for_list_index_18 + 1))
+__ush_match_16__8='UBSH_AUTO_PATH'
+__ush_for_list_index_17=0
+while [ "${__ush_for_list_index_17}" -lt "${__ush_match_16__len}" ]; do
+  __ush_for_value_18=''
+  eval "__ush_for_value_18=\"\${__ush_match_16__${__ush_for_list_index_17}}\""
+  name="${__ush_for_value_18}"
+  __ush_for_list_index_17=$((__ush_for_list_index_17 + 1))
   __ush_at 58 'unset name'
   ush_fn_std__env__unset "${name}"
 done
 __ush_at 60 'for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relative-prefix", "empty-env", "localhost", "checksum-name", "checksum-content", "profile-failure", "spaces"] {'
 __ush_task_init
 __ush_at 60 'for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relative-prefix", "empty-env", "localhost", "checksum-name", "checksum-content", "profile-failure", "spaces"] {'
-__ush_match_20__len='12'
+__ush_match_19__len='12'
 # shellcheck disable=SC2034
-__ush_match_20__0='existing'
+__ush_match_19__0='existing'
 # shellcheck disable=SC2034
-__ush_match_20__1='automatic'
+__ush_match_19__1='automatic'
 # shellcheck disable=SC2034
-__ush_match_20__2='disabled'
+__ush_match_19__2='disabled'
 # shellcheck disable=SC2034
-__ush_match_20__3='flags'
+__ush_match_19__3='flags'
 # shellcheck disable=SC2034
-__ush_match_20__4='prefix'
+__ush_match_19__4='prefix'
 # shellcheck disable=SC2034
-__ush_match_20__5='relative-prefix'
+__ush_match_19__5='relative-prefix'
 # shellcheck disable=SC2034
-__ush_match_20__6='empty-env'
+__ush_match_19__6='empty-env'
 # shellcheck disable=SC2034
-__ush_match_20__7='localhost'
+__ush_match_19__7='localhost'
 # shellcheck disable=SC2034
-__ush_match_20__8='checksum-name'
+__ush_match_19__8='checksum-name'
 # shellcheck disable=SC2034
-__ush_match_20__9='checksum-content'
+__ush_match_19__9='checksum-content'
 # shellcheck disable=SC2034
-__ush_match_20__10='profile-failure'
+__ush_match_19__10='profile-failure'
 # shellcheck disable=SC2034
-__ush_match_20__11='spaces'
-__ush_for_list_index_21=0
-while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
-  __ush_for_value_22=''
-  eval "__ush_for_value_22=\"\${__ush_match_20__${__ush_for_list_index_21}}\""
-  scenario="${__ush_for_value_22}"
-  __ush_for_list_index_21=$((__ush_for_list_index_21 + 1))
+__ush_match_19__11='spaces'
+__ush_for_list_index_20=0
+while [ "${__ush_for_list_index_20}" -lt "${__ush_match_19__len}" ]; do
+  __ush_for_value_21=''
+  eval "__ush_for_value_21=\"\${__ush_match_19__${__ush_for_list_index_20}}\""
+  scenario="${__ush_for_value_21}"
+  __ush_for_list_index_20=$((__ush_for_list_index_20 + 1))
   __ush_at 61 'let work = temp_dir'
-  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-  work="${__ush_value_23}"
+  __ush_value_22="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
+  work="${__ush_value_22}"
   __ush_at 62 'archive work target fixture'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_archive "${work}" "${target}" "${fixture}" )
   __ush_at 63 'let home = work + "/home"'
@@ -715,8 +709,8 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
                 [ "$(if [ "${scenario}" = 'checksum-name' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
                 }; then
                   __ush_at 110 'write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tarXgz\n")'
-                  __ush_value_24="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${work}"'/ush.tar.gz')" || exit "$?"
-                  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${work}"'/sha256sums.txt' "${__ush_value_24}"'  ush-'"${target}"'.tarXgz'"${__ush_lf}"'' )
+                  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${work}"'/ush.tar.gz')" || exit "$?"
+                  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${work}"'/sha256sums.txt' "${__ush_value_23}"'  ush-'"${target}"'.tarXgz'"${__ush_lf}"'' )
                   __ush_at 111 'let expected = 1'
                   expected=1
                 else
@@ -748,25 +742,25 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
     fi
   fi
   __ush_at 121 'let code = redirect "sh" arguments (work + "/out") (work + "/err")'
-  __ush_match_25__len="${arguments__len}"
-  __ush_copy_index_26=0
-  while [ "$__ush_copy_index_26" -lt "${arguments__len}" ]; do
-    eval "__ush_copy_value_27=\"\${arguments__$__ush_copy_index_26}\""
-    eval "__ush_match_25__${__ush_copy_index_26}=\$__ush_copy_value_27"
-    __ush_copy_index_26=$((__ush_copy_index_26 + 1))
+  __ush_match_24__len="${arguments__len}"
+  __ush_copy_index_25=0
+  while [ "$__ush_copy_index_25" -lt "${arguments__len}" ]; do
+    eval "__ush_copy_value_26=\"\${arguments__$__ush_copy_index_25}\""
+    eval "__ush_match_24__${__ush_copy_index_25}=\$__ush_copy_value_26"
+    __ush_copy_index_25=$((__ush_copy_index_25 + 1))
   done
-  __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_25)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-  code="${__ush_value_29}"
+  __ush_value_28="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_24)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+  code="${__ush_value_28}"
   __ush_at 122 'if code != expected {'
   if {
   [ "$(if [ "${code}" -ne "${expected}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 123 'eprint (read_text (work + "/out"))'
-    __ush_value_30="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_30}" )
+    __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_29}" )
     __ush_at 124 'eprint (read_text (work + "/err"))'
-    __ush_value_31="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_31}" )
+    __ush_value_30="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_30}" )
   fi
   __ush_at 126 'assert_eq code expected'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${code}" "${expected}" )
@@ -775,15 +769,15 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
   [ "$(if [ "${expected}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 128 'assert (test "-x" (directory + "/ush"))'
-    __ush_value_32="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-x' "${directory}"'/ush')" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_32}" )
+    __ush_value_31="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-x' "${directory}"'/ush')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_31}" )
     __ush_at 129 'assert (test "-x" (directory + "/ush_lsp"))'
-    __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-x' "${directory}"'/ush_lsp')" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_33}" )
+    __ush_value_32="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-x' "${directory}"'/ush_lsp')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_32}" )
     __ush_at 130 'assert (contains (read_text (work + "/out")) ("ush installed to " + directory + "/ush"))'
-    __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
-    __ush_value_35="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_34}" 'ush installed to '"${directory}"'/ush')" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_35}" )
+    __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
+    __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_33}" 'ush installed to '"${directory}"'/ush')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_34}" )
     __ush_at 131 'if scenario == "automatic" || scenario == "spaces" {'
     if {
     {
@@ -793,38 +787,38 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
     }
     }; then
       __ush_at 132 'assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/.local/bin:$PATH\"")'
-      __ush_value_36="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
-      __ush_value_37="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_36}" 'export PATH="$HOME/.local/bin:$PATH"')" || exit "$?"
-      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_37}" )
+      __ush_value_35="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
+      __ush_value_36="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_35}" 'export PATH="$HOME/.local/bin:$PATH"')" || exit "$?"
+      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_36}" )
       __ush_at 133 'let original = read_text (home + "/.zshrc")'
-      __ush_value_38="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
-      original="${__ush_value_38}"
+      __ush_value_37="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
+      original="${__ush_value_37}"
       __ush_at 134 'assert_eq (redirect "sh" arguments (work + "/out") (work + "/err")) 0'
-      __ush_match_39__len="${arguments__len}"
-      __ush_copy_index_40=0
-      while [ "$__ush_copy_index_40" -lt "${arguments__len}" ]; do
-        eval "__ush_copy_value_41=\"\${arguments__$__ush_copy_index_40}\""
-        eval "__ush_match_39__${__ush_copy_index_40}=\$__ush_copy_value_41"
-        __ush_copy_index_40=$((__ush_copy_index_40 + 1))
+      __ush_match_38__len="${arguments__len}"
+      __ush_copy_index_39=0
+      while [ "$__ush_copy_index_39" -lt "${arguments__len}" ]; do
+        eval "__ush_copy_value_40=\"\${arguments__$__ush_copy_index_39}\""
+        eval "__ush_match_38__${__ush_copy_index_39}=\$__ush_copy_value_40"
+        __ush_copy_index_39=$((__ush_copy_index_39 + 1))
       done
-      __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_39)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_43}" 0 )
+      __ush_value_42="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_38)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_42}" 0 )
       __ush_at 135 'assert_eq (read_text (home + "/.zshrc")) original'
-      __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
-      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_44}" "${original}" )
+      __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
+      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_43}" "${original}" )
     else
       __ush_at 137 'else if scenario == "relative-prefix" {'
       if {
       [ "$(if [ "${scenario}" = 'relative-prefix' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
       }; then
         __ush_at 138 'assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/tools/bin:$PATH\"")'
-        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
-        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_45}" 'export PATH="$HOME/tools/bin:$PATH"')" || exit "$?"
-        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_46}" )
+        __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${home}"'/.zshrc')" || exit "$?"
+        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_44}" 'export PATH="$HOME/tools/bin:$PATH"')" || exit "$?"
+        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_45}" )
       else
         __ush_at 141 'assert_eq (is_file (home + "/.zshrc")) false'
-        __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${home}"'/.zshrc')" || exit "$?"
-        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_47}" 'false' )
+        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${home}"'/.zshrc')" || exit "$?"
+        ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_46}" 'false' )
       fi
     fi
   else
@@ -837,8 +831,8 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
     }
     }; then
       __ush_at 145 'assert_eq (is_file (directory + "/ush")) false'
-      __ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${directory}"'/ush')" || exit "$?"
-      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_48}" 'false' )
+      __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${directory}"'/ush')" || exit "$?"
+      ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_47}" 'false' )
     fi
   fi
   __ush_at 147 'print "installer: " + scenario + " passed"'
@@ -847,62 +841,62 @@ while [ "${__ush_for_list_index_21}" -lt "${__ush_match_20__len}" ]; do
   command cd "${root}"
 done
 __ush_at 150 'let work = temp_dir'
-__ush_value_49="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_49}"
+__ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
+work="${__ush_value_48}"
 __ush_at 151 'assert_eq (redirect "sh" [installer, "--version"] (work + "/out") (work + "/err")) 1'
-__ush_match_50__len='2'
+__ush_match_49__len='2'
 # shellcheck disable=SC2034
-__ush_match_50__0="${installer}"
+__ush_match_49__0="${installer}"
 # shellcheck disable=SC2034
-__ush_match_50__1='--version'
-__ush_value_52="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_50)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_52}" 1 )
+__ush_match_49__1='--version'
+__ush_value_51="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_49)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_51}" 1 )
 __ush_at 152 'assert (contains (read_text (work + "/err")) "--version requires a value")'
-__ush_value_53="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-__ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_53}" '--version requires a value')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_54}" )
+__ush_value_52="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+__ush_value_53="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_52}" '--version requires a value')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_53}" )
 __ush_at 153 'assert_eq (redirect "sh" [installer, "--unknown"] (work + "/out") (work + "/err")) 1'
-__ush_match_55__len='2'
+__ush_match_54__len='2'
 # shellcheck disable=SC2034
-__ush_match_55__0="${installer}"
+__ush_match_54__0="${installer}"
 # shellcheck disable=SC2034
-__ush_match_55__1='--unknown'
-__ush_value_57="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_55)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_57}" 1 )
+__ush_match_54__1='--unknown'
+__ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_54)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_56}" 1 )
 __ush_at 154 'for branch in ["", "__unset__"] {'
-__ush_match_58__len='2'
+__ush_match_57__len='2'
 # shellcheck disable=SC2034
-__ush_match_58__0=''
+__ush_match_57__0=''
 # shellcheck disable=SC2034
-__ush_match_58__1='__unset__'
-__ush_for_list_index_59=0
-while [ "${__ush_for_list_index_59}" -lt "${__ush_match_58__len}" ]; do
-  __ush_for_value_60=''
-  eval "__ush_for_value_60=\"\${__ush_match_58__${__ush_for_list_index_59}}\""
-  branch="${__ush_for_value_60}"
-  __ush_for_list_index_59=$((__ush_for_list_index_59 + 1))
+__ush_match_57__1='__unset__'
+__ush_for_list_index_58=0
+while [ "${__ush_for_list_index_58}" -lt "${__ush_match_57__len}" ]; do
+  __ush_for_value_59=''
+  eval "__ush_for_value_59=\"\${__ush_match_57__${__ush_for_list_index_58}}\""
+  branch="${__ush_for_value_59}"
+  __ush_for_list_index_58=$((__ush_for_list_index_58 + 1))
   __ush_at 155 'set "USH_BRANCH" branch'
   ush_fn_std__env__set 'USH_BRANCH' "${branch}"
   __ush_at 156 'assert_eq (redirect "sh" [installer] (work + "/out") (work + "/err")) 1'
-  __ush_match_61__len='1'
+  __ush_match_60__len='1'
   # shellcheck disable=SC2034
-  __ush_match_61__0="${installer}"
-  __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_61)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_63}" 1 )
+  __ush_match_60__0="${installer}"
+  __ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_60)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_62}" 1 )
   __ush_at 157 'assert (contains (read_text (work + "/err")) "USH_BRANCH/UBSH_BRANCH is no longer supported")'
-  __ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-  __ush_value_65="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_64}" 'USH_BRANCH/UBSH_BRANCH is no longer supported')" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_65}" )
+  __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+  __ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_63}" 'USH_BRANCH/UBSH_BRANCH is no longer supported')" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_64}" )
 done
 __ush_at 159 'unset "USH_BRANCH"'
 ush_fn_std__env__unset 'USH_BRANCH'
 __ush_at 160 'set "TMPDIR" (work + "/does-not-exist")'
 ush_fn_std__env__set 'TMPDIR' "${work}"'/does-not-exist'
 __ush_at 161 'assert_eq (redirect "sh" [installer, "--help"] (work + "/out") (work + "/err")) 0'
-__ush_match_66__len='2'
+__ush_match_65__len='2'
 # shellcheck disable=SC2034
-__ush_match_66__0="${installer}"
+__ush_match_65__0="${installer}"
 # shellcheck disable=SC2034
-__ush_match_66__1='--help'
-__ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_66)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_68}" 0 )
+__ush_match_65__1='--help'
+__ush_value_67="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'sh' "$(ush_fn_std__pack __ush_match_65)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_67}" 0 )

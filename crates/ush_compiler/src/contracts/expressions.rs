@@ -116,6 +116,12 @@ impl Checker {
                 }
                 t
             }
+            Expr::Pipeline(pipeline) => {
+                for stage in pipeline.exprs_mut() {
+                    self.expr(stage, locals)?;
+                }
+                Ty::named("String")
+            }
             Expr::AsyncBlock(body) => {
                 let values = self.body(body, &mut locals.clone())?;
                 Ty::app(

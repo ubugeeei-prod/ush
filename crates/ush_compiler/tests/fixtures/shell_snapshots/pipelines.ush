@@ -1,0 +1,14 @@
+use $bin::*
+use std::io::{append_to, from_file, to_file}
+
+fn shout() -> () / unknown, io {
+  print (std::string::to_upper_ascii (std::io::read_all))
+}
+
+git "log" "--oneline" | head "-n1"
+let branch = git "branch" "--show-current" | tr "a-z" "A-Z"
+cargo "build" |& tee "build.log"
+"hello\n" | shout
+from_file "notes.txt" | sort | to_file "sorted.txt"
+printf "done\n" |
+  append_to (branch + ".log")

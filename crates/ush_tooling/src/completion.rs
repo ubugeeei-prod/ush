@@ -46,6 +46,10 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("continue", "skip to the next iteration"),
     ("else", "else branch"),
     ("enum", "declare an enum"),
+    (
+        "export",
+        "export NAME = value, optionally scoped to a block",
+    ),
     ("extern", "import typed functions from a .sh library"),
     ("test", "declare an isolated test block"),
     ("false", "boolean false"),

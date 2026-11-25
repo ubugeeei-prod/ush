@@ -41,6 +41,7 @@ use declarations::{
     collect_declarations, function_defs, function_key, resolve_row, validate_declaration,
 };
 mod kinds;
+mod shell;
 mod table;
 
 #[cfg(test)]

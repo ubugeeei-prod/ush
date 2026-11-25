@@ -37,6 +37,102 @@ wildcards are diagnosed; import those functions explicitly with `as` aliases.
 `use $bin::*` imports the command catalog, with local functions and explicit
 imports taking precedence. A trailing `::` is not a wildcard.
 
+## Pipelines and redirection
+
+```ush
+use $bin::*
+use std::io::{append_to, from_file, to_file}
+
+git "log" "--oneline" | head "-n5"
+let branch = git "branch" "--show-current" | tr "a-z" "A-Z"
+cargo "build" |& tee "build.log"
+cargo "test" |& to_file "test.log"
+from_file "notes.txt" |
+  sort |
+  uniq |
+  to_file "sorted.txt"
+"## Summary\n" | append_to (std::env::get "GITHUB_STEP_SUMMARY")
+let body = """
+  Release notes
+  - pipelines
+"""
+body | gh "pr" "comment" "1" "--body-file" "-"
+```
+
+A pipeline connects each stage's stdout to the next stage's stdin. A stage
+is a command (`git "log"`, a `$bin::` call, or `std::process::exec` and
+`output`) or a call to a function returning `()`. A function stage runs in a
+subshell of its own; it reads stdin with `std::io::read_all` or `read_lines`
+and prints its output. `|&` after a stage also sends that stage's stderr into
+the pipe. The pipe binds more loosely than anything else in an expression, so
+`(a | b) == "x"` needs its parentheses. A line that ends with `|` or `|&`
+continues on the next line; blank lines and comments between stages are
+skipped.
+
+As a statement, a pipeline streams its last stage to the script's stdout. As
+a value, as in `let`, `print (…)` or a condition, it captures the last
+stage's stdout and removes trailing newlines like any command capture. As
+the last line of a value-returning function, it is the function's value;
+end that line with `;` to stream it. A declared `-> ()` function has no tail
+value, so its last line always runs as a statement.
+
+Every argument of every stage is evaluated, left to right, before the first
+stage starts.
+
+**Failure.** The pipeline fails if any stage exits unsuccessfully, like bash
+`set -o pipefail`, and it does so on every target, including POSIX `sh` and
+dash, which have no `pipefail`. The diagnostic names the leftmost failing stage
+and the source line, and the script stops with that stage's status:
+
+```text
+deploy.ush:4: pipeline stage 2 failed: grep "ready" (exit 1)
+  kubectl "get" "pods" | grep "ready" | wc "-l"
+```
+
+bash's `pipefail` reports the rightmost failure instead; the leftmost one is
+usually the cause. A trailing `?` (`a | b?`) covers the whole pipeline and
+behaves as it does for a single command. `?` on an earlier stage is rejected,
+because stages run concurrently and cannot fail on their own.
+
+**Readers that stop early.** A stage may stop reading before its input ends,
+as `head` does. The stage writing to it then fails on its next write: it dies
+of SIGPIPE with status 141, or, where SIGPIPE is ignored as on some CI runners,
+it sees a write error and exits with a status of its own choosing. Neither is a
+failure. A stage that fails after the stage reading from it has finished was
+cut off by that reader, and the reader's own status decides. So
+`seq "1" "1000000" | head "-n1"` succeeds. The order is exact, not a timing
+guess: each stage keeps its pipe ends open until its status is recorded, so a
+reader that stopped early is always recorded first, and a reader that read to
+the end is always recorded after its writer. A failing last stage always fails
+the pipeline.
+
+**Sources and sinks.** `std::io` provides three stages that lower to plain
+shell redirections rather than extra processes:
+
+| Stage | Position | Lowers to |
+| --- | --- | --- |
+| `from_file path` | first | `< path` on the next stage |
+| `to_file path` | last | `> path` on the previous stage (truncate) |
+| `append_to path` | last | `>> path` on the previous stage |
+
+`cmd |& to_file "log"` is `cmd > log 2>&1`. stderr alone already has
+`std::process::redirect`. A path is always one shell word, including spaces
+and newlines. A computed path follows the `std::fs` rules: source-relative
+path references resolve, and an empty path is an error. A failure to open
+the file fails the stage that owns the redirection, and the diagnostic shows
+both: `pipeline stage 1 failed: from_file "notes.txt" | sort`. Calling
+`to_file` outside a pipeline is a compile error.
+
+**String stdin.** A String expression as the first stage feeds its exact bytes
+to the next stage's stdin, which covers here-strings and here-documents. No
+newline is added: `"a\nb" | wc "-l"` prints `1`, so write `"a\nb\n"` for a
+line-oriented consumer. A `"""…"""` string drops the line breaks after the
+opening and before the closing quotes, so its last line has no terminator
+either. A call to a command is always a command stage and never a String,
+so `git "log" | head` runs git; a call to a function that returns a String
+feeds that String, which has lost its trailing newlines like every returned
+value.
+
 ## Generics, kinds, and function values
 
 ```ush
@@ -91,6 +187,44 @@ ranges or filters that reject everything produce a typed empty list.
 Bindings are local to the comprehension, and the source list is evaluated
 once per enclosing iteration. Strings keep their whitespace and shell
 metacharacters as data.
+
+## Scoped cwd and environment
+
+```ush
+use $bin::*
+
+export RUST_BACKTRACE = "1"
+cd "crates/ush_compiler" {
+  export CARGO_TERM_COLOR = "never", RUSTFLAGS = "-D warnings" {
+    cargo "build"
+  }
+}
+```
+
+`cd path { … }` runs the block in `path` and returns to the previous
+directory afterwards. `cd path` without a block keeps its meaning: it changes
+directory for the rest of the current process scope. The path must be a
+String; `CDPATH` is ignored.
+
+`export NAME = value` sets and exports an environment variable for the rest
+of the current process scope, as `std::env::set` does. `export NAME = value,
+OTHER = value { … }` scopes the variables to the block: afterwards each name
+gets back its previous value, or becomes unset again if it was unset. Every
+value is a String and is evaluated before any variable changes, so
+`export A = "2", B = std::env::get "A"` gives `B` the old `A`. A name cannot be
+a ush binding in scope, `PWD`, `OLDPWD`, `IFS`, or start with `__ush`.
+
+Blocks nest and compose with every other statement. They run in the current
+shell: the block saves what it changes, runs the body and restores the saved
+state. Assignments to outer bindings inside a block therefore stay visible
+afterwards, as they do for `if` and loops, and bindings first made inside a
+block stay inside it. `break` and `continue` restore every block they leave
+before leaving it. `fail`, `?` and failing commands keep their status and
+source line: at top level they end the script, and a function body runs in
+a process of its own, so a failing function cannot leak its directory or
+variables to its caller either. A variable that was set before the block is
+exported again when restored, because a POSIX shell cannot tell whether it was
+exported.
 
 ## Test blocks
 

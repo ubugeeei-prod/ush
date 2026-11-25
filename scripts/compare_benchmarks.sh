@@ -338,7 +338,7 @@ ush_fn_report() {
   [ "$(if [ "${__ush_fn_report_arg_1}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 14 'append_text summary (text + "\n")'
-    __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__append_text "${__ush_fn_report_arg_1}" "${__ush_fn_report_arg_0}"''"${__ush_lf}"'')" || return "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__append_text "${__ush_fn_report_arg_1}" "${__ush_fn_report_arg_0}"''"${__ush_lf}"'' ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   fi
 }
 
@@ -371,28 +371,28 @@ ush_fn_build() {
   __ush_at 22 'let error_log = work + "/cargo.err"'
   error_log="${__ush_fn_build_arg_5}"'/cargo.err'
   __ush_at 23 'let code = redirect "cargo" ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] log error_log'
-  __ush_match_1__len='8'
+  __ush_match_0__len='8'
   # shellcheck disable=SC2034
-  __ush_match_1__0='bench'
+  __ush_match_0__0='bench'
   # shellcheck disable=SC2034
-  __ush_match_1__1='--locked'
+  __ush_match_0__1='--locked'
   # shellcheck disable=SC2034
-  __ush_match_1__2='--no-run'
+  __ush_match_0__2='--no-run'
   # shellcheck disable=SC2034
-  __ush_match_1__3='-p'
+  __ush_match_0__3='-p'
   # shellcheck disable=SC2034
-  __ush_match_1__4="${__ush_fn_build_arg_1}"
+  __ush_match_0__4="${__ush_fn_build_arg_1}"
   # shellcheck disable=SC2034
-  __ush_match_1__5='--bench'
+  __ush_match_0__5='--bench'
   # shellcheck disable=SC2034
-  __ush_match_1__6="${__ush_fn_build_arg_2}"
+  __ush_match_0__6="${__ush_fn_build_arg_2}"
   # shellcheck disable=SC2034
-  __ush_match_1__7='--message-format=json'
-  __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'cargo' "$(ush_fn_std__pack __ush_match_1)" "${log}" "${error_log}")" || return "$?"
-  code="${__ush_value_3}"
+  __ush_match_0__7='--message-format=json'
+  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'cargo' "$(ush_fn_std__pack __ush_match_0)" "${log}" "${error_log}")" || return "$?"
+  code="${__ush_value_2}"
   __ush_at 24 'eprint (read_text error_log)'
-  __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${error_log}")" || return "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_4}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${error_log}")" || return "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_3}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 25 'if code != 0 {'
   if {
   [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -404,21 +404,21 @@ ush_fn_build() {
     return "$__ush_status"
   fi
   __ush_at 28 'let binary = output "jq" ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?'
-  __ush_match_5__len='6'
+  __ush_match_4__len='6'
   # shellcheck disable=SC2034
-  __ush_match_5__0='-ser'
+  __ush_match_4__0='-ser'
   # shellcheck disable=SC2034
-  __ush_match_5__1='--arg'
+  __ush_match_4__1='--arg'
   # shellcheck disable=SC2034
-  __ush_match_5__2='suite'
+  __ush_match_4__2='suite'
   # shellcheck disable=SC2034
-  __ush_match_5__3="${__ush_fn_build_arg_2}"
+  __ush_match_4__3="${__ush_fn_build_arg_2}"
   # shellcheck disable=SC2034
-  __ush_match_5__4='[.[] | select(.reason == "compiler-artifact" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error("expected one benchmark executable") end'
+  __ush_match_4__4='[.[] | select(.reason == "compiler-artifact" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error("expected one benchmark executable") end'
   # shellcheck disable=SC2034
-  __ush_match_5__5="${log}"
-  __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_5)")" || return "$?"
-  binary="${__ush_value_7}"
+  __ush_match_4__5="${log}"
+  __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_4)")" || return "$?"
+  binary="${__ush_value_6}"
   __ush_at 29 'cp binary destination'
   command cp "${binary}" "${__ush_fn_build_arg_3}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 30 'destination'
@@ -438,27 +438,27 @@ ush_fn_cases() {
   __ush_at 34 'let names = ""'
   names=''
   __ush_at 35 'for line in lines (output binary ["--list"]) {'
-  __ush_match_9__len='1'
+  __ush_match_8__len='1'
   # shellcheck disable=SC2034
-  __ush_match_9__0='--list'
-  __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${__ush_fn_cases_arg_0}" "$(ush_fn_std__pack __ush_match_9)")" || return "$?"
-  __ush_packed_12="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_11}")" || return "$?"
-  __ush_match_8__len=0
-  ush_fn_std__unpack __ush_match_8 "${__ush_packed_12}"
-  __ush_for_list_index_13=0
-  while [ "${__ush_for_list_index_13}" -lt "${__ush_match_8__len}" ]; do
-    __ush_for_value_14=''
-    eval "__ush_for_value_14=\"\${__ush_match_8__${__ush_for_list_index_13}}\""
-    line="${__ush_for_value_14}"
-    __ush_for_list_index_13=$((__ush_for_list_index_13 + 1))
+  __ush_match_8__0='--list'
+  __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${__ush_fn_cases_arg_0}" "$(ush_fn_std__pack __ush_match_8)")" || return "$?"
+  __ush_packed_11="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_10}")" || return "$?"
+  __ush_match_7__len=0
+  ush_fn_std__unpack __ush_match_7 "${__ush_packed_11}"
+  __ush_for_list_index_12=0
+  while [ "${__ush_for_list_index_12}" -lt "${__ush_match_7__len}" ]; do
+    __ush_for_value_13=''
+    eval "__ush_for_value_13=\"\${__ush_match_7__${__ush_for_list_index_12}}\""
+    line="${__ush_for_value_13}"
+    __ush_for_list_index_12=$((__ush_for_list_index_12 + 1))
     __ush_at 36 'if ends_with line ": benchmark" {'
     if {
-    __ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${line}" ': benchmark')" || return "$?"
-    [ "${__ush_value_15}" = 'true' ]
+    __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${line}" ': benchmark')" || return "$?"
+    [ "${__ush_value_14}" = 'true' ]
     }; then
       __ush_at 37 'let names = names + trim_suffix line ": benchmark" + "\n"'
-      __ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${line}" ': benchmark')" || return "$?"
-      names="${names}""${__ush_value_16}"''"${__ush_lf}"''
+      __ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${line}" ': benchmark')" || return "$?"
+      names="${names}""${__ush_value_15}"''"${__ush_lf}"''
     fi
   done
   __ush_at 40 'if names == "" {'
@@ -489,48 +489,48 @@ ush_fn_measure() {
   # shellcheck disable=SC2034
   name="${__ush_fn_measure_arg_1}"
   __ush_at 47 'let run = temp_dir'
-  __ush_value_17="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || return "$?"
-  run="${__ush_value_17}"
+  __ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || return "$?"
+  run="${__ush_value_16}"
   __ush_at 48 'set "CRITERION_HOME" run'
   ush_fn_std__env__set 'CRITERION_HOME' "${run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 49 'let code = redirect binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")'
-  __ush_match_18__len='12'
+  __ush_match_17__len='12'
   # shellcheck disable=SC2034
-  __ush_match_18__0='--bench'
+  __ush_match_17__0='--bench'
   # shellcheck disable=SC2034
-  __ush_match_18__1='--exact'
+  __ush_match_17__1='--exact'
   # shellcheck disable=SC2034
-  __ush_match_18__2="${__ush_fn_measure_arg_1}"
+  __ush_match_17__2="${__ush_fn_measure_arg_1}"
   # shellcheck disable=SC2034
-  __ush_match_18__3='--noplot'
+  __ush_match_17__3='--noplot'
   # shellcheck disable=SC2034
-  __ush_match_18__4='--sample-size'
+  __ush_match_17__4='--sample-size'
   # shellcheck disable=SC2034
-  __ush_match_18__5='50'
+  __ush_match_17__5='50'
   # shellcheck disable=SC2034
-  __ush_match_18__6='--warm-up-time'
+  __ush_match_17__6='--warm-up-time'
   # shellcheck disable=SC2034
-  __ush_match_18__7='1.5'
+  __ush_match_17__7='1.5'
   # shellcheck disable=SC2034
-  __ush_match_18__8='--measurement-time'
+  __ush_match_17__8='--measurement-time'
   # shellcheck disable=SC2034
-  __ush_match_18__9='2.5'
+  __ush_match_17__9='2.5'
   # shellcheck disable=SC2034
-  __ush_match_18__10='--nresamples'
+  __ush_match_17__10='--nresamples'
   # shellcheck disable=SC2034
-  __ush_match_18__11='10000'
-  __ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${__ush_fn_measure_arg_0}" "$(ush_fn_std__pack __ush_match_18)" "${run}"'/out' "${run}"'/err')" || return "$?"
-  code="${__ush_value_20}"
+  __ush_match_17__11='10000'
+  __ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${__ush_fn_measure_arg_0}" "$(ush_fn_std__pack __ush_match_17)" "${run}"'/out' "${run}"'/err')" || return "$?"
+  code="${__ush_value_19}"
   __ush_at 50 'if code != 0 {'
   if {
   [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 51 'eprint (read_text (run + "/out"))'
-    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/out')" || return "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_21}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+    __ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/out')" || return "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_20}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     __ush_at 52 'eprint (read_text (run + "/err"))'
-    __ush_value_22="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/err')" || return "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_22}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/err')" || return "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_21}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     __ush_at 53 'fail code ("benchmark failed: " + name)'
     __ush_status="${code}"
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
@@ -542,16 +542,16 @@ ush_fn_measure() {
   __ush_at 56 'let count = 0'
   count=0
   __ush_at 57 'for file in lines (find run "-path" "*/new/estimates.json") {'
-  __ush_value_24="$(__ush_return_path='' __ush_capture_return='1' command find "${run}" '-path' '*/new/estimates.json')" || return "$?"
-  __ush_packed_25="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_24}")" || return "$?"
-  __ush_match_23__len=0
-  ush_fn_std__unpack __ush_match_23 "${__ush_packed_25}"
-  __ush_for_list_index_26=0
-  while [ "${__ush_for_list_index_26}" -lt "${__ush_match_23__len}" ]; do
-    __ush_for_value_27=''
-    eval "__ush_for_value_27=\"\${__ush_match_23__${__ush_for_list_index_26}}\""
-    file="${__ush_for_value_27}"
-    __ush_for_list_index_26=$((__ush_for_list_index_26 + 1))
+  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' command find "${run}" '-path' '*/new/estimates.json')" || return "$?"
+  __ush_packed_24="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_23}")" || return "$?"
+  __ush_match_22__len=0
+  ush_fn_std__unpack __ush_match_22 "${__ush_packed_24}"
+  __ush_for_list_index_25=0
+  while [ "${__ush_for_list_index_25}" -lt "${__ush_match_22__len}" ]; do
+    __ush_for_value_26=''
+    eval "__ush_for_value_26=\"\${__ush_match_22__${__ush_for_list_index_25}}\""
+    file="${__ush_for_value_26}"
+    __ush_for_list_index_25=$((__ush_for_list_index_25 + 1))
     __ush_at 58 'let estimate = file'
     estimate="${file}"
     __ush_at 59 'let count = count + 1'
@@ -568,15 +568,15 @@ ush_fn_measure() {
     return "$__ush_status"
   fi
   __ush_at 64 'let value = output "jq" ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?'
-  __ush_match_28__len='3'
+  __ush_match_27__len='3'
   # shellcheck disable=SC2034
-  __ush_match_28__0='-er'
+  __ush_match_27__0='-er'
   # shellcheck disable=SC2034
-  __ush_match_28__1='(.slope // .mean).point_estimate | if type == "number" and . > 0 and isfinite then . else error("invalid timing estimate") end'
+  __ush_match_27__1='(.slope // .mean).point_estimate | if type == "number" and . > 0 and isfinite then . else error("invalid timing estimate") end'
   # shellcheck disable=SC2034
-  __ush_match_28__2="${estimate}"
-  __ush_value_30="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_28)")" || return "$?"
-  value="${__ush_value_30}"
+  __ush_match_27__2="${estimate}"
+  __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_27)")" || return "$?"
+  value="${__ush_value_29}"
   __ush_at 65 'rm "-rf" run'
   command rm '-rf' "${run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 66 'value'
@@ -597,28 +597,28 @@ ush_fn_geometric() {
   # shellcheck disable=SC2034
   second="${__ush_fn_geometric_arg_1}"
   __ush_at 70 'output "jq" ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]'
-  __ush_match_31__len='8'
+  __ush_match_30__len='8'
   # shellcheck disable=SC2034
-  __ush_match_31__0='-nr'
+  __ush_match_30__0='-nr'
   # shellcheck disable=SC2034
-  __ush_match_31__1='--argjson'
+  __ush_match_30__1='--argjson'
   # shellcheck disable=SC2034
-  __ush_match_31__2='a'
+  __ush_match_30__2='a'
   # shellcheck disable=SC2034
-  __ush_match_31__3="${__ush_fn_geometric_arg_0}"
+  __ush_match_30__3="${__ush_fn_geometric_arg_0}"
   # shellcheck disable=SC2034
-  __ush_match_31__4='--argjson'
+  __ush_match_30__4='--argjson'
   # shellcheck disable=SC2034
-  __ush_match_31__5='b'
+  __ush_match_30__5='b'
   # shellcheck disable=SC2034
-  __ush_match_31__6="${__ush_fn_geometric_arg_1}"
+  __ush_match_30__6="${__ush_fn_geometric_arg_1}"
   # shellcheck disable=SC2034
-  __ush_match_31__7='($a * $b) | sqrt'
-  __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_31)")" || return "$?"
+  __ush_match_30__7='($a * $b) | sqrt'
+  __ush_value_32="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_30)")" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "${__ush_value_33}" > "$__ush_return_path"
+    printf '%s' "${__ush_value_32}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "${__ush_value_33}" >&4
+    printf '%s' "${__ush_value_32}" >&4
   fi
   return 0
 }
@@ -635,40 +635,40 @@ ush_fn_compare() {
   # shellcheck disable=SC2034
   summary="${__ush_fn_compare_arg_2}"
   __ush_at 74 'let before_cases = cases base + "\n"'
-  __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_0}" 4>&1 >&3)" || return "$?"
-  before_cases="${__ush_value_34}"''"${__ush_lf}"''
+  __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_0}" 4>&1 >&3)" || return "$?"
+  before_cases="${__ush_value_33}"''"${__ush_lf}"''
   __ush_at 75 'let after_cases = cases head + "\n"'
-  __ush_value_35="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_1}" 4>&1 >&3)" || return "$?"
-  after_cases="${__ush_value_35}"''"${__ush_lf}"''
+  __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_cases "${__ush_fn_compare_arg_1}" 4>&1 >&3)" || return "$?"
+  after_cases="${__ush_value_34}"''"${__ush_lf}"''
   __ush_at 76 'let seen = "\n"'
   seen=''"${__ush_lf}"''
   __ush_at 77 'let failures = 0'
   failures=0
   __ush_at 78 'for name in lines (before_cases + after_cases) {'
-  __ush_packed_37="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${before_cases}""${after_cases}")" || return "$?"
-  __ush_match_36__len=0
-  ush_fn_std__unpack __ush_match_36 "${__ush_packed_37}"
-  __ush_for_list_index_38=0
-  while [ "${__ush_for_list_index_38}" -lt "${__ush_match_36__len}" ]; do
-    __ush_for_value_39=''
-    eval "__ush_for_value_39=\"\${__ush_match_36__${__ush_for_list_index_38}}\""
-    name="${__ush_for_value_39}"
-    __ush_for_list_index_38=$((__ush_for_list_index_38 + 1))
+  __ush_packed_36="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${before_cases}""${after_cases}")" || return "$?"
+  __ush_match_35__len=0
+  ush_fn_std__unpack __ush_match_35 "${__ush_packed_36}"
+  __ush_for_list_index_37=0
+  while [ "${__ush_for_list_index_37}" -lt "${__ush_match_35__len}" ]; do
+    __ush_for_value_38=''
+    eval "__ush_for_value_38=\"\${__ush_match_35__${__ush_for_list_index_37}}\""
+    name="${__ush_for_value_38}"
+    __ush_for_list_index_37=$((__ush_for_list_index_37 + 1))
     __ush_at 79 'let key = "\n" + name + "\n"'
     key=''"${__ush_lf}"''"${name}"''"${__ush_lf}"''
     __ush_at 80 'if contains seen key == false {'
     if {
-    __ush_value_40="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${seen}" "${key}")" || return "$?"
-    [ "$(if [ "${__ush_value_40}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+    __ush_value_39="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${seen}" "${key}")" || return "$?"
+    [ "$(if [ "${__ush_value_39}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
     }; then
       __ush_at 81 'let seen = seen + name + "\n"'
       seen="${seen}""${name}"''"${__ush_lf}"''
       __ush_at 82 'let in_base = contains ("\n" + before_cases) key'
-      __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${before_cases}" "${key}")" || return "$?"
-      in_base="${__ush_value_41}"
+      __ush_value_40="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${before_cases}" "${key}")" || return "$?"
+      in_base="${__ush_value_40}"
       __ush_at 83 'let in_head = contains ("\n" + after_cases) key'
-      __ush_value_42="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${after_cases}" "${key}")" || return "$?"
-      in_head="${__ush_value_42}"
+      __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains ''"${__ush_lf}"''"${after_cases}" "${key}")" || return "$?"
+      in_head="${__ush_value_41}"
       __ush_at 84 'if in_base && in_head {'
       if {
       {
@@ -678,63 +678,63 @@ ush_fn_compare() {
       }
       }; then
         __ush_at 86 'let b1 = measure base name'
-        __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-        b1="${__ush_value_43}"
+        __ush_value_42="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
+        b1="${__ush_value_42}"
         __ush_at 87 'let h1 = measure head name'
-        __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-        h1="${__ush_value_44}"
+        __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
+        h1="${__ush_value_43}"
         __ush_at 88 'let h2 = measure head name'
-        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-        h2="${__ush_value_45}"
+        __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
+        h2="${__ush_value_44}"
         __ush_at 89 'let b2 = measure base name'
-        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-        b2="${__ush_value_46}"
+        __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
+        b2="${__ush_value_45}"
         __ush_at 90 'let before = geometric b1 b2'
-        __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${b1}" "${b2}" 4>&1 >&3)" || return "$?"
-        before="${__ush_value_47}"
+        __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${b1}" "${b2}" 4>&1 >&3)" || return "$?"
+        before="${__ush_value_46}"
         __ush_at 91 'let after = geometric h1 h2'
-        __ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${h1}" "${h2}" 4>&1 >&3)" || return "$?"
-        after="${__ush_value_48}"
+        __ush_value_47="$(__ush_return_path='' __ush_capture_return='1' ush_fn_geometric "${h1}" "${h2}" 4>&1 >&3)" || return "$?"
+        after="${__ush_value_47}"
         __ush_at 92 'let ratio = output "jq" ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]'
-        __ush_match_49__len='8'
+        __ush_match_48__len='8'
         # shellcheck disable=SC2034
-        __ush_match_49__0='-nr'
+        __ush_match_48__0='-nr'
         # shellcheck disable=SC2034
-        __ush_match_49__1='--argjson'
+        __ush_match_48__1='--argjson'
         # shellcheck disable=SC2034
-        __ush_match_49__2='a'
+        __ush_match_48__2='a'
         # shellcheck disable=SC2034
-        __ush_match_49__3="${after}"
+        __ush_match_48__3="${after}"
         # shellcheck disable=SC2034
-        __ush_match_49__4='--argjson'
+        __ush_match_48__4='--argjson'
         # shellcheck disable=SC2034
-        __ush_match_49__5='b'
+        __ush_match_48__5='b'
         # shellcheck disable=SC2034
-        __ush_match_49__6="${before}"
+        __ush_match_48__6="${before}"
         # shellcheck disable=SC2034
-        __ush_match_49__7='$a / $b'
-        __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_49)")" || return "$?"
-        ratio="${__ush_value_51}"
+        __ush_match_48__7='$a / $b'
+        __ush_value_50="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'jq' "$(ush_fn_std__pack __ush_match_48)")" || return "$?"
+        ratio="${__ush_value_50}"
         __ush_at 93 'let row = printf "| %s | %.2f | %.2f | %.3f× |" name before after ratio'
-        __ush_value_52="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | %.2f | %.3f× |' "${name}" "${before}" "${after}" "${ratio}")" || return "$?"
-        row="${__ush_value_52}"
+        __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | %.2f | %.3f× |' "${name}" "${before}" "${after}" "${ratio}")" || return "$?"
+        row="${__ush_value_51}"
         __ush_at 94 'report row summary'
         ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${row}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         __ush_at 95 'if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {'
         if {
-        __ush_match_53__len='5'
+        __ush_match_52__len='5'
         # shellcheck disable=SC2034
-        __ush_match_53__0='-ne'
+        __ush_match_52__0='-ne'
         # shellcheck disable=SC2034
-        __ush_match_53__1='--argjson'
+        __ush_match_52__1='--argjson'
         # shellcheck disable=SC2034
-        __ush_match_53__2='ratio'
+        __ush_match_52__2='ratio'
         # shellcheck disable=SC2034
-        __ush_match_53__3="${ratio}"
+        __ush_match_52__3="${ratio}"
         # shellcheck disable=SC2034
-        __ush_match_53__4='$ratio > 1.25'
-        __ush_value_55="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'jq' "$(ush_fn_std__pack __ush_match_53)")" || return "$?"
-        [ "$(if [ "${__ush_value_55}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+        __ush_match_52__4='$ratio > 1.25'
+        __ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'jq' "$(ush_fn_std__pack __ush_match_52)")" || return "$?"
+        [ "$(if [ "${__ush_value_54}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }; then
           __ush_at 96 'let failures = failures + 1'
           failures=$((failures + 1))
@@ -745,18 +745,18 @@ ush_fn_compare() {
         [ "${in_head}" = 'true' ]
         }; then
           __ush_at 100 'let value = measure head name'
-          __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
-          value="${__ush_value_56}"
+          __ush_value_55="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_1}" "${name}" 4>&1 >&3)" || return "$?"
+          value="${__ush_value_55}"
           __ush_at 101 'report (printf "| %s | — | %.2f | new |" name value) summary'
-          __ush_value_57="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | — | %.2f | new |' "${name}" "${value}")" || return "$?"
-          ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_57}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+          __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | — | %.2f | new |' "${name}" "${value}")" || return "$?"
+          ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_56}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         else
           __ush_at 104 'let value = measure base name'
-          __ush_value_58="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
-          value="${__ush_value_58}"
+          __ush_value_57="$(__ush_return_path='' __ush_capture_return='1' ush_fn_measure "${__ush_fn_compare_arg_0}" "${name}" 4>&1 >&3)" || return "$?"
+          value="${__ush_value_57}"
           __ush_at 105 'report (printf "| %s | %.2f | — | removed |" name value) summary'
-          __ush_value_59="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | — | removed |' "${name}" "${value}")" || return "$?"
-          ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_59}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+          __ush_value_58="$(__ush_return_path='' __ush_capture_return='1' command printf '| %s | %.2f | — | removed |' "${name}" "${value}")" || return "$?"
+          ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_value_58}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
         fi
       fi
     fi
@@ -771,8 +771,8 @@ ush_fn_compare() {
 }
 
 __ush_at 112 'let base_arg = arg 0'
-__ush_value_60="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 0)" || exit "$?"
-base_arg="${__ush_value_60}"
+__ush_value_59="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__arg 0)" || exit "$?"
+base_arg="${__ush_value_59}"
 __ush_at 113 'if base_arg == "" {'
 if {
 [ "$(if [ "${base_arg}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -784,15 +784,15 @@ if {
   exit "$__ush_status"
 fi
 __ush_at 116 'let head = cwd'
-__ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
-head="${__ush_value_61}"
+__ush_value_60="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__cwd)" || exit "$?"
+head="${__ush_value_60}"
 __ush_at 117 'let base = resolve (from_cwd base_arg)'
-__ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd "${base_arg}")" || exit "$?"
-__ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_value_62}")" || exit "$?"
-base="${__ush_value_63}"
+__ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd "${base_arg}")" || exit "$?"
+__ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_value_61}")" || exit "$?"
+base="${__ush_value_62}"
 __ush_at 118 'let summary = get "GITHUB_STEP_SUMMARY"'
-__ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'GITHUB_STEP_SUMMARY')" || exit "$?"
-summary="${__ush_value_64}"
+__ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'GITHUB_STEP_SUMMARY')" || exit "$?"
+summary="${__ush_value_63}"
 __ush_at 119 'report "## Paired Criterion measurements" summary'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report '## Paired Criterion measurements' "${summary}" )
 __ush_at 120 'report "" summary'
@@ -808,22 +808,22 @@ __ush_at 124 'report "| --- | ---: | ---: | ---: |" summary'
 __ush_at 125 'let work = temp_dir'
 __ush_task_init
 __ush_at 125 'let work = temp_dir'
-__ush_value_65="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_65}"
+__ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
+work="${__ush_value_64}"
 __ush_at 126 'let failures = 0'
 failures=0
 __ush_at 127 'for package in ["ush_shell", "ush_compiler"] {'
-__ush_match_66__len='2'
+__ush_match_65__len='2'
 # shellcheck disable=SC2034
-__ush_match_66__0='ush_shell'
+__ush_match_65__0='ush_shell'
 # shellcheck disable=SC2034
-__ush_match_66__1='ush_compiler'
-__ush_for_list_index_67=0
-while [ "${__ush_for_list_index_67}" -lt "${__ush_match_66__len}" ]; do
-  __ush_for_value_68=''
-  eval "__ush_for_value_68=\"\${__ush_match_66__${__ush_for_list_index_67}}\""
-  package="${__ush_for_value_68}"
-  __ush_for_list_index_67=$((__ush_for_list_index_67 + 1))
+__ush_match_65__1='ush_compiler'
+__ush_for_list_index_66=0
+while [ "${__ush_for_list_index_66}" -lt "${__ush_match_65__len}" ]; do
+  __ush_for_value_67=''
+  eval "__ush_for_value_67=\"\${__ush_match_65__${__ush_for_list_index_66}}\""
+  package="${__ush_for_value_67}"
+  __ush_for_list_index_66=$((__ush_for_list_index_66 + 1))
   __ush_at 128 'let suite = "parser"'
   suite='parser'
   __ush_at 129 'if package == "ush_compiler" {'
@@ -834,14 +834,14 @@ while [ "${__ush_for_list_index_67}" -lt "${__ush_match_66__len}" ]; do
     suite='compile'
   fi
   __ush_at 132 'let before = build base package suite (work + "/base-" + suite) (head + "/target/bench-base") work'
-  __ush_value_69="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${base}" "${package}" "${suite}" "${work}"'/base-'"${suite}" "${head}"'/target/bench-base' "${work}" 4>&1 >&3)" || exit "$?"
-  before="${__ush_value_69}"
+  __ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${base}" "${package}" "${suite}" "${work}"'/base-'"${suite}" "${head}"'/target/bench-base' "${work}" 4>&1 >&3)" || exit "$?"
+  before="${__ush_value_68}"
   __ush_at 133 'let after = build head package suite (work + "/head-" + suite) (head + "/target") work'
-  __ush_value_70="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${head}" "${package}" "${suite}" "${work}"'/head-'"${suite}" "${head}"'/target' "${work}" 4>&1 >&3)" || exit "$?"
-  after="${__ush_value_70}"
+  __ush_value_69="$(__ush_return_path='' __ush_capture_return='1' ush_fn_build "${head}" "${package}" "${suite}" "${work}"'/head-'"${suite}" "${head}"'/target' "${work}" 4>&1 >&3)" || exit "$?"
+  after="${__ush_value_69}"
   __ush_at 134 'let failures = failures + compare before after summary'
-  __ush_value_71="$(__ush_return_path='' __ush_capture_return='1' ush_fn_compare "${before}" "${after}" "${summary}" 4>&1 >&3)" || exit "$?"
-  failures=$((failures + __ush_value_71))
+  __ush_value_70="$(__ush_return_path='' __ush_capture_return='1' ush_fn_compare "${before}" "${after}" "${summary}" 4>&1 >&3)" || exit "$?"
+  failures=$((failures + __ush_value_70))
 done
 __ush_at 136 'if failures > 0 {'
 if {

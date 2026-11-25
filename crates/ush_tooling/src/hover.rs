@@ -43,6 +43,10 @@ const KEYWORDS: &[(&str, &str)] = &[
     ),
     ("else", "Else branch of an `if` expression."),
     ("enum", "Declares an enum."),
+    (
+        "export",
+        "Sets environment variables for the rest of the script, or for one block with `{ … }`.",
+    ),
     ("false", "Boolean false literal."),
     ("fn", "Declares a function."),
     ("for", "For-in loop over a list, tuple, or range."),

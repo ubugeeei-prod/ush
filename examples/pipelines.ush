@@ -1,0 +1,25 @@
+# Pipelines, file redirection, and scoped working directory and environment.
+use $bin::*
+use std::fs::temp_dir
+use std::io::{append_to, from_file, to_file}
+
+fn shout() -> () / unknown, io {
+  print (std::string::to_upper_ascii (std::io::read_all))
+}
+
+let work = temp_dir
+cd work {
+  "pear\napple\nfig\n" | to_file "fruit.txt"
+  "banana\n" | append_to "fruit.txt"
+  from_file "fruit.txt" |
+    sort |
+    to_file "sorted.txt"
+  let first = from_file "sorted.txt" | head "-n1"
+  print "first: " + first
+  printf "shouted\n" | shout
+  sh "-c" "echo to stderr >&2" |& tr "a-z" "A-Z"
+  export GREETING = "hello" {
+    sh "-c" "echo \"$GREETING from a child process\""
+  }
+}
+seq "1" "100000" | head "-n1"

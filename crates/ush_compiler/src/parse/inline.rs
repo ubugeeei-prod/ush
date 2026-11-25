@@ -56,6 +56,9 @@ pub(super) fn parse_inline_body(
     if tail_position && let Ok(expr) = parse_expr(source) {
         return Ok(Statement::new(line_no, StatementKind::Expr(expr)));
     }
+    if let Some(pipeline) = super::pipeline::parse_pipeline(source)? {
+        return Ok(Statement::new(line_no, StatementKind::Pipeline(pipeline)));
+    }
     if let Some(base) = super::super::util::strip_top_level_suffix(source, '?')
         && signature::looks_like_call(base)
     {

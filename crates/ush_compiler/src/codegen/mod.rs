@@ -2,6 +2,7 @@ mod alias;
 mod bin;
 mod blocks;
 mod builtin_methods;
+mod call_capture;
 mod call_support;
 pub(crate) mod calls;
 mod compare;
@@ -16,11 +17,13 @@ mod io;
 mod method_fields;
 mod methods;
 mod methods_support;
+mod pipeline;
 mod primitive;
 mod render;
 mod runtime_expr;
 mod runtime_member;
 mod runtime_support;
+mod scoped;
 mod shared;
 mod source_context;
 mod statement;
@@ -165,6 +168,10 @@ pub(crate) fn compile_program(
     out.set_section(previous_section);
     if body.as_str().contains("4>&1 >&3") {
         out.push_str("exec 3>&1\n\n");
+    }
+    if body.as_str().contains("__ush_pipe_check") {
+        out.push_str(include_str!("pipeline_runtime.sh"));
+        out.push('\n');
     }
     wire::emit(state.wire_types, &enums, &mut out)?;
     stdlib::emit_builtins(&mut out, body.as_str());
