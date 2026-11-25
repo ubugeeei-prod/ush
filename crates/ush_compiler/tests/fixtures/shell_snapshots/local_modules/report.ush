@@ -1,0 +1,17 @@
+mod "text.ush"
+
+pub enum Status {
+  Passed,
+  Failed,
+}
+
+pub fn line(status: Status, name: String) -> String {
+  match status {
+    Status::Passed => label + ": " + text::shout name,
+    Status::Failed => label + ": " + name,
+  }
+}
+
+fn label() -> String {
+  "report"
+}

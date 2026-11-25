@@ -5,9 +5,9 @@ use super::{
         ast::{Attribute, Expr, Statement, StatementKind},
         util::strip_top_level_suffix,
     },
-    SourceLine, attr, control, declaration,
+    FileRole, SourceLine, attr, control, declaration,
     expr::parse_expr,
-    handle, signature,
+    handle, items, signature,
     statement_support::{
         is_tail_position, parse_alias, parse_shell_escape, parse_shell_statement,
         parse_statement_expr, trim_statement_terminator,
@@ -15,12 +15,15 @@ use super::{
 };
 use crate::types::HeapVec as Vec;
 
+/// `top` is the file's role when this block is its top level; nested
+/// blocks pass `None` and cannot hold declarations.
 pub(super) fn parse_block(
     lines: &[SourceLine<'_>],
     cursor: &mut usize,
-    allow_declarations: bool,
+    top: Option<FileRole<'_>>,
     allow_tail_expr: bool,
 ) -> Result<Vec<Statement>> {
+    let allow_declarations = top.is_some();
     let mut statements = Vec::new();
     let mut attrs = Vec::new();
     while *cursor < lines.len() {
@@ -46,17 +49,20 @@ pub(super) fn parse_block(
             }
             break;
         }
-        if allow_declarations && trimmed.starts_with("extern ") {
-            statements.extend(super::external::parse(*line_no, trimmed, lines, cursor)?);
-            continue;
-        }
-        if allow_declarations && (trimmed == "test {" || trimmed.starts_with("test ")) {
-            statements.push(super::testing::parse(*line_no, trimmed, lines, cursor)?);
+        let (trimmed, public) = match top {
+            Some(_) => items::strip_pub(trimmed),
+            None => (trimmed, false),
+        };
+        if let Some(role) = top
+            && let Some(block) =
+                items::parse_file_block(role, *line_no, trimmed, public, lines, cursor)?
+        {
+            statements.extend(block);
             continue;
         }
         let (trimmed, terminated) = trim_statement_terminator(trimmed);
         let tail_position = allow_tail_expr && !terminated && is_tail_position(lines, *cursor);
-        let statement = parse_statement(
+        let mut statement = parse_statement(
             *line_no,
             trimmed,
             lines,
@@ -68,6 +74,9 @@ pub(super) fn parse_block(
         .with_context(|| format!("line {line_no}"))?;
         if !attrs.is_empty() && !accepts_attributes(&statement) {
             bail!("line {line_no}: attributes are only valid on declarations");
+        }
+        if let Some(role) = top {
+            items::finish(role, *line_no, &mut statement, public)?;
         }
         if !is_block_statement(&statement) {
             *cursor += 1;

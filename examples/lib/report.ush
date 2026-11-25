@@ -1,0 +1,18 @@
+# A local module: only `pub` items are visible to importers.
+use std::string::{trim}
+
+pub enum Status {
+  Passed,
+  Failed,
+}
+
+pub fn line(status: Status, name: String) -> String {
+  match status {
+    Status::Passed => "ok   " + clean name,
+    Status::Failed => "FAIL " + clean name,
+  }
+}
+
+fn clean(name: String) -> String {
+  trim name
+}

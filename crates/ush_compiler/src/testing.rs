@@ -48,17 +48,7 @@ impl UshCompiler {
             "no test block at line {line}"
         );
         source.push_str(&format!("\n__ush_test_{line}\n"));
-        let absolute = std::fs::canonicalize(path)?;
-        self.compile_with_context(
-            &source,
-            None,
-            crate::codegen::SourceContext::Absolute {
-                directory: absolute.parent().and_then(|p| p.to_str()).unwrap_or(""),
-                path: absolute.to_str().unwrap_or(""),
-                origin: path.to_str().unwrap_or("<test>"),
-            },
-            false,
-        )
-        .map(|out| out.into_shell())
+        self.compile_at(&source, path, None, false)
+            .map(crate::Compiled::into_shell)
     }
 }

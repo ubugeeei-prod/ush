@@ -15,6 +15,7 @@ pub(super) fn parse(
     header: &str,
     lines: &[SourceLine<'_>],
     cursor: &mut usize,
+    dir: &str,
 ) -> Result<Vec<Statement>> {
     let head = header
         .strip_prefix("extern ")
@@ -37,11 +38,16 @@ pub(super) fn parse(
     } else {
         None
     };
-    let quoted = shell_quote(&path);
     let source = if path.starts_with('/') {
-        format!(". {quoted}")
+        format!(". {}", shell_quote(&path))
+    } else if dir.is_empty() {
+        format!(". \"${{__ush_source_dir:-.}}\"/{}", shell_quote(&path))
     } else {
-        format!(". \"${{__ush_source_dir:-.}}\"/{quoted}")
+        // A module's library sits beside the module, not the root script.
+        format!(
+            ". \"${{__ush_source_dir:-.}}\"/{}",
+            shell_quote(&format!("{dir}/{path}"))
+        )
     };
     let mut result = vec![Statement::new(line, S::Shell(Expr::String(source.into())))];
     *cursor += 1;

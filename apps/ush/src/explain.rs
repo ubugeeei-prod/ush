@@ -65,9 +65,18 @@ fn explain_one(
         return Ok(true);
     };
 
-    println!("  source : {}:{source_line}", input.display());
-    print_context(source_lines, source_line);
-    print_siblings(sourcemap, source_line, generated_line);
+    // A module line names its file; read it for the context lines.
+    let module_text;
+    let (file, lines) = match &entry.source_file {
+        Some(file) => {
+            module_text = fs::read_to_string(file).unwrap_or_default();
+            (file.clone(), module_text.lines().collect::<Vec<_>>())
+        }
+        None => (input.display().to_string(), source_lines.to_vec()),
+    };
+    println!("  source : {file}:{source_line}");
+    print_context(&lines, source_line);
+    print_siblings(sourcemap, entry, generated_line);
     Ok(true)
 }
 
@@ -97,6 +106,9 @@ fn parse_target(target: &str) -> Result<(usize, String)> {
 fn print_context(source_lines: &[&str], source_line: usize) {
     let first = source_line.saturating_sub(CONTEXT_RADIUS).max(1);
     let last = (source_line + CONTEXT_RADIUS).min(source_lines.len());
+    if first > last {
+        return;
+    }
     for line in first..=last {
         let marker = if line == source_line { "->" } else { "  " };
         println!("  {marker} {line:>4} | {}", source_lines[line - 1]);
@@ -108,8 +120,15 @@ fn print_context(source_lines: &[&str], source_line: usize) {
 /// One source line routinely becomes a whole control-flow block, and
 /// seeing the group is what makes a failure in the middle of one
 /// readable.
-fn print_siblings(sourcemap: &SourceMap, source_line: usize, generated_line: usize) {
-    let group = sourcemap.generated_lines_for_source(source_line);
+fn print_siblings(sourcemap: &SourceMap, entry: &SourceMapLine, generated_line: usize) {
+    let group = sourcemap
+        .lines
+        .iter()
+        .filter(|line| {
+            line.source_file == entry.source_file && line.source_line == entry.source_line
+        })
+        .map(|line| line.generated_line)
+        .collect::<Vec<_>>();
     if group.len() <= 1 {
         return;
     }

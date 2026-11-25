@@ -136,23 +136,39 @@ pub enum Action {
         #[command(subcommand)]
         action: crate::editor::Action,
     },
-    /// Lower a `.ush` source file to POSIX `sh`.
+    /// Lower `.ush` sources to POSIX `sh`.
+    ///
+    /// One input prints to stdout or writes `-o FILE`. Several inputs
+    /// need `--out-dir`, which writes each as `DIR/<stem>.sh`; a relative
+    /// DIR is taken from each input's own directory.
     Compile {
         /// Interpreter for the generated executable.
         #[arg(long, default_value = "sh", value_name = "sh|bash|zsh|ash")]
         target: ush_compiler::ShellTarget,
-        input: PathBuf,
+        /// `.ush` sources to compile.
+        #[arg(value_name = "INPUT", required = true)]
+        inputs: Vec<PathBuf>,
         /// Write generated `sh` to FILE instead of stdout.
-        #[arg(short, long, value_name = "FILE")]
+        #[arg(short, long, value_name = "FILE", conflicts_with = "out_dir")]
         output: Option<PathBuf>,
+        /// Write each input to `DIR/<stem>.sh`; a relative DIR is taken from the input's directory.
+        #[arg(long, value_name = "DIR")]
+        out_dir: Option<PathBuf>,
         /// Also emit a sourcemap to FILE.
         #[arg(long = "sourcemap", value_name = "FILE")]
         sourcemap: Option<PathBuf>,
         /// Emit a deterministic shell artifact intended to be checked in.
         ///
-        /// Requires an adjacent output file and adds regeneration instructions.
-        #[arg(long, requires = "output")]
+        /// The output may live in any directory: it records the path back
+        /// to its source and the command that regenerates it.
+        #[arg(long)]
         checked_in: bool,
+        /// Compare with the existing outputs instead of writing them.
+        ///
+        /// Exits 1 and shows the first differing lines when an output is
+        /// stale or missing.
+        #[arg(long)]
+        check: bool,
     },
     /// Format a `.ush` source file in-place (or print the result).
     Format {

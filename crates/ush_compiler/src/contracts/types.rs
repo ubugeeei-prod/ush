@@ -21,7 +21,29 @@ pub(crate) struct Ty {
     pub max: i64,
 }
 
+impl super::Scheme {
+    /// Renames the named types in a signature; type variables keep
+    /// their names.
+    pub(crate) fn rename_types(&mut self, rename: &mut dyn FnMut(&mut Name)) {
+        let variables = &self.variables;
+        let mut visit = |ty: &mut Ty| ty.rename(&|name| variables.contains_key(name), rename);
+        self.params.iter_mut().for_each(|(_, ty)| visit(ty));
+        if let Some(ty) = &mut self.result {
+            visit(ty);
+        }
+    }
+}
+
 impl Ty {
+    fn rename(&mut self, bound: &dyn Fn(&str) -> bool, rename: &mut dyn FnMut(&mut Name)) {
+        if !bound(&self.name) {
+            rename(&mut self.name);
+        }
+        for arg in &mut self.args {
+            arg.rename(bound, rename);
+        }
+    }
+
     pub fn named(name: &str) -> Self {
         Self {
             name: name.into(),

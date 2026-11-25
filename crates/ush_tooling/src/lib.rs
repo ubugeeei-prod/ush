@@ -5,7 +5,7 @@
 //! consume:
 //!
 //! - [`format_source`] — the formatter (idempotent rewriter).
-//! - [`check_file`] / [`check_source`] — diagnostic extraction
+//! - [`check_file`] / [`check_source_at`] / [`check_source`] — diagnostic extraction
 //!   for `ush check` and LSP `textDocument/publishDiagnostics`.
 //! - [`semantic_tokens`] + [`semantic_token_legend`] — the
 //!   `textDocument/semanticTokens` payload.
@@ -24,7 +24,7 @@ mod token;
 
 pub use self::{
     completion::{CompletionItem, CompletionKind, completions},
-    diagnostic::{UshDiagnostic, check_file, check_source},
+    diagnostic::{UshDiagnostic, check_file, check_source, check_source_at},
     folding::{FoldingRange, folding_ranges},
     format::format_source,
     highlight::{Highlight, HighlightKind, document_highlights},

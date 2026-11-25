@@ -27,6 +27,10 @@ Diagnostics, formatting, semantic highlighting, completion, hover, definition,
 references, rename, signature help, document symbols and folding are available.
 The server accepts incremental or full changes, tracks document versions,
 invalidates cached tokens on edits and clears diagnostics when documents close.
+For a `file://` document, diagnostics read its [local modules](shell-language.md#local-modules)
+from disk beside it; an error inside a module is shown on the `mod` line that
+imports it, naming the module file and line. Module declarations appear in
+the outline. Completion, hover and definition stay within the open document.
 All protocol positions use UTF-16, including Japanese text and emoji. Invalid
 requests return JSON-RPC errors without terminating the server. CR, CRLF and LF
 documents are normalized internally to the same line model.

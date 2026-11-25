@@ -39,9 +39,12 @@ Each line entry includes:
 
 - `generated_line`
 - `section`
+- `source_file`: present only for lines from a [local module](shell-language.md#local-modules); `source_line` is then a line of that file
 - `source_line`
 - `generated_text`
 - `source_text`
+
+Entries in `sources` carry the same optional `source_file`.
 
 Current sections are:
 

@@ -26,6 +26,8 @@ pub(crate) struct CodegenState {
     pub mapped: bool,
     pub wire_types: crate::types::HeapVec<Type>,
     pub(crate) source_lines: crate::types::HeapVec<String>,
+    /// Module files, to map a statement's line to its file and line.
+    pub(crate) modules: crate::types::HeapVec<crate::modules::SourceFile>,
     /// How many loops enclose the statement being compiled.
     pub(crate) loop_depth: usize,
     /// Scoped blocks being compiled, innermost last.
@@ -43,9 +45,14 @@ pub(crate) struct ScopeFrame {
 }
 
 impl CodegenState {
-    pub(crate) fn new(source: &str, mapped: bool) -> Self {
+    pub(crate) fn new(space: &crate::modules::SourceSpace, mapped: bool) -> Self {
         Self {
-            source_lines: source.lines().map(|s| s.trim_start().into()).collect(),
+            source_lines: space
+                .text()
+                .lines()
+                .map(|s| s.trim_start().into())
+                .collect(),
+            modules: space.modules().to_vec(),
             next_id: 0,
             mapped,
             wire_types: Default::default(),
