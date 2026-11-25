@@ -37,6 +37,7 @@ impl<'a> Index<'a> {
             }
         }
         let mut declarations = Vec::new();
+        let mut excluded = std::collections::HashMap::new();
         // (token, scope, visibility offset); function/type names may be used before declaration.
         for i in 0..tokens.len().saturating_sub(1) {
             if matches!(
@@ -79,6 +80,13 @@ impl<'a> Index<'a> {
                     .any(|(&open, &child)| child == current && names[open] == "[")
                 {
                     declarations.push((i + 1, current, 0));
+                    let first = (0..=i)
+                        .find(|&j| scopes[j] == current && names[j] == "for")
+                        .unwrap();
+                    let end = (i + 2..ends[current])
+                        .find(|&j| scopes[j] == current && matches!(names[j], "for" | "if"))
+                        .unwrap_or(ends[current]);
+                    excluded.insert(i + 1, first..end);
                 } else if let Some(body) = (i + 2..tokens.len()).find(|&j| names[j] == "{") {
                     declarations.push((i + 1, opens[&body], 0));
                     scopes[i + 1] = opens[&body];
@@ -130,7 +138,10 @@ impl<'a> Index<'a> {
             loop {
                 if let Some(&(decl, _, _)) =
                     declarations.iter().rev().find(|&&(decl, s, visible)| {
-                        s == scope && names[decl] == names[i] && visible <= i
+                        s == scope
+                            && names[decl] == names[i]
+                            && visible <= i
+                            && !excluded.get(&decl).is_some_and(|range| range.contains(&i))
                     })
                 {
                     resolved[i] = Some(decl);

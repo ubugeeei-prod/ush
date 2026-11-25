@@ -60,3 +60,11 @@ fn extern_qualified_calls_and_wildcards_resolve_to_the_declared_function() {
     assert_eq!(definition(source, 5, 7).unwrap().line, 1);
     assert_eq!(references(source, 1, 6).len(), 3);
 }
+
+#[test]
+fn comprehension_iterable_reads_the_outer_binding_before_shadowing() {
+    let source = "let xs = [1, 2]\nlet ys = [xs for xs in xs if xs > 1]\nprint xs\n";
+    assert_eq!(definition(source, 1, 23).unwrap().line, 0);
+    assert_eq!(definition(source, 1, 10).unwrap().start, 17);
+    assert_eq!(references(source, 0, 4).len(), 3);
+}
