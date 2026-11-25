@@ -7,7 +7,7 @@ use std::string::{lines, contains}
 use std::test::{assert, assert_eq}
 use std::command::exists
 
-fn run_fixture(compiler: String, target: String, source: String, directory: String) -> String / unknown, exec, env, fs, stdin, stderr, net {
+fn run_fixture(compiler: String, target: String, source: String, directory: String) -> String {
   std::process::chdir directory
   output compiler ["--shell-target", target, "test", source]
 }

@@ -56,6 +56,8 @@ project adheres to [Semantic Versioning][semver].
   a committed output is stale or missing.
 - `ush compile` accepts several inputs with `--out-dir DIR`, writing each as
   `DIR/<stem>.sh` beside its input; unchanged outputs are not rewritten.
+- `ush effects` prints each function's error types ahead of its effects, and
+  editor hovers on a function show its row, marked inferred or declared.
 
 ### Changed
 
@@ -69,6 +71,13 @@ project adheres to [Semantic Versioning][semver].
 - Compile errors in function bodies and effect checks now name the line of
   the offending statement.
 - `extern` libraries declared in a module are sourced from beside the module.
+- A signature without a `/ row` now has its errors inferred as well as its
+  effects, so `fn head_sha() -> String { git "rev-parse" "HEAD" }` compiles.
+  Callers, `?` and typed failures see the inferred row as if it were written;
+  recursive functions settle on the least row covering their cycle. A written
+  row is still a checked upper bound, and `/ ()` still means pure.
+- Rows may name error types and effects imported from modules.
+- The repository scripts drop rows that only restated what the body does.
 
 ## [0.15.0] — 2026-11-25
 

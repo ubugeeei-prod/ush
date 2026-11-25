@@ -4,7 +4,7 @@ use std::process::{arg, exec, redirect}
 use std::fs::{temp_dir, write_text, read_text, remove}
 use std::test::{assert_eq, assert}
 
-fn compile(compiler: String, target: String, work: String) -> () / unknown, exec, env, fs, stderr, stdin, stdout, net {
+fn compile(compiler: String, target: String, work: String) -> () {
   exec compiler ["compile", work + "/job.ush", "--target", target, "--checked-in", "-o", work + "/job.sh"]
   chmod "+x" (work + "/job.sh")
   remove (work + "/job.ush")
@@ -20,7 +20,7 @@ if target == "" {
 }
 let work = temp_dir
 write_text (work + "/job.ush") """
-fn build() -> Int / unknown, stderr {
+fn build() -> Int {
   fail 23 "missing input"
 }
 let job = async build
@@ -38,7 +38,7 @@ job.ush:5: command failed (exit 23)
 
 write_text (work + "/job.ush") """
 use $bin::*
-fn build() -> Int / unknown, exec, stderr {
+fn build() -> Int {
   sleep "0.05"
   41
 }
@@ -62,7 +62,7 @@ assert_eq (read_text (work + "/out")) "42\n43\n41\n41"
 assert_eq (test "-s" (work + "/err")) false
 
 write_text (work + "/job.ush") """
-fn build() -> Int / unknown, stderr {
+fn build() -> Int {
   fail 23 "missing input"
 }
 let job = async build

@@ -8,7 +8,7 @@ use std::string::{contains, split}
 use std::test::{assert, assert_eq}
 use std::io::eprint
 
-fn target() -> String / unknown, exec, env, stderr {
+fn target() -> String {
   let mut os = uname "-s"
   let mut arch = uname "-m"
   if os == "Linux" {
@@ -29,7 +29,7 @@ fn target() -> String / unknown, exec, env, stderr {
   arch + "-" + os
 }
 
-fn fixture_binary() -> String / unknown, env, exec, fs, stderr {
+fn fixture_binary() -> String {
   for directory in split (get "PATH") ":" {
     let candidate = directory + "/true"
     if test "-f" candidate && test "-x" candidate {
@@ -39,7 +39,7 @@ fn fixture_binary() -> String / unknown, env, exec, fs, stderr {
   fail 1 "test_install: the external true utility is required on PATH"
 }
 
-fn archive(work: String, target: String, fixture: String) -> () / unknown, fs, exec, env, stdin, stdout, stderr, net {
+fn archive(work: String, target: String, fixture: String) -> () {
   let package = work + "/ush-" + target
   mkdir_p package
   # A real executable fixture, with no shell source hidden in this ush program.

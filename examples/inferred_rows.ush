@@ -1,0 +1,34 @@
+# Rows are inferred when a signature leaves them out. Run
+# `ush effects examples/inferred_rows.ush` to see each function's row:
+# the error types it can raise, then the effects it needs.
+use $bin::*
+
+enum ConfigError {
+  Missing,
+}
+
+# Raises `unknown` and needs `exec`: inferred from the command.
+fn kernel() -> String {
+  uname "-s"
+}
+
+# Raises `ConfigError`, inferred from the `fail`.
+fn require(name: String) -> String {
+  if name == "" {
+    fail ConfigError::Missing
+  }
+  name
+}
+
+# `?` works as if the row had been written.
+fn banner(name: String) -> () {
+  let found = require name?
+  print found + " on " + kernel
+}
+
+# A written row is still a checked contract; `/ ()` means pure.
+fn shout(text: String) -> String / () {
+  text + "!"
+}
+
+banner (shout "ush")

@@ -337,7 +337,7 @@ __ush_binding_21_work="${__ush_value_4}"
 # shellcheck disable=SC2034
 work="${__ush_binding_21_work}"
 __ush_at 22 'write_text (work + "/job.ush") """'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'fn build() -> Int / unknown, stderr {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'print job.await' )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'fn build() -> Int {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'print job.await' )
 __ush_at 29 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${__ush_binding_13_compiler}" "${__ush_binding_17_target}" "${__ush_binding_21_work}" )
 __ush_at 30 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23'
@@ -353,7 +353,7 @@ __ush_at 32 'assert_eq (read_text (work + "/err")) """'
 __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_binding_21_work}"'/err')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_9}" 'job.ush:2: missing input (exit 23)'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'job.ush:5: command failed (exit 23)'"${__ush_lf}"'  print job.await' )
 __ush_at 39 'write_text (work + "/job.ush") """'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'use $bin::*'"${__ush_lf}"'fn build() -> Int / unknown, exec, stderr {'"${__ush_lf}"'  sleep "0.05"'"${__ush_lf}"'  41'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let first = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 1'"${__ush_lf}"'}'"${__ush_lf}"'let second = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 2'"${__ush_lf}"'}'"${__ush_lf}"'print first.await'"${__ush_lf}"'print second.await'"${__ush_lf}"'print job.await'"${__ush_lf}"'print job.await' )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'use $bin::*'"${__ush_lf}"'fn build() -> Int {'"${__ush_lf}"'  sleep "0.05"'"${__ush_lf}"'  41'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let first = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 1'"${__ush_lf}"'}'"${__ush_lf}"'let second = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value + 2'"${__ush_lf}"'}'"${__ush_lf}"'print first.await'"${__ush_lf}"'print second.await'"${__ush_lf}"'print job.await'"${__ush_lf}"'print job.await' )
 __ush_at 59 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${__ush_binding_13_compiler}" "${__ush_binding_17_target}" "${__ush_binding_21_work}" )
 __ush_at 60 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 0'
@@ -369,7 +369,7 @@ __ush_at 62 'assert_eq (test "-s" (work + "/err")) false'
 __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${__ush_binding_21_work}"'/err')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_14}" 'false' )
 __ush_at 64 'write_text (work + "/job.ush") """'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'fn build() -> Int / unknown, stderr {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let sibling = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value'"${__ush_lf}"'}'"${__ush_lf}"'print sibling.await' )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__write_text "${__ush_binding_21_work}"'/job.ush' 'fn build() -> Int {'"${__ush_lf}"'  fail 23 "missing input"'"${__ush_lf}"'}'"${__ush_lf}"'let job = async build'"${__ush_lf}"'let sibling = async {'"${__ush_lf}"'  let value = job.await'"${__ush_lf}"'  value'"${__ush_lf}"'}'"${__ush_lf}"'print sibling.await' )
 __ush_at 75 'compile compiler target work'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_compile "${__ush_binding_13_compiler}" "${__ush_binding_17_target}" "${__ush_binding_21_work}" )
 __ush_at 76 'assert_eq (redirect target [work + "/job.sh"] (work + "/out") (work + "/err")) 23'

@@ -25,13 +25,13 @@ fn usage() -> () {
   print "Install ush and ush_lsp. Example: sh install.sh --version v0.13.0"
 }
 
-fn need(command: String) -> () / unknown, stderr, exec {
+fn need(command: String) -> () {
   if exists command == false {
     fail 1 ("install.sh: " + command + " is required")
   }
 }
 
-fn target() -> String / unknown, stderr, exec, env {
+fn target() -> String {
   let mut os = uname "-s"
   let mut arch = uname "-m"
   match os {
@@ -53,7 +53,7 @@ fn path_contains(directory: String) -> Bool {
   contains (":" + get "PATH" + ":") (":" + directory + ":")
 }
 
-fn bin_directory(explicit: String, prefix: String) -> String / unknown, stderr, fs, exec, env {
+fn bin_directory(explicit: String, prefix: String) -> String {
   if explicit != "" {
     return explicit
   }
@@ -111,7 +111,7 @@ fn path_line(directory: String) -> String {
   "export PATH=\"" + escaped directory + ":$PATH\""
 }
 
-fn ensure_path(directory: String, automatic: Bool) -> String / unknown, fs, env, stderr {
+fn ensure_path(directory: String, automatic: Bool) -> String {
   if path_contains directory {
     return "ready"
   }
@@ -133,7 +133,7 @@ fn ensure_path(directory: String, automatic: Bool) -> String / unknown, fs, env,
   file
 }
 
-fn fetch(url: String, output: String) -> () / unknown, exec, fs, net, stderr, stdin, stdout, env {
+fn fetch(url: String, output: String) -> () {
   if starts_with url "file://" {
     if exists "curl" {
       curl "-fsSL" "--proto" "=file" url "-o" output
@@ -168,7 +168,7 @@ fn release_url(repo: String, version: String, asset: String) -> String {
   "https://github.com/" + repo + "/releases/download/" + version + "/" + asset
 }
 
-fn expected_checksum(file: String, asset: String) -> String / unknown, fs, stderr {
+fn expected_checksum(file: String, asset: String) -> String {
   for line in lines (read_text file) {
     let mut field = 0
     let mut digest = ""

@@ -33,6 +33,7 @@ and adding `;` keeps that expression as a statement instead.
 - `extern.ush`: source-relative typed functions from `helpers.sh`
 - `modules.ush`: a local module in `lib/report.ush`, imported with `mod` and `use`
 - `contracts.ush` exercises higher-kinded parameters, indexed sequences, quantities, shell captures and tasks.
+- `inferred_rows.ush`: signatures without `/ row`; errors and effects are inferred, written rows are checked
 - `effects.ush`: Effekt-style effect rows (`-> T / …`), `effect` declarations, `do`, and `try … with` handlers
 
 ## ADT and Pattern Matching
