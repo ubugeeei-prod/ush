@@ -1,6 +1,6 @@
 use alloc::boxed::Box;
 
-use anyhow::{Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow, bail};
 
 use crate::traits::TraitImplRegistry;
 use crate::{
@@ -35,7 +35,8 @@ pub(super) fn block_errors(
             impls,
             enums,
             function_errors,
-        )?;
+        )
+        .with_context(|| format!("line {}", statement.line))?;
         errors.extend(&current);
     }
     Ok(errors)
@@ -52,6 +53,7 @@ fn statement_errors(
 ) -> Result<ErrorSet> {
     match &statement.kind {
         StatementKind::Use(_)
+        | StatementKind::Module(_)
         | StatementKind::UnitDef(_)
         | StatementKind::Enum(_)
         | StatementKind::Trait(_)

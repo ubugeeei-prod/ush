@@ -47,7 +47,7 @@ mod table;
 #[cfg(test)]
 mod tests;
 
-use anyhow::{Result, bail};
+use anyhow::{Context as _, Result, bail};
 
 use crate::{
     ast::Statement,
@@ -116,12 +116,15 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
         }
     }
 
-    for def in function_defs(program) {
-        let inferred = registry
-            .get(&function_key(def))
-            .cloned()
-            .unwrap_or_default();
-        validate_declaration(def, &inferred, &declarations)?;
+    for statement in program {
+        for def in function_defs(core::slice::from_ref(statement)) {
+            let inferred = registry
+                .get(&function_key(def))
+                .cloned()
+                .unwrap_or_default();
+            validate_declaration(def, &inferred, &declarations)
+                .with_context(|| format!("line {}", statement.line))?;
+        }
     }
 
     // A user effect that reaches the top of the program was never

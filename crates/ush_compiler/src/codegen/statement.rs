@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Context, Result, anyhow};
 
 use super::{
     super::{
@@ -53,7 +53,7 @@ pub(crate) fn compile_statement(
             return Ok(());
         }
         match &statement.kind {
-            StatementKind::Use(_) | StatementKind::UnitDef(_) => {}
+            StatementKind::Use(_) | StatementKind::Module(_) | StatementKind::UnitDef(_) => {}
             StatementKind::Enum(_) => {}
             StatementKind::Trait(_) | StatementKind::Impl(_) => {}
             StatementKind::Effect(def) => super::effects_lowering::compile_effect(def, out),
@@ -242,5 +242,5 @@ pub(crate) fn compile_statement(
         Ok(())
     })();
     out.set_origin(previous_origin);
-    result
+    result.with_context(|| format!("line {}", statement.line))
 }

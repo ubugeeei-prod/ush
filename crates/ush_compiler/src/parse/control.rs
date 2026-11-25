@@ -18,7 +18,7 @@ pub(super) fn parse_if(
 ) -> Result<StatementKind> {
     let condition = parse_header(trimmed, "if ")?;
     *cursor += 1;
-    let then_body = super::statement::parse_block(lines, cursor, false, returns_value)?;
+    let then_body = super::statement::parse_block(lines, cursor, None, returns_value)?;
     let terminated = finish_block(lines, cursor, "if body")?;
     let else_body = parse_else(lines, cursor, returns_value)?;
     Ok(StatementKind::If {
@@ -67,7 +67,7 @@ pub(super) fn parse_let_binding_block(
     }
 
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, true)?;
+    let body = super::statement::parse_block(lines, cursor, None, true)?;
     let _ = finish_block(lines, cursor, "async block")?;
     Ok(StatementKind::Let {
         name: name.into(),
@@ -82,7 +82,7 @@ pub(super) fn parse_while(
 ) -> Result<StatementKind> {
     let condition = condition::parse_condition(parse_header(trimmed, "while ")?)?;
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     let _ = finish_block(lines, cursor, "while body")?;
     Ok(StatementKind::While { condition, body })
 }
@@ -98,7 +98,7 @@ pub(super) fn parse_for(
         .ok_or_else(|| anyhow!("expected `for name in expr {{`"))?;
     let name = parse_name(name)?;
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     let _ = finish_block(lines, cursor, "for body")?;
     Ok(StatementKind::For {
         name,
@@ -116,7 +116,7 @@ pub(super) fn parse_loop(
         bail!("expected `loop {{`");
     }
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     let _ = finish_block(lines, cursor, "loop body")?;
     Ok(StatementKind::Loop { body })
 }
@@ -140,7 +140,7 @@ fn parse_else(
         return Ok(None);
     }
     let mut nested_cursor = index + 1;
-    let body = super::statement::parse_block(lines, &mut nested_cursor, false, returns_value)?;
+    let body = super::statement::parse_block(lines, &mut nested_cursor, None, returns_value)?;
     let _ = finish_block(lines, &mut nested_cursor, "else body")?;
     *cursor = nested_cursor;
     Ok(Some(body))

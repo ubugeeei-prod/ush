@@ -2,7 +2,7 @@ use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 use core::mem;
 
-use crate::types::OutputString;
+use crate::{modules::SourceSpace, types::OutputString};
 
 use super::{CompiledScript, SourceMap, SourceMapLine, SourceMapSection};
 
@@ -162,9 +162,11 @@ impl OutputBuffer {
         }
     }
 
-    pub(crate) fn into_compiled(mut self, source: Option<&str>) -> CompiledScript {
+    /// Pairs each generated line with its source position, naming the
+    /// module file for lines that came from one.
+    pub(crate) fn into_compiled(mut self, space: &SourceSpace) -> CompiledScript {
         self.finish_partial_line();
-        let source_lines: Vec<_> = source.unwrap_or("").lines().collect();
+        let source_lines: Vec<_> = space.text().lines().collect();
         let sourcemap = SourceMap {
             lines: self
                 .text
@@ -172,14 +174,18 @@ impl OutputBuffer {
                 .zip(self.line_origins)
                 .zip(self.line_sections)
                 .enumerate()
-                .map(|(index, ((text, source_line), section))| SourceMapLine {
-                    generated_line: index + 1,
-                    section,
-                    source_line,
-                    generated_text: text.into(),
-                    source_text: source_line
-                        .and_then(|n| source_lines.get(n - 1))
-                        .map(|s| (*s).into()),
+                .map(|(index, ((text, position), section))| {
+                    let module = position.and_then(|n| space.locate(n));
+                    SourceMapLine {
+                        generated_line: index + 1,
+                        section,
+                        source_line: module.as_ref().map(|(_, line)| *line).or(position),
+                        source_file: module.map(|(file, _)| file.display.as_str().into()),
+                        generated_text: text.into(),
+                        source_text: position
+                            .and_then(|n| source_lines.get(n - 1))
+                            .map(|s| (*s).into()),
+                    }
                 })
                 .collect(),
         };

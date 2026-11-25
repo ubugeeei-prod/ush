@@ -1,5 +1,5 @@
 use super::{Name, Resolver, Set, bind_pattern};
-impl Resolver {
+impl Resolver<'_> {
     pub(super) fn condition(&self, condition: &mut crate::ast::Condition, scope: &mut Set<Name>) {
         use crate::ast::Condition;
         match condition {

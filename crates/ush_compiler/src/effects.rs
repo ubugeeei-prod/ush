@@ -10,7 +10,7 @@ mod shell;
 mod side;
 mod support;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 use crate::traits::TraitImplRegistry;
 use crate::{
@@ -91,8 +91,9 @@ pub(crate) fn analyze_function_errors(
         let StatementKind::Function(def) = &statement.kind else {
             continue;
         };
-        let inferred = analyze_function(def, globals, functions, impls, enums, &registry)?;
-        validate_function_errors(def, &inferred, enums)?;
+        analyze_function(def, globals, functions, impls, enums, &registry)
+            .and_then(|inferred| validate_function_errors(def, &inferred, enums))
+            .with_context(|| format!("line {}", statement.line))?;
     }
 
     // Re-walk the top-level program so checks that live inside the

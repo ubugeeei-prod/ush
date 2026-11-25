@@ -42,7 +42,7 @@ fn block_header(source: &str) -> Option<&str> {
 
 fn block(scope: Scope, lines: &[SourceLine<'_>], cursor: &mut usize) -> Result<StatementKind> {
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, false, false)?;
+    let body = super::statement::parse_block(lines, cursor, None, false)?;
     let _ = finish_block(lines, cursor, "scoped block")?;
     Ok(StatementKind::Scoped { scope, body })
 }

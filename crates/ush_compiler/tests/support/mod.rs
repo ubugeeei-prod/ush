@@ -2,6 +2,8 @@
 //! `.ush` program to POSIX `sh` and run it, so assertions describe
 //! observable behaviour rather than generated text.
 
+pub mod modules;
+
 use std::{fs, process::Command};
 
 use tempfile::{TempDir, tempdir};

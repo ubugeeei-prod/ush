@@ -130,11 +130,15 @@ pub(super) fn track_statement(
             | S::UnitDef(_)
     ) && let Some(text) = state.source_lines.get(statement.line.saturating_sub(1))
     {
-        out.push_str(&format!(
-            "__ush_at {} {}\n",
-            statement.line,
-            crate::util::shell_quote(text.trim_end())
-        ));
+        let quoted = crate::util::shell_quote(text.trim_end());
+        match crate::modules::locate(&state.modules, statement.line) {
+            // A module statement also names its file for failure reports.
+            Some((file, line)) => out.push_str(&format!(
+                "__ush_at {line} {quoted} {}\n",
+                crate::util::shell_quote(&file.origin)
+            )),
+            None => out.push_str(&format!("__ush_at {} {quoted}\n", statement.line)),
+        }
     }
 }
 

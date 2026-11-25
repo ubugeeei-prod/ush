@@ -41,6 +41,7 @@ mod errors;
 mod file;
 mod imports;
 mod matching;
+mod modules;
 mod parse;
 mod scan;
 mod sourcemap;
@@ -87,13 +88,25 @@ impl UshCompiler {
     }
 
     pub fn compile_source(&self, source: &str) -> Result<OutputString> {
-        self.compile_with_context(source, None, codegen::SourceContext::none(), false)
-            .map(|out| out.into_shell())
+        self.compile_with_context(
+            source,
+            None,
+            codegen::SourceContext::none(),
+            &mut modules::NoModules,
+            false,
+        )
+        .map(Compiled::into_shell)
     }
 
     pub fn compile_source_with_sourcemap(&self, source: &str) -> Result<CompiledScript> {
-        self.compile_with_context(source, None, codegen::SourceContext::none(), true)
-            .map(|out| out.into_compiled(Some(source)))
+        self.compile_with_context(
+            source,
+            None,
+            codegen::SourceContext::none(),
+            &mut modules::NoModules,
+            true,
+        )
+        .map(Compiled::into_script)
     }
 
     fn compile_with_context(
@@ -101,23 +114,29 @@ impl UshCompiler {
         source: &str,
         script_name: Option<&str>,
         source_context: codegen::SourceContext<'_>,
+        loader: &mut dyn modules::ModuleLoader,
         mapped: bool,
-    ) -> Result<sourcemap::OutputBuffer> {
-        let program = imports::resolve_program(parse::parse_program(source)?)?;
+    ) -> Result<Compiled> {
+        let modules::Linked { program, space } =
+            modules::link(source, loader).map_err(|error| anyhow::anyhow!("{error:#}"))?;
         if script_name == Some("bin.ush") && program.iter().any(|s| matches!(&s.kind, ast::StatementKind::Function(f) if f.name=="bin" && f.scheme.as_ref().is_some_and(|scheme| !scheme.variables.is_empty()))) {
             anyhow::bail!("bin.ush requires concrete parameter types for its shell entrypoint");
         }
-        let program = contracts::elaborate(program)?;
         let docs = ScriptDocs::parse(source);
-        codegen::compile_program(
-            &program,
-            &docs,
-            source,
-            script_name,
-            source_context,
-            self.target,
-            mapped,
-        )
+        let out = contracts::elaborate(program)
+            .and_then(|program| {
+                codegen::compile_program(
+                    &program,
+                    &docs,
+                    &space,
+                    script_name,
+                    source_context,
+                    self.target,
+                    mapped,
+                )
+            })
+            .map_err(|error| space.render_error(error))?;
+        Ok(Compiled { out, space })
     }
 
     #[cfg(feature = "std")]
@@ -137,28 +156,57 @@ impl UshCompiler {
     pub fn effects_file(&self, path: &Path) -> Result<EffectReport> {
         let source = fs::read_to_string(path)
             .with_context(|| format!("failed to read {}", path.display()))?;
-        self.effects_source(&source)
+        let mut loader = file::FsLoader::new(path, path.to_str().unwrap_or("<source>"))?;
+        self.effects_with(&source, &mut loader)
             .with_context(|| format!("failed to analyze {}", path.display()))
     }
 
     pub fn effects_source(&self, source: &str) -> Result<EffectReport> {
-        let program = imports::resolve_program(parse::parse_program(source)?)?;
-        let mut functions = effects::describe_function_effects(&program)?;
-        let lowered = contracts::elaborate(program)?;
-        for actual in effects::describe_function_effects(&lowered)? {
-            let name = actual
-                .name
-                .strip_prefix("__ush_inst_")
-                .and_then(|name| name.rsplit_once('_').map(|(name, _)| name))
-                .unwrap_or(&actual.name);
-            if let Some(original) = functions.iter_mut().find(|f| f.name == name) {
-                original.inferred.merge(&actual.inferred);
+        self.effects_with(source, &mut modules::NoModules)
+    }
+
+    fn effects_with(
+        &self,
+        source: &str,
+        loader: &mut dyn modules::ModuleLoader,
+    ) -> Result<EffectReport> {
+        let modules::Linked { program, space } =
+            modules::link(source, loader).map_err(|error| anyhow::anyhow!("{error:#}"))?;
+        let report = || {
+            let mut functions = effects::describe_function_effects(&program)?;
+            let lowered = contracts::elaborate(program.clone())?;
+            for actual in effects::describe_function_effects(&lowered)? {
+                let name = actual
+                    .name
+                    .strip_prefix("__ush_inst_")
+                    .and_then(|name| name.rsplit_once('_').map(|(name, _)| name))
+                    .unwrap_or(&actual.name);
+                if let Some(original) = functions.iter_mut().find(|f| f.name == name) {
+                    original.inferred.merge(&actual.inferred);
+                }
             }
-        }
-        Ok(EffectReport {
-            functions,
-            top_level: effects::top_level_effects(&lowered)?,
-        })
+            Ok(EffectReport {
+                functions,
+                top_level: effects::top_level_effects(&lowered)?,
+            })
+        };
+        report().map_err(|error| space.render_error(error))
+    }
+}
+
+/// Generated shell and the source space its positions refer to.
+struct Compiled {
+    out: sourcemap::OutputBuffer,
+    space: modules::SourceSpace,
+}
+
+impl Compiled {
+    fn into_shell(self) -> OutputString {
+        self.out.into_shell()
+    }
+
+    fn into_script(self) -> CompiledScript {
+        self.out.into_compiled(&self.space)
     }
 }
 

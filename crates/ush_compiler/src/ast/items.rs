@@ -29,6 +29,15 @@ pub(crate) struct UseItem {
     pub alias: String,
 }
 
+/// `mod "lib/gh.ush" as gh`: a local `.ush` file whose `pub` items are
+/// reachable as `gh::item` or through `use gh::{item}`.
+#[derive(Debug, Clone)]
+pub(crate) struct ModuleDecl {
+    /// The path as written, relative to the importing file.
+    pub path: String,
+    pub alias: String,
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct FunctionDef {
     pub scheme: Option<alloc::boxed::Box<crate::contracts::Scheme>>,

@@ -12,6 +12,8 @@ mod external;
 mod handle;
 mod impls;
 mod inline;
+mod items;
+mod module_decl;
 mod params;
 mod path;
 mod pipeline;
@@ -36,11 +38,26 @@ use crate::types::HeapVec as Vec;
 
 pub(super) type SourceLine<'a> = (usize, &'a str);
 
+/// How the top level of a file is read.
+#[derive(Clone, Copy)]
+pub(crate) enum FileRole<'a> {
+    /// A script: declarations and statements.
+    Script,
+    /// A module: declarations only. `dir` is the module's directory
+    /// relative to the root script's, so its `extern` libraries are
+    /// sourced from beside the module.
+    Module { dir: &'a str },
+}
+
 pub(crate) fn parse_program(source: &str) -> Result<Vec<Statement>> {
+    parse_file(source, FileRole::Script)
+}
+
+pub(crate) fn parse_file(source: &str, role: FileRole<'_>) -> Result<Vec<Statement>> {
     let arena = Bump::new();
     let lines = join_pipeline_lines(collect_source_lines(source, &arena)?, &arena)?;
     let mut cursor = 0usize;
-    let mut program = statement::parse_block(&lines, &mut cursor, true, false)?;
+    let mut program = statement::parse_block(&lines, &mut cursor, Some(role), false)?;
 
     if cursor < lines.len() {
         let (line_no, line) = &lines[cursor];

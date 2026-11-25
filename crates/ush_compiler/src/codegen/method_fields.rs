@@ -27,7 +27,8 @@ pub(super) fn struct_field<'a>(
     let [variant] = enum_def.variants.as_slice() else {
         bail!("field access is only supported on `type` structs");
     };
-    if variant.name != *enum_name {
+    // A module's `type gh::Entry` keeps its variant name `Entry`.
+    if Some(variant.name.as_str()) != enum_name.rsplit("::").next() {
         bail!("field access is only supported on `type` structs");
     }
     let VariantFields::Struct(fields) = &variant.fields else {
