@@ -50,6 +50,7 @@ pub(crate) use primitive::{compile_primitive_expr, infer};
 pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runtime};
 pub(crate) use shared::binding_for_name;
 pub(crate) use stdlib::register_builtins;
+pub(crate) use uses_std::references as references_std;
 pub(crate) use task_block::infer_async_block_type;
 pub(crate) use tasks::bind_await;
 

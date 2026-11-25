@@ -70,7 +70,9 @@ pub(crate) fn elaborate(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
         symbolic: true,
         declared_failures: None,
     };
-    crate::codegen::register_builtins(&mut checker.functions)?;
+    if crate::codegen::references_std(&program) {
+        crate::codegen::register_builtins(&mut checker.functions)?;
+    }
     let mut traits = crate::traits::TraitRegistry::default();
     for s in &program {
         match &s.kind {
