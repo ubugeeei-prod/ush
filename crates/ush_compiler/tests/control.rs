@@ -104,3 +104,31 @@ fn if_let_conditions_can_bind_and_chain() {
 
     assert_eq!(output, "7\n");
 }
+
+#[test]
+fn else_branches_may_share_the_closing_brace_line() {
+    let output = run_program(
+        r#"
+fn size(n: Int) -> String {
+  if n > 5 {
+    "big"
+  } else if n > 2 {
+    "mid"
+  } else {
+    "small"
+  }
+}
+print size 9
+print size 3
+print size 1
+if size 3 == "mid" {
+  print "same line"
+}
+# A comment may sit between a branch and its `else`.
+else {
+  print "unreachable"
+}
+"#,
+    );
+    assert_eq!(output, "big\nmid\nsmall\nsame line\n");
+}

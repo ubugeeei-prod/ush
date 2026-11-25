@@ -118,6 +118,11 @@ fn collect_source_lines<'a>(
             in_multiline = true;
             continue;
         }
+        if let Some(branch) = same_line_else(line) {
+            lines.push((line_no, "}"));
+            lines.push((line_no, branch));
+            continue;
+        }
         lines.push((line_no, line));
     }
 
@@ -125,6 +130,13 @@ fn collect_source_lines<'a>(
         bail!("line {block_start}: unterminated multiline string");
     }
     Ok(lines)
+}
+
+/// `} else {` and `} else if … {` close one branch and open the next on one line;
+/// the branch is read as if it started its own line.
+fn same_line_else(line: &str) -> Option<&str> {
+    let branch = line.trim_start().strip_prefix('}')?.trim_start();
+    (branch.starts_with("else {") || branch.starts_with("else if ")).then_some(branch)
 }
 
 /// Join a line that ends with `|` or `|&` with the line holding the next

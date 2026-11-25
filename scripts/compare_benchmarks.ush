@@ -95,12 +95,10 @@ fn compare(base: String, head: String, summary: String) -> Int {
         if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {
           failures = failures + 1
         }
-      }
-      else if in_head {
+      } else if in_head {
         let value = measure $head $name
         report (printf "| %s | — | %.2f | new |" $name $value) $summary
-      }
-      else {
+      } else {
         let value = measure $base $name
         report (printf "| %s | %.2f | — | removed |" $name $value) $summary
       }

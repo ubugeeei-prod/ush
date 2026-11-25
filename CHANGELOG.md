@@ -12,6 +12,8 @@ project adheres to [Semantic Versioning][semver].
 
 ### Added
 
+- `} else {` and `} else if … {` on the closing brace's line. `ush format`
+  joins an `else` to the `}` before it unless a comment or blank line separates them.
 - Interpolating strings: `$"…"` reads `$name` and `${name}` exactly as
   CLI-style words do, `$env::NAME` reads the environment, and `${expr}`
   takes any String, Int or Bool expression, including fields, calls and

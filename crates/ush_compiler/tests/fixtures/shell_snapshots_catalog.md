@@ -849,8 +849,7 @@ __ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: printf "warning\n" | to
 fn pick(flag: Bool) -> String {
   if flag {
     "yes"
-  }
-  else {
+  } else {
     "no"
   }
 }
@@ -967,7 +966,7 @@ ush_fn_pick() {
     fi
     return 0
   else
-    __ush_at 6 '"no"'
+    __ush_at 5 '"no"'
     if [ -n "${__ush_return_path:-}" ]; then
       printf '%s' 'no' > "$__ush_return_path"
     elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -977,28 +976,28 @@ ush_fn_pick() {
   fi
 }
 
-__ush_at 10 'print $ pick true'
+__ush_at 9 'print $ pick true'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
-__ush_at 12 'for item in 0..3 {'
+__ush_at 11 'for item in 0..3 {'
 __ush_for_index_1=0
 while [ "${__ush_for_index_1}" -lt 3 ]; do
   item="${__ush_for_index_1}"
   __ush_for_index_1=$((__ush_for_index_1 + 1))
-  __ush_at 13 'print item'
+  __ush_at 12 'print item'
   printf '%s\n' "${item}"
 done
-__ush_at 16 'let items = [3, 4]'
-__ush_binding_16_items__len='2'
+__ush_at 15 'let items = [3, 4]'
+__ush_binding_15_items__len='2'
 # shellcheck disable=SC2034
-__ush_binding_16_items__0=3
+__ush_binding_15_items__0=3
 # shellcheck disable=SC2034
-__ush_binding_16_items__1=4
-__ush_at 17 'for item in items {'
-__ush_match_2__len="${__ush_binding_16_items__len}"
+__ush_binding_15_items__1=4
+__ush_at 16 'for item in items {'
+__ush_match_2__len="${__ush_binding_15_items__len}"
 __ush_copy_index_3=0
-while [ "$__ush_copy_index_3" -lt "${__ush_binding_16_items__len}" ]; do
-  eval "__ush_copy_value_4=\"\${__ush_binding_16_items__$__ush_copy_index_3}\""
+while [ "$__ush_copy_index_3" -lt "${__ush_binding_15_items__len}" ]; do
+  eval "__ush_copy_value_4=\"\${__ush_binding_15_items__$__ush_copy_index_3}\""
   eval "__ush_match_2__${__ush_copy_index_3}=\$__ush_copy_value_4"
   __ush_copy_index_3=$((__ush_copy_index_3 + 1))
 done
@@ -1008,61 +1007,61 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
-  __ush_at 18 'print item'
+  __ush_at 17 'print item'
   printf '%s\n' "${item}"
 done
-__ush_at 21 'let pair = (5, 6)'
-__ush_binding_21_pair__len='2'
+__ush_at 20 'let pair = (5, 6)'
+__ush_binding_20_pair__len='2'
 # shellcheck disable=SC2034
-__ush_binding_21_pair__0=5
+__ush_binding_20_pair__0=5
 # shellcheck disable=SC2034
-__ush_binding_21_pair__1=6
-__ush_at 22 'for item in pair {'
+__ush_binding_20_pair__1=6
+__ush_at 21 'for item in pair {'
 __ush_match_7__len='2'
-__ush_match_7__0="${__ush_binding_21_pair__0}"
-__ush_match_7__1="${__ush_binding_21_pair__1}"
+__ush_match_7__0="${__ush_binding_20_pair__0}"
+__ush_match_7__1="${__ush_binding_20_pair__1}"
 item="${__ush_match_7__0}"
-__ush_at 23 'print item'
+__ush_at 22 'print item'
 printf '%s\n' "${item}"
 item="${__ush_match_7__1}"
-__ush_at 23 'print item'
+__ush_at 22 'print item'
 printf '%s\n' "${item}"
-__ush_at 26 'let mut count = 0'
-__ush_binding_26_count=0
+__ush_at 25 'let mut count = 0'
+__ush_binding_25_count=0
 # shellcheck disable=SC2034
-count="${__ush_binding_26_count}"
-__ush_at 27 'while count < 2 {'
+count="${__ush_binding_25_count}"
+__ush_at 26 'while count < 2 {'
 while {
-[ "$(if [ "${__ush_binding_26_count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_25_count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; do
-  __ush_at 28 'print count'
-  printf '%s\n' "${__ush_binding_26_count}"
-  __ush_at 29 'count = count + 1'
-  __ush_binding_26_count=$((__ush_binding_26_count + 1))
+  __ush_at 27 'print count'
+  printf '%s\n' "${__ush_binding_25_count}"
+  __ush_at 28 'count = count + 1'
+  __ush_binding_25_count=$((__ush_binding_25_count + 1))
   # shellcheck disable=SC2034
-  count="${__ush_binding_26_count}"
+  count="${__ush_binding_25_count}"
 done
-__ush_at 32 'loop {'
+__ush_at 31 'loop {'
 while :; do
-  __ush_at 33 'print 9'
+  __ush_at 32 'print 9'
   printf '%s\n' 9
-  __ush_at 34 'break'
+  __ush_at 33 'break'
   break
 done
-__ush_at 42 'let maybe = Option::Some(7)'
-__ush_binding_42_maybe__tag='Option::Some'
+__ush_at 41 'let maybe = Option::Some(7)'
+__ush_binding_41_maybe__tag='Option::Some'
 # shellcheck disable=SC2034
-__ush_binding_42_maybe__0=7
-__ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
+__ush_binding_41_maybe__0=7
+__ush_at 42 'if let Option::Some(it) = maybe && it == 7 {'
 if {
 {
-it="${__ush_binding_42_maybe__0-}"
-[ "${__ush_binding_42_maybe__tag}" = 'Option::Some' ]
+it="${__ush_binding_41_maybe__0-}"
+[ "${__ush_binding_41_maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ "${it}" -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }
 }; then
-  __ush_at 44 'print it'
+  __ush_at 43 'print it'
   printf '%s\n' "${it}"
 fi
 ```
