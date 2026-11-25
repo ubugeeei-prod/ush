@@ -63,7 +63,7 @@ impl Shell {
         apply_runtime_flags(&mut env_map, &options);
 
         let cwd = env::current_dir().context("failed to read current directory")?;
-        let paths = UshConfig::runtime_paths()?;
+        let paths = UshConfig::resolve_runtime_paths()?;
 
         Ok(Self {
             aliases: config.aliases.clone(),

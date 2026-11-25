@@ -1,7 +1,7 @@
 use std::env;
 use std::io::{self, Write};
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use ush_config::ShellKeymap;
 
 use super::{
@@ -103,6 +103,12 @@ impl Shell {
     }
 
     pub fn run_repl(&mut self) -> Result<()> {
+        std::fs::create_dir_all(&self.paths.cache_dir).with_context(|| {
+            format!(
+                "failed to create history directory {}",
+                self.paths.cache_dir.display()
+            )
+        })?;
         let mut editor = repl::create_editor(
             &self.paths.history_file,
             self.config.shell.history_size,

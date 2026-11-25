@@ -25,6 +25,7 @@
           nativeCheckInputs = [ pkgs.python3 pkgs.git pkgs.bash pkgs.zsh ];
           preCheck = "export HOME=$TMPDIR/ush-test-home; mkdir -p $HOME";
           cargoTestFlags = [ "--workspace" ];
+          cargoCheckType = "debug";
         };
 
         devShells.default = pkgs.mkShell {

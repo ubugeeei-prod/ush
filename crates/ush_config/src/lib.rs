@@ -109,16 +109,21 @@ impl UshConfig {
     }
 
     pub fn runtime_paths() -> Result<RuntimePaths> {
+        let paths = Self::resolve_runtime_paths()?;
+        fs::create_dir_all(&paths.config_dir)
+            .with_context(|| format!("failed to create {}", paths.config_dir.display()))?;
+        fs::create_dir_all(&paths.cache_dir)
+            .with_context(|| format!("failed to create {}", paths.cache_dir.display()))?;
+        Ok(paths)
+    }
+
+    /// Locate user directories without creating them.
+    pub fn resolve_runtime_paths() -> Result<RuntimePaths> {
         let dirs = ProjectDirs::from("dev", "ubugeeei", "ush")
             .ok_or_else(|| anyhow!("failed to resolve ush project directories"))?;
 
         let config_dir = dirs.config_dir().to_path_buf();
         let cache_dir = dirs.cache_dir().to_path_buf();
-
-        fs::create_dir_all(&config_dir)
-            .with_context(|| format!("failed to create {}", config_dir.display()))?;
-        fs::create_dir_all(&cache_dir)
-            .with_context(|| format!("failed to create {}", cache_dir.display()))?;
 
         Ok(RuntimePaths {
             history_file: cache_dir.join("history.txt"),
@@ -134,7 +139,7 @@ fn config_candidates(explicit: Option<&Path>) -> Vec<PathBuf> {
     }
 
     let mut candidates = Vec::new();
-    if let Ok(paths) = UshConfig::runtime_paths() {
+    if let Ok(paths) = UshConfig::resolve_runtime_paths() {
         candidates.push(paths.config_dir.join("config.pkl"));
         candidates.push(paths.config_dir.join("config.json"));
     }
