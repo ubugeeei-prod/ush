@@ -157,3 +157,19 @@ print get_or "USH_GROUPED_CALL_TEST" "lost"
         "kept\n"
     );
 }
+
+#[test]
+fn aliases_of_function_values_preserve_identity() {
+    assert_eq!(
+        run(r#"
+use std::test::assert_eq
+fn inc(x: Int) -> Int {
+  x + 1
+}
+let alias = &inc
+assert_eq &alias &inc
+print alias 2
+"#),
+        "3\n"
+    );
+}

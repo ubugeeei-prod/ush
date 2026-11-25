@@ -13,7 +13,7 @@ impl Checker {
         if let Expr::FunctionRef(n) = expr {
             let ty = self.function_ref(n, locals)?;
             if !self.symbolic {
-                *expr = Expr::String(n.clone());
+                *expr = Expr::String(ty.function.clone().unwrap_or_else(|| n.clone()));
             }
             return Ok(ty);
         }
