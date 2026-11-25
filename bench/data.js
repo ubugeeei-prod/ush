@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795604992257,
+  "lastUpdate": 1795605770615,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -3923,6 +3923,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 185866,
             "range": "± 2542",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9a05d871b6e88550b446fc329bbf197c0f1eabb",
+          "message": "feat(lang): call programs outside the catalog by naming them (#176)\n\n`use $bin::{vp, \"apt-get\" as apt_get}` imports programs the command\ncatalog does not list. A named program takes any argv, may print and may\nuse every capability. Quoted names take a ush alias, and every name must be\none safe shell word. The wildcard still imports only the catalog, so typos\nstay compile errors and compiled scripts never depend on the compiling\nmachine's PATH.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-25T20:16:33+09:00",
+          "tree_id": "7c9bd51bbdc679c480de0b799a0ab7cb7dddac01",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/a9a05d871b6e88550b446fc329bbf197c0f1eabb"
+        },
+        "date": 1795605769762,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 764,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 132,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 285,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 598,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 605,
+            "range": "± 46",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 559,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 100,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 60,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 114,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 53,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 663,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 580,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 560,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 392,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1382,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 12,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1051,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 4861,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 15351,
+            "range": "± 210",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 5608250,
+            "range": "± 398736",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 80192,
+            "range": "± 439",
             "unit": "ns/iter"
           }
         ]
