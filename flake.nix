@@ -20,7 +20,7 @@
       nativeCheckInputs = [ pkgs.python3 pkgs.git pkgs.bash pkgs.zsh ];
       preCheck = "export HOME=$TMPDIR/ush-test-home; mkdir -p $HOME";
       cargoTestFlags = [ "--workspace" ];
-      cargoCheckType = "debug";
+      checkType = "debug";
     };
     devShells.default = pkgs.mkShell {
       packages = with pkgs; [ cargo rustc rustfmt clippy pkg-config nodejs shellcheck python3 jq bash zsh gh tynix.packages.${system}.default ];
