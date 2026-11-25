@@ -28,7 +28,7 @@ fn kind_of(source: &str, needle: &str) -> SemanticTokenKind {
 fn every_keyword_is_tagged_as_a_keyword() {
     for keyword in [
         "alias", "async", "enum", "fn", "impl", "let", "match", "print", "raise", "return",
-        "shell", "trait", "type", "use",
+        "shell", "trait", "type", "use", "mod", "pub",
     ] {
         assert_eq!(
             kind_of(&format!("{keyword} value"), keyword),

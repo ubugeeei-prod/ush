@@ -16,6 +16,8 @@ categories.workspace = true
 anyhow.workspace = true
 ush_compiler = { path = "../ush_compiler" }
 
+[dev-dependencies]
+tempfile.workspace = true
 
 [lints]
 workspace = true

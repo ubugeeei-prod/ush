@@ -60,6 +60,8 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("let", "binding declaration"),
     ("loop", "infinite loop"),
     ("match", "pattern match"),
+    ("mod", "import a local .ush module"),
+    ("pub", "export a module item"),
     ("print", "print a value"),
     (
         "fail",
@@ -79,7 +81,7 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("trait", "declare a trait"),
     ("true", "boolean true"),
     ("type", "type alias"),
-    ("use", "import std module"),
+    ("use", "import from a std or local module"),
     ("while", "while loop"),
 ];
 

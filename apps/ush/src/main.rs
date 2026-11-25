@@ -1,4 +1,5 @@
 mod cli;
+mod compile;
 mod editor;
 mod effects_report;
 mod explain;
@@ -19,7 +20,6 @@ use ush_shell::{SessionStartup, Shell, ShellOptions, run_posix_script};
 use ush_tooling::{check_file, format_source};
 
 use crate::cli::{Action, Cli};
-use crate::sourcemap_json::write_sourcemap_file;
 
 enum ScriptMode {
     Ush,
@@ -55,20 +55,21 @@ fn run() -> Result<()> {
             }
             Action::Compile {
                 target,
-                input,
+                inputs,
                 output,
+                out_dir,
                 sourcemap,
                 checked_in,
-            } => {
-                compile_action(
-                    input,
-                    output.as_deref(),
-                    sourcemap.as_deref(),
-                    *checked_in,
-                    *target,
-                )?;
-                return Ok(());
-            }
+                check,
+            } => process::exit(compile::run(&compile::CompileRequest {
+                inputs,
+                output: output.as_deref(),
+                out_dir: out_dir.as_deref(),
+                sourcemap: sourcemap.as_deref(),
+                checked_in: *checked_in,
+                check: *check,
+                target: *target,
+            })?),
             Action::Format {
                 input,
                 check,
@@ -126,40 +127,6 @@ fn run() -> Result<()> {
     }
 
     shell.run_repl()?;
-    Ok(())
-}
-
-fn compile_action(
-    input: &Path,
-    output: Option<&Path>,
-    sourcemap: Option<&Path>,
-    checked_in: bool,
-    target: ush_compiler::ShellTarget,
-) -> Result<()> {
-    let compiler = UshCompiler::for_target(target);
-    let artifact = if checked_in {
-        Some(output.expect("clap requires output with --checked-in"))
-    } else {
-        None
-    };
-    let shell = if let Some(map) = sourcemap {
-        let compiled = match artifact {
-            Some(path) => compiler.compile_checked_in_file_with_sourcemap(input, path)?,
-            None => compiler.compile_file_with_sourcemap(input)?,
-        };
-        write_sourcemap_file(map, input, output, &compiled.sourcemap)?;
-        compiled.shell
-    } else if let Some(path) = artifact {
-        compiler.compile_checked_in_file(input, path)?
-    } else {
-        compiler.compile_file(input)?
-    };
-    if let Some(output) = output {
-        std::fs::write(output, shell)
-            .with_context(|| format!("failed to write {}", output.display()))?;
-    } else {
-        print!("{shell}");
-    }
     Ok(())
 }
 

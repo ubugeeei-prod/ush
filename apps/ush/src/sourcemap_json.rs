@@ -18,6 +18,9 @@ struct JsonSourceMap {
 struct JsonSourceMapLine {
     generated_line: usize,
     section: String,
+    /// The module file; absent for the root script.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_file: Option<String>,
     source_line: Option<usize>,
     generated_text: String,
     source_text: Option<String>,
@@ -43,6 +46,8 @@ struct JsonSourceMapSectionSummary {
 
 #[derive(Serialize)]
 struct JsonSourceMapSourceLine {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_file: Option<String>,
     source_line: usize,
     source_text: Option<String>,
     generated_lines: Vec<usize>,
@@ -80,6 +85,7 @@ pub(super) fn write_sourcemap_file(
             .source_index()
             .into_iter()
             .map(|line| JsonSourceMapSourceLine {
+                source_file: line.source_file,
                 source_line: line.source_line,
                 source_text: line.source_text,
                 generated_lines: line.generated_lines,
@@ -91,6 +97,7 @@ pub(super) fn write_sourcemap_file(
             .map(|line| JsonSourceMapLine {
                 generated_line: line.generated_line,
                 section: line.section.label().to_string(),
+                source_file: line.source_file.clone(),
                 source_line: line.source_line,
                 generated_text: line.generated_text.clone(),
                 source_text: line.source_text.clone(),

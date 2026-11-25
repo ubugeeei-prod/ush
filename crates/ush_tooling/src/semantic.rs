@@ -13,7 +13,7 @@ const KEYWORDS: &[&str] = &[
     "alias", "async", "const", "do", "export", "fail", "using", "unit", "where", "effect", "enum",
     "extern", "test", "fn", "impl", "let", "match", "print", "raise", "return", "shell", "trait",
     "try", "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop", "break",
-    "continue", "true", "false", "await", "spawn",
+    "continue", "true", "false", "await", "spawn", "mod", "pub",
 ];
 
 #[derive(Clone, Copy)]
