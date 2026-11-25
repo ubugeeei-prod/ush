@@ -417,12 +417,12 @@ ush_fn_option() {
 }
 
 ush_fn_usage() {
-  __ush_at 23 'print "usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]"'
-  printf '%s\n' 'usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]'
-  __ush_at 24 'print "                  [--download-url URL] [--checksum-url URL] [--no-modify-path]"'
-  printf '%s\n' '                  [--download-url URL] [--checksum-url URL] [--no-modify-path]'
-  __ush_at 25 'print "Install ush and ush_lsp. Example: sh install.sh --version v0.13.0"'
-  printf '%s\n' 'Install ush and ush_lsp. Example: sh install.sh --version v0.13.0'
+  __ush_at 23 'echo "usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]"'
+  printf '%s\n' 'usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]' || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  __ush_at 24 'echo "                  [--download-url URL] [--checksum-url URL] [--no-modify-path]"'
+  printf '%s\n' '                  [--download-url URL] [--checksum-url URL] [--no-modify-path]' || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  __ush_at 25 'echo "Install ush and ush_lsp. Example: sh install.sh --version v0.13.0"'
+  printf '%s\n' 'Install ush and ush_lsp. Example: sh install.sh --version v0.13.0' || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
 }
 
 # raises: unknown
@@ -1399,7 +1399,7 @@ __ush_value_90="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__
 }; then
   __ush_at 273 'install "-m" "755" (package + "/ush_lsp") (directory + "/ush_lsp")'
   command install '-m' '755' "${__ush_binding_263_package}"'/ush_lsp' "${__ush_binding_194_directory}"'/ush_lsp'
-  __ush_at 274 'print "ush_lsp installed to " + directory + "/ush_lsp"'
+  __ush_at 274 'echo ("ush_lsp installed to " + directory + "/ush_lsp")'
   printf '%s\n' 'ush_lsp installed to '"${__ush_binding_194_directory}"'/ush_lsp'
 fi
 __ush_at 276 'let path_status = ensure_path directory (automatic != "0")?'
@@ -1407,30 +1407,30 @@ __ush_value_91="$(__ush_return_path='' __ush_capture_return='1' ush_fn_ensure_pa
 __ush_binding_276_path_status="${__ush_value_91}"
 # shellcheck disable=SC2034
 path_status="${__ush_binding_276_path_status}"
-__ush_at 277 'print "ush installed to " + directory + "/ush"'
+__ush_at 277 'echo ("ush installed to " + directory + "/ush")'
 printf '%s\n' 'ush installed to '"${__ush_binding_194_directory}"'/ush'
 __ush_at 278 'if path_status == "ready" {'
 if {
 [ "$(if [ "${__ush_binding_276_path_status}" = 'ready' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 279 'print "ush is already on PATH. Try: ush --version"'
+  __ush_at 279 'echo "ush is already on PATH. Try: ush --version"'
   printf '%s\n' 'ush is already on PATH. Try: ush --version'
 else
   __ush_at 281 'else if path_status == "manual" {'
   if {
   [ "$(if [ "${__ush_binding_276_path_status}" = 'manual' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 282 'print "add this to your shell config, then restart your shell:"'
+    __ush_at 282 'echo "add this to your shell config, then restart your shell:"'
     printf '%s\n' 'add this to your shell config, then restart your shell:'
-    __ush_at 283 'print path_line directory'
+    __ush_at 283 'echo (path_line directory)'
     __ush_value_92="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_line "${__ush_binding_194_directory}" 4>&1 >&3)" || exit "$?"
     printf '%s\n' "${__ush_value_92}"
   else
-    __ush_at 286 'print "added " + directory + " to PATH in " + path_status'
+    __ush_at 286 'echo ("added " + directory + " to PATH in " + path_status)'
     printf '%s\n' 'added '"${__ush_binding_194_directory}"' to PATH in '"${__ush_binding_276_path_status}"
-    __ush_at 287 'print "restart your shell or run: . \"" + path_status + "\""'
+    __ush_at 287 'echo ("restart your shell or run: . \"" + path_status + "\"")'
     printf '%s\n' 'restart your shell or run: . "'"${__ush_binding_276_path_status}"'"'
   fi
 fi
-__ush_at 289 'print "quick check: " + directory + "/ush --version"'
+__ush_at 289 'echo ("quick check: " + directory + "/ush --version")'
 printf '%s\n' 'quick check: '"${__ush_binding_194_directory}"'/ush --version'

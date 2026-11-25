@@ -10,6 +10,10 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Native `echo` writes any number of Display values separated by spaces and a final newline, without imports. It works in pipelines and captures; generated `printf` keeps `-n`, backslashes, percent signs, and empty arguments literal across shells. `print` remains available for compatibility.
+
 - Make `let` bindings immutable by default; introduce `let mut` and bare `name = value` reassignment, with compile-time mutability and type diagnostics. Shadowing keeps outer bindings intact, including function locals and loop variables.
 - Support mutable aggregates, asynchronous task handles, and awaited results; evaluate structured assignment before replacing its destination.
 - Teach editor highlighting, navigation, rename, hover, and formatting about mutable bindings. Separate imports from the body with one blank line.

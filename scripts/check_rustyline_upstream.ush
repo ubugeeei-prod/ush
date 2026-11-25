@@ -41,8 +41,8 @@ if latest == "" || patch == "" {
   fail 1 "check_rustyline_upstream: registry returned no stable versions"
 }
 let reviewed = value "vendor/rustyline/UPSTREAM" "reviewed:"
-print "pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest
+echo ("pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest)
 if pinned != patch || pinned != latest && reviewed != "v" + latest {
   fail 1 ("vendored rustyline is behind upstream; review https://github.com/kkawakam/rustyline/releases/tag/v" + latest + " and update vendor/rustyline/UPSTREAM")
 }
-print "Vendored rustyline is current in its major and upstream releases have been reviewed."
+echo "Vendored rustyline is current in its major and upstream releases have been reviewed."

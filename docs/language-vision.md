@@ -113,8 +113,8 @@ enum Command {
 
 fn run(cmd: Command) {
   match cmd {
-    Command::Clone(name) => print $ format("clone {}", name)
-    Command::Doctor => print "doctor"
+    Command::Clone(name) => echo ($ format("clone {}", name))
+    Command::Doctor => echo "doctor"
   }
 }
 ```

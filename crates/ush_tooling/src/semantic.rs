@@ -21,6 +21,7 @@ const KEYWORDS: &[&str] = &[
     "where",
     "effect",
     "enum",
+    "echo",
     "extern",
     "test",
     "fn",

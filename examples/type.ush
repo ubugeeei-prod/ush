@@ -5,6 +5,6 @@ type User {
 
 let user = User { name: "ush", age: 7 }
 match user {
-  User { name, age } => print name + ":" + age
-  _ => print "fallback"
+  User { name, age } => echo (name + ":" + age)
+  _ => echo "fallback"
 }

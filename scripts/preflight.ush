@@ -7,7 +7,7 @@ use std::command::exists
 use std::process::exec
 
 fn banner(name: String) -> () {
-  print "=== " + name + " ==="
+  echo ("=== " + name + " ===")
 }
 banner "rustfmt"
 cargo "fmt" "--all" "--check"

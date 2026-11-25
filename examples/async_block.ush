@@ -1,8 +1,8 @@
-print "main"
+echo "main"
 let task = async {
   let prefix = "work"
   prefix + "er"
 }
-print "after"
+echo "after"
 let result = task.await
-print result
+echo result

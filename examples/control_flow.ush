@@ -12,34 +12,34 @@ fn classify(value: Int) -> String {
   }
 }
 
-print classify 2
+echo (classify 2)
 
 for item in 0..3 {
-  print item
+  echo item
 }
 
 let items = [3, 4]
 for item in items {
-  print item
+  echo item
 }
 
 let pair = (5, 6)
 for item in pair {
-  print item
+  echo item
 }
 
 let mut count = 0
 while count < 2 {
-  print "while:" + count
+  echo ("while:" + count)
   count = count + 1
 }
 
 loop {
-  print "loop"
+  echo "loop"
   break
 }
 
 let maybe = Option::Some(7)
 if let Option::Some(it) = maybe && it == 7 {
-  print "bound:" + it
+  echo ("bound:" + it)
 }

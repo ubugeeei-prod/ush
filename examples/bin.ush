@@ -1,7 +1,7 @@
 #| Example CLI entrypoint script.
 #| Run with: ush examples/bin.ush --name ush --verbose
 fn bin(#[alias("n")] name: String, #[default(2)] count: Int, verbose: Bool) {
-  print name + ":" + count
-  print verbose
+  echo (name + ":" + count)
+  echo verbose
 }
 

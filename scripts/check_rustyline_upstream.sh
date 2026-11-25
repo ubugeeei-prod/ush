@@ -507,7 +507,7 @@ __ush_value_27="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 've
 __ush_binding_43_reviewed="${__ush_value_27}"
 # shellcheck disable=SC2034
 reviewed="${__ush_binding_43_reviewed}"
-__ush_at 44 'print "pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest'
+__ush_at 44 'echo ("pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest)'
 printf '%s\n' 'pinned: '"${__ush_binding_21_pinned}"', latest in major: '"${__ush_binding_32_patch}"', latest overall: '"${__ush_binding_31_latest}"
 __ush_at 45 'if pinned != patch || pinned != latest && reviewed != "v" + latest {'
 if {
@@ -527,5 +527,5 @@ if {
   __ush_report "$__ush_status" 'vendored rustyline is behind upstream; review https://github.com/kkawakam/rustyline/releases/tag/v'"${__ush_binding_31_latest}"' and update vendor/rustyline/UPSTREAM'
   exit "$__ush_status"
 fi
-__ush_at 48 'print "Vendored rustyline is current in its major and upstream releases have been reviewed."'
+__ush_at 48 'echo "Vendored rustyline is current in its major and upstream releases have been reviewed."'
 printf '%s\n' 'Vendored rustyline is current in its major and upstream releases have been reviewed.'

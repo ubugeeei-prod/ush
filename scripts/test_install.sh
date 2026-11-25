@@ -938,7 +938,7 @@ while [ "${__ush_for_list_index_20}" -lt "${__ush_match_19__len}" ]; do
       ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_59}" 'false' )
     fi
   fi
-  __ush_at 147 'print "installer: " + scenario + " passed"'
+  __ush_at 147 'echo ("installer: " + scenario + " passed")'
   printf '%s\n' 'installer: '"${scenario}"' passed'
   __ush_at 148 'cd root'
   command cd "${__ush_binding_56_root}"

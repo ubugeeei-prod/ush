@@ -1,17 +1,5 @@
-//! LSP `textDocument/hover` provider.
-//!
-//! Returns a short Markdown blurb describing what is at the cursor:
-//!
-//! - **Keyword** → its single-line documentation from the completion
-//!   keyword list.
-//! - **Identifier** (variable / function / type / property) → its
-//!   classification + the source line that declared it, if one is
-//!   visible in the file.
-//! - **Anything else** → no hover.
-//!
-//! No type information is consulted because `ush_compiler`'s AST is
-//! private to that crate. A richer hover (inferred type, doc-comment
-//! lookup) can be layered on later without changing the LSP wiring.
+//! LSP hover descriptions for keywords and scoped declarations.
+//! Function declarations include their written or inferred effect row.
 
 use std::path::Path;
 
@@ -72,7 +60,14 @@ const KEYWORDS: &[(&str, &str)] = &[
         "match",
         "Pattern-match an expression. The compiler enforces exhaustiveness.",
     ),
-    ("print", "Print a value to stdout."),
+    (
+        "echo",
+        "Write arguments separated by spaces, then a newline. No options or escape processing; use printf for formatting.",
+    ),
+    (
+        "print",
+        "Print a value to stdout. Legacy syntax; prefer echo.",
+    ),
     (
         "fail",
         "Return a typed error or an exit status and message.",

@@ -24,7 +24,7 @@ fn statement(s: &Statement) -> bool {
         | S::Expr(e)
         | S::Return(e) => expr(e),
         S::Call(c) | S::TryCall(c) | S::Spawn { call: c, .. } => {
-            c.name.starts_with("std::") || c.args.iter().any(|a| expr(&a.expr))
+            needs_signatures(&c.name) || c.args.iter().any(|a| expr(&a.expr))
         }
         S::Fail { status, message } => expr(status) || expr(message),
         S::Match { expr: e, arms, .. } => expr(e) || arms.iter().any(|(_, s)| statement(s)),
@@ -56,7 +56,7 @@ fn condition(c: &Condition) -> bool {
 }
 fn expr(e: &Expr) -> bool {
     match e {
-        Expr::FunctionRef(name) => name.starts_with("std::"),
+        Expr::FunctionRef(name) => needs_signatures(name),
         Expr::Comprehension(c) => {
             expr(&c.value)
                 || c.clauses.iter().any(|c| match c {
@@ -64,7 +64,7 @@ fn expr(e: &Expr) -> bool {
                     crate::ast::ComprehensionClause::If(e) => expr(e),
                 })
         }
-        Expr::Call(c) => c.name.starts_with("std::") || c.args.iter().any(|a| expr(&a.expr)),
+        Expr::Call(c) => needs_signatures(&c.name) || c.args.iter().any(|a| expr(&a.expr)),
         Expr::MethodCall(call) => {
             // Task awaiting needs no std signatures, but its receiver can.
             call.method != "await"
@@ -88,4 +88,8 @@ fn expr(e: &Expr) -> bool {
         },
         _ => false,
     }
+}
+
+fn needs_signatures(name: &str) -> bool {
+    name != "std::io::echo" && name.starts_with("std::")
 }

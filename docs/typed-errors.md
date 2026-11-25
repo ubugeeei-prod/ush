@@ -27,7 +27,7 @@ fn load(path: String) -> String {
 }
 
 let config = load "app.toml"?
-print head_sha
+echo head_sha
 ```
 
 `ush effects` prints every function's row, written or inferred, error
@@ -74,7 +74,7 @@ fn load(found: Bool) -> Config / ConfigError, fs {
 }
 
 let config = load(true)?
-print config.name
+echo (config.name)
 ```
 
 Use `?` to pass a nonzero status to the calling function or, at the top level, to the process that launched the script. Awaiting a failed task also preserves its status. A typed `fail` returns status 1. Its diagnostic is emitted by the runtime and the signature declares the error type. A shell-facing failure can supply a status between 1 and 255 and a message.
@@ -93,7 +93,7 @@ External programs choose their own exit codes. The error row calls that possibil
 
 ```ush
 let branch = $bin::git("branch", "--show-current")?
-print branch
+echo branch
 ```
 
 The generated script writes the failure location, exit status and original source line to standard error. The same diagnostic works on a host without ush or the original source. Native command diagnostics pass through. Use `ush explain` to inspect the lowering for a shell line.

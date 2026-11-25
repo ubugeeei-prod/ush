@@ -9,7 +9,7 @@ use std::process::{arg, output, redirect, status}
 use std::io::eprint
 
 fn report(text: String, summary: String) -> () {
-  print text
+  echo text
   if summary != "" {
     append_text summary (text + "\n")
   }

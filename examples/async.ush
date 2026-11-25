@@ -2,8 +2,8 @@ fn worker(message: String) -> String {
   message
 }
 
-print "main"
+echo "main"
 let task = async worker "worker"
-print "after"
+echo "after"
 let result = task.await
-print result
+echo result

@@ -5,4 +5,4 @@ fn double(value: Int) -> Int {
 let task = async double 21
 let result = task.await
 
-print result
+echo result

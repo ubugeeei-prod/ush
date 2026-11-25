@@ -1,5 +1,5 @@
 mod "lib/report.ush"
 use report::{Status, line}
 
-print line Status::Passed "  build  "
-print report::line Status::Failed "lint"
+echo (line Status::Passed "  build  ")
+echo (report::line Status::Failed "lint")

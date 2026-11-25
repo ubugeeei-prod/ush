@@ -20,9 +20,9 @@ fn option(name: String, legacy: String, fallback: String) -> String {
 }
 
 fn usage() -> () {
-  print "usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]"
-  print "                  [--download-url URL] [--checksum-url URL] [--no-modify-path]"
-  print "Install ush and ush_lsp. Example: sh install.sh --version v0.13.0"
+  echo "usage: install.sh [--version VERSION] [--bin-dir DIR] [--prefix DIR]"
+  echo "                  [--download-url URL] [--checksum-url URL] [--no-modify-path]"
+  echo "Install ush and ush_lsp. Example: sh install.sh --version v0.13.0"
 }
 
 fn need(command: String) -> () {
@@ -271,19 +271,19 @@ mkdir_p directory
 install "-m" "755" (package + "/ush") (directory + "/ush")
 if is_file (package + "/ush_lsp") {
   install "-m" "755" (package + "/ush_lsp") (directory + "/ush_lsp")
-  print "ush_lsp installed to " + directory + "/ush_lsp"
+  echo ("ush_lsp installed to " + directory + "/ush_lsp")
 }
 let path_status = ensure_path directory (automatic != "0")?
-print "ush installed to " + directory + "/ush"
+echo ("ush installed to " + directory + "/ush")
 if path_status == "ready" {
-  print "ush is already on PATH. Try: ush --version"
+  echo "ush is already on PATH. Try: ush --version"
 }
 else if path_status == "manual" {
-  print "add this to your shell config, then restart your shell:"
-  print path_line directory
+  echo "add this to your shell config, then restart your shell:"
+  echo (path_line directory)
 }
 else {
-  print "added " + directory + " to PATH in " + path_status
-  print "restart your shell or run: . \"" + path_status + "\""
+  echo ("added " + directory + " to PATH in " + path_status)
+  echo ("restart your shell or run: . \"" + path_status + "\"")
 }
-print "quick check: " + directory + "/ush --version"
+echo ("quick check: " + directory + "/ush --version")

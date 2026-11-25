@@ -4,5 +4,5 @@ extern "helpers.sh" as helpers {
 }
 use helpers::*
 
-print greet "ush"
-print answer
+echo (greet "ush")
+echo answer

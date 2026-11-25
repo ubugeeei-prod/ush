@@ -71,7 +71,8 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("match", "pattern match"),
     ("mod", "import a local .ush module"),
     ("pub", "export a module item"),
-    ("print", "print a value"),
+    ("echo", "write arguments separated by spaces and a newline"),
+    ("print", "print a value (legacy; prefer echo)"),
     (
         "fail",
         "Return a typed error or an exit status and message.",

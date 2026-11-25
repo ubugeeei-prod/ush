@@ -12,11 +12,11 @@ use $bin::*
 
 let work = temp_dir
 for argument in args {
-  print argument
+  echo argument
 }
 let files = output "git" ["ls-files", "--", "*.ush"]
 for file in lines files {
-  print file
+  echo file
 }
 write_text (work + "/message") "hello\n"
 if status "test" ["-s", work + "/message"] != 0 {
@@ -130,3 +130,26 @@ Every input is processed even when one fails to compile, so a single run
 lists all broken or stale scripts. Several inputs require `--out-dir`;
 `-o` and `--sourcemap` take one input.
 
+
+## Output
+
+`echo` is available without an import and writes its arguments separated by a
+single space, followed by a newline. No arguments writes just a newline. Every
+argument must implement `Display`; numbers, booleans and custom implementations
+work alongside strings.
+
+```ush
+echo "hello" "world" 42
+echo
+let text = echo "captured" "output"
+echo text
+```
+
+The generated shell uses a fixed `printf` format. `-n`, `-e`, backslashes and
+percent signs are literal data, not options or escapes. Use `$bin::printf` for
+formatting or output without a final newline. `echo` streams when used as a
+statement or pipeline stage; in a value expression it captures stdout and
+removes trailing newlines, like other command captures.
+
+`print expr` remains supported for existing scripts. POSIX specifies `echo`
+and `printf`, but does not specify a `print` utility.

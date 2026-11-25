@@ -177,6 +177,27 @@ pub(super) fn hoist_call(
 ) -> Result<Call> {
     let mut prepared = call.clone();
     for arg in &mut prepared.args {
+        if call.name == "std::io::echo"
+            && super::infer(&arg.expr, env, functions, impls, enums)?.is_structured()
+        {
+            let format = Call {
+                name: "format".into(),
+                args: vec![arg.clone()],
+                asynchronous: false,
+            };
+            arg.expr = runtime_member::hoist_format_capture(
+                &format,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                matches!(mode, FailureMode::Propagate),
+                inside_function,
+                out,
+            )?;
+            continue;
+        }
         if super::infer(&arg.expr, env, functions, impls, enums)?.is_structured() {
             let binding = crate::matching::materialize_expr(
                 &arg.expr,

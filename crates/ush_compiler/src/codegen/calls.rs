@@ -7,7 +7,7 @@ use super::{
         ast::{Call, FunctionDef, Type},
         env::{CodegenState, EnumRegistry, Env},
     },
-    call_support::{function_for_call, resolve_call_args},
+    call_support::{function_for_call, rendered_args},
     compile_primitive_expr,
     functions::FunctionRegistry,
     infer, rendered_call_runtime,
@@ -16,7 +16,7 @@ use super::{
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
-use crate::types::{AstVec as Vec, OutputString as String};
+use crate::types::OutputString as String;
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn compile_call(
@@ -39,7 +39,10 @@ pub(crate) fn compile_call(
         inside_function,
         out,
     )?;
-    if !call.asynchronous && (stdlib::runs_in_parent(&call.name) || call.name.starts_with("$bin::"))
+    if !call.asynchronous
+        && (call.name == "std::io::echo"
+            || stdlib::runs_in_parent(&call.name)
+            || call.name.starts_with("$bin::"))
     {
         out.push_str(&rendered);
         if inside_function {
@@ -83,7 +86,10 @@ pub(crate) fn compile_try_call(
         inside_function,
         out,
     )?;
-    if !call.asynchronous && (stdlib::runs_in_parent(&call.name) || call.name.starts_with("$bin::"))
+    if !call.asynchronous
+        && (call.name == "std::io::echo"
+            || stdlib::runs_in_parent(&call.name)
+            || call.name.starts_with("$bin::"))
     {
         out.push_str(&rendered);
         out.push_str(" || ");
@@ -115,6 +121,9 @@ pub(crate) fn rendered_call(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<String> {
+    if call.name == "std::io::echo" {
+        return super::echo::render(call, env, functions, impls, enums);
+    }
     if call.name == "std::test::assert_eq" {
         return stdlib::testing::render_eq(call, env, functions, impls, enums);
     }
@@ -154,6 +163,9 @@ pub(crate) fn rendered_call(
 }
 
 pub(crate) fn call_return_type(name: &str, functions: &FunctionRegistry) -> Result<Option<Type>> {
+    if name == "std::io::echo" {
+        return Ok(Some(Type::String));
+    }
     if let Some(command) = crate::commands::lookup(name) {
         return Ok(Some(command.ty()));
     }
@@ -208,40 +220,4 @@ pub(crate) fn ensure_value_type(ty: &Type) -> Result<()> {
         Type::Tuple(ts) => ts.iter().try_for_each(ensure_value_type),
         Type::Task(_) => bail!("nested task types are not supported"),
     }
-}
-
-fn rendered_args(
-    call: &Call,
-    env: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-    def: &FunctionDef,
-) -> Result<Vec<String>> {
-    ensure_signature(def)?;
-    def.params
-        .iter()
-        .zip(resolve_call_args(call, def)?)
-        .map(|(param, arg)| {
-            let actual = infer(arg, env, functions, impls, enums)?;
-            if actual != param.ty {
-                bail!(
-                    "type mismatch for `{}`: expected {:?}, found {:?}",
-                    param.name,
-                    param.ty,
-                    actual
-                );
-            }
-            if let crate::ast::Expr::Var(name) = arg
-                && let Some(crate::env::Binding {
-                    storage:
-                        crate::env::Storage::Aggregate(prefix) | crate::env::Storage::Adt(prefix),
-                    ..
-                }) = env.get(name)
-            {
-                return Ok(super::wire::encode(&actual, prefix));
-            }
-            compile_primitive_expr(arg, env, functions, impls, enums)
-        })
-        .collect()
 }

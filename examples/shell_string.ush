@@ -1,4 +1,4 @@
 let command = "printf '%s\n' from-shell"
 
 shell command
-print "after-shell"
+echo "after-shell"

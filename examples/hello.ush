@@ -1,7 +1,7 @@
 let greeting = "hello"
-print greeting + " world"
+echo (greeting + " world")
 $ printf '%s\n' from-ush
 match greeting {
-  "hello" => print "matched"
-  _ => print "fallback"
+  "hello" => echo "matched"
+  _ => echo "fallback"
 }

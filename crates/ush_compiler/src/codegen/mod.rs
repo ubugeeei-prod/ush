@@ -12,6 +12,7 @@ mod control;
 mod control_support;
 mod defer;
 mod docs;
+mod echo;
 mod effects_lowering;
 mod enum_registry;
 mod functions;

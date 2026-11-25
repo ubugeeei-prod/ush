@@ -87,6 +87,8 @@ impl Resolver<'_> {
     fn name(&self, name: &mut Name) {
         if let Some(path) = self.imports.get(name) {
             *name = path.clone();
+        } else if name == "echo" {
+            *name = "std::io::echo".into();
         } else if !name.contains("::") {
             if self.imports.contains_key("*") && crate::commands::contains(name) {
                 *name = format!("$bin::{name}").into();
