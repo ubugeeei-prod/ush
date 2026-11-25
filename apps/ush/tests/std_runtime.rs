@@ -58,13 +58,25 @@ fn runtime_backed_values_and_filesystem_operations_work_on_every_shell() {
             include_str!("fixtures/runtime/values.ush"),
             include_str!("fixtures/runtime/filesystem.ush"),
         ] {
-            let output = run(shell, source, USH);
+            let dir = tempdir().unwrap();
+            let _socket = UnixListener::bind(dir.path().join("socket")).unwrap();
+            let input = dir.path().join("runtime.ush");
+            fs::write(&input, source).unwrap();
+            let output = Command::new(USH)
+                .args(["--shell-target", shell, "test"])
+                .arg(&input)
+                .current_dir(dir.path())
+                .env("USH_RUNTIME", USH)
+                .env("TZ", "Asia/Tokyo")
+                .output()
+                .unwrap();
             assert!(
                 output.status.success(),
                 "{shell}: {}",
                 String::from_utf8_lossy(&output.stderr)
             );
-            assert_eq!(output.stdout, b"passed\n", "{shell}");
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            assert!(stdout.contains("1 passed; 0 failed"), "{shell}: {stdout}");
         }
     });
 }
@@ -158,4 +170,33 @@ fn configured_runtime_paths_can_contain_spaces() {
         String::from_utf8_lossy(&output.stderr)
     );
     assert_eq!(output.stdout, b"1\n");
+}
+
+#[test]
+fn atomic_replacement_preserves_special_mode_bits_when_permitted() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempdir().unwrap();
+    let path = dir.path().join("atomic");
+    fs::write(&path, "old").unwrap();
+    if let Err(error) = fs::set_permissions(&path, fs::Permissions::from_mode(0o4440)) {
+        assert_eq!(error.kind(), std::io::ErrorKind::PermissionDenied);
+        eprintln!("setuid modes are prohibited in this environment: {error}");
+        return;
+    }
+    let output = Command::new(USH)
+        .args(["__runtime", "v1", "std::fs::write_atomic"])
+        .arg(&path)
+        .arg("new")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(fs::read_to_string(&path).unwrap(), "new");
+    assert_eq!(
+        fs::metadata(&path).unwrap().permissions().mode() & 0o7777,
+        0o4440
+    );
 }
