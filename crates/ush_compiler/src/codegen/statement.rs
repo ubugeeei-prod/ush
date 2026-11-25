@@ -218,7 +218,9 @@ pub(crate) fn compile_statement(
             | StatementKind::Continue
             | StatementKind::Pipeline(_)
             | StatementKind::Export(_)
-            | StatementKind::Scoped { .. }) => {
+            | StatementKind::Scoped { .. }
+            | StatementKind::AllowFail(_)
+            | StatementKind::Defer(_)) => {
                 return Err(anyhow!(
                     "internal codegen invariant violated: control-flow statement {kind:?} must be \
                      dispatched via compile_control_statement before reaching compile_statement",

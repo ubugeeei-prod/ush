@@ -6,6 +6,16 @@ use super::{
 };
 use crate::scan::{ScanState, advance};
 use crate::types::HeapVec as Vec;
+use alloc::boxed::Box;
+
+fn binds(condition: &Condition) -> bool {
+    match condition {
+        Condition::Let { .. } => true,
+        Condition::Expr(_) => false,
+        Condition::Not(inner) => binds(inner),
+        Condition::And(items) | Condition::Or(items) => items.iter().any(binds),
+    }
+}
 
 pub(super) fn parse_condition(source: &str) -> Result<Condition> {
     let source = source.trim();
@@ -24,6 +34,18 @@ pub(super) fn parse_condition(source: &str) -> Result<Condition> {
                 .map(parse_condition)
                 .collect::<Result<Vec<_>>>()?,
         ));
+    }
+    if let Some(rest) = source.strip_prefix('!') {
+        let inner = parse_condition(rest)?;
+        if binds(&inner) {
+            bail!("a pattern binding cannot be negated");
+        }
+        return Ok(Condition::Not(Box::new(inner)));
+    }
+    if let Some(inner) = parenthesized(source)
+        && split_logic(inner, ",").is_none()
+    {
+        return parse_condition(inner);
     }
     if let Some(rest) = source.strip_prefix("let ") {
         return parse_binding_condition(rest);
@@ -52,6 +74,20 @@ fn parse_optional_binding(source: &str) -> Result<Option<Condition>> {
         pattern: parse_pattern(pattern)?,
         expr: parse_expr(expr)?,
     }))
+}
+
+/// The inside of `( … )` when one pair of parentheses wraps all of `source`.
+fn parenthesized(source: &str) -> Option<&str> {
+    let inner = source.strip_prefix('(')?.strip_suffix(')')?;
+    let mut state = ScanState::default();
+    let mut index = 0usize;
+    while index < inner.len() {
+        if !state.in_string() && state.paren == 0 && inner.as_bytes()[index] == b')' {
+            return None;
+        }
+        index = advance(inner, index, &mut state);
+    }
+    Some(inner)
 }
 
 fn split_logic<'a>(source: &'a str, token: &str) -> Option<Vec<&'a str>> {

@@ -35,11 +35,18 @@ pub(super) fn analyze_condition(
     let _ = tasks;
     match condition {
         Condition::Expr(expr) => {
-            if infer(expr, env, functions, impls, enums)? != Type::Bool {
-                bail!("if/while conditions must be boolean");
-            }
+            crate::codegen::process::check_condition(expr, env, functions, impls, enums)?;
             Ok(ConditionEffect {
-                errors: expr_errors(expr, env, functions, impls, enums, function_errors)?,
+                errors: super::status::errors(expr, env, functions, impls, enums, function_errors)?,
+                env: env.clone(),
+                binds: false,
+            })
+        }
+        Condition::Not(inner) => {
+            let effect =
+                analyze_condition(inner, env, tasks, functions, impls, enums, function_errors)?;
+            Ok(ConditionEffect {
+                errors: effect.errors,
                 env: env.clone(),
                 binds: false,
             })

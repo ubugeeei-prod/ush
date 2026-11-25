@@ -95,6 +95,8 @@ fn statement_effects(statement: &Statement, ctx: Context<'_>) -> EffectSet {
             })
         }
         StatementKind::Scoped { scope, body } => super::shell::scoped_effects(scope, body, ctx),
+        StatementKind::AllowFail(command) => super::shell::status_effects(command, ctx),
+        StatementKind::Defer(body) => block_effects(body, ctx),
     }
 }
 
@@ -111,7 +113,8 @@ fn branch_effects(branch: &IfBranch, ctx: Context<'_>) -> EffectSet {
 
 fn condition_effects(condition: &Condition, ctx: Context<'_>) -> EffectSet {
     match condition {
-        Condition::Expr(expr) => expr_effects(expr, ctx),
+        Condition::Expr(expr) => super::shell::status_effects(expr, ctx),
+        Condition::Not(inner) => condition_effects(inner, ctx),
         Condition::Let { expr, .. } => expr_effects(expr, ctx),
         Condition::And(parts) | Condition::Or(parts) => {
             let mut effects = EffectSet::empty();
@@ -178,6 +181,7 @@ pub(super) fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
         Expr::ShellCapture(_) => super::table::shell_effects(false),
         Expr::AsyncBlock(body) => EffectSet::of(Effect::Task).union(&block_effects(body, ctx)),
         Expr::Pipeline(pipeline) => super::shell::pipeline_effects(pipeline, ctx, true),
+        Expr::StatusOf(command) => super::shell::status_effects(command, ctx),
     }
 }
 

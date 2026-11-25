@@ -158,6 +158,8 @@ fn statement(s: &Statement, scope: &mut Scope, globals: &Scope) -> Result<()> {
             }
             block(body, &mut scope.clone(), globals)?;
         }
+        S::AllowFail(e) => expr(e, scope, globals)?,
+        S::Defer(body) => block(body, &mut scope.clone(), globals)?,
         S::Use(_)
         | S::Module(_)
         | S::UnitDef(_)
@@ -187,6 +189,7 @@ fn condition(c: &Condition, scope: &mut Scope, globals: &Scope) -> Result<()> {
                 condition(c, &mut scope.clone(), globals)?;
             }
         }
+        Condition::Not(c) => condition(c, &mut scope.clone(), globals)?,
     }
     Ok(())
 }

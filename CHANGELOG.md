@@ -17,6 +17,27 @@ project adheres to [Semantic Versioning][semver].
 
 ### Added
 
+- A command, a pipeline or a function returning `()` used as an `if` or
+  `while` condition tests whether it succeeded. Its output streams, a
+  failure takes the `else` branch instead of stopping the script, and a
+  pipeline fails like `pipefail`. `!` negates a condition, and parentheses
+  group `&&` and `||`.
+- `status_of command` evaluates to the command's exit status as an `Int`
+  without silencing it, and `allow_fail command` runs it and carries on
+  whatever its status. Both also take `task.await`.
+- `std::io::discard_stderr`, `stderr_to` and `stderr_append_to` redirect the
+  stderr of the stage before them while its stdout keeps flowing, and
+  `to_stderr` sends a stage's stdout to stderr: `2>/dev/null`, `2> file`,
+  `2>> file` and `>&2`.
+- `let job = spawn command` runs a command, pipeline or unit function in the
+  background as a `Task<()>` whose output streams. Task handles gain
+  `job.pid` and `job.kill()`/`job.kill("INT")`, which signal the task and
+  every process it started; a killed task does not fail its scope when the
+  scope joins it.
+- `defer { … }` and `defer statement` run when the enclosing function
+  returns or the script exits, last registered first, including on
+  failure, `std::process::exit` and handled signals, before unfinished tasks
+  are joined and temporary directories removed.
 - Call programs outside the command catalog by naming them:
   `use $bin::{vp, "apt-get" as apt_get}`. Quoted names take a ush alias.
 - Native pipelines: `a | b | c` streams as a statement and captures the last
@@ -61,6 +82,8 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+- A task that a signal ends reports the signal's status to every `.await`,
+  and a scope's exit trap runs deferred blocks before joining its tasks.
 - The last line of a function declared `-> ()` is always a statement. A
   trailing command or pipeline there streams instead of failing to compile as
   a returned String.

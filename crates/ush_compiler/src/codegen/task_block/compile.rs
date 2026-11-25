@@ -35,6 +35,9 @@ pub(crate) fn compile_async_block(
     out.push_str(&helper);
     out.push_str("() {\n");
     let mut body_env = env.clone();
+    let blocked = state
+        .defer_blocked
+        .replace("inside an `async` block or `spawn`; defer in a function and call it");
     let body_out = compile_body(
         body,
         &mut body_env,
@@ -45,7 +48,9 @@ pub(crate) fn compile_async_block(
         function_errors,
         state,
         &return_type,
-    )?;
+    );
+    state.defer_blocked = blocked;
+    let body_out = body_out?;
     if body_out.is_empty() {
         push_line(out, ":", 2);
     } else {

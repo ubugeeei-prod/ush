@@ -87,24 +87,6 @@ pub(super) fn expr_errors(
                 )?);
             }
         }
-        Expr::Range { start, end } => {
-            errors.extend(&expr_errors(
-                start,
-                env,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-            errors.extend(&expr_errors(
-                end,
-                env,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-        }
         Expr::Add(parts) => {
             for part in parts {
                 errors.extend(&expr_errors(
@@ -117,7 +99,11 @@ pub(super) fn expr_errors(
                 )?);
             }
         }
-        Expr::Compare { lhs, rhs, .. } => {
+        Expr::Compare { lhs, rhs, .. }
+        | Expr::Range {
+            start: lhs,
+            end: rhs,
+        } => {
             errors.extend(&expr_errors(
                 lhs,
                 env,
@@ -136,6 +122,14 @@ pub(super) fn expr_errors(
             )?);
         }
         Expr::ShellCapture(_) => errors.insert(ErrorType::Unknown),
+        Expr::StatusOf(command) => errors.extend(&super::status::errors(
+            command,
+            env,
+            functions,
+            impls,
+            enums,
+            function_errors,
+        )?),
         Expr::Pipeline(p) => errors.extend(&super::shell::pipeline_errors(
             p,
             env,

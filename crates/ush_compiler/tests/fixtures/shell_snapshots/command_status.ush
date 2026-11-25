@@ -1,0 +1,13 @@
+use $bin::*
+use std::io::{discard_stderr, stderr_to, to_file, to_stderr}
+
+if git "diff" "--quiet" {
+  print "clean"
+}
+if ! grep "-Fxq" "ready" "status.txt" || git "cat-file" "-e" "HEAD:README.md" | discard_stderr {
+  print "check"
+}
+let code = status_of cargo "test" | tee "test.log"
+allow_fail rm "-f" "stale.lock"
+cargo "build" | stderr_to "build.err" | to_file "build.out"
+printf "warning\n" | to_stderr

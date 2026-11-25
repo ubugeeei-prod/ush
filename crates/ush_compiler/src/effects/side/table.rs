@@ -46,7 +46,12 @@ pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
             "io::eprint" => EffectSet::of(Effect::Stderr),
             "io::print" | "io::println" => EffectSet::of(Effect::Stdout),
             "io::read_all" | "io::read_lines" => EffectSet::of(Effect::Stdin),
-            "io::from_file" | "io::to_file" | "io::append_to" => EffectSet::of(Effect::Fs),
+            "io::from_file"
+            | "io::to_file"
+            | "io::append_to"
+            | "io::stderr_to"
+            | "io::stderr_append_to" => EffectSet::of(Effect::Fs),
+            "io::to_stderr" => EffectSet::of(Effect::Stderr),
             _ if rest.starts_with("os::") || rest.starts_with("terminal::") => {
                 EffectSet::of(Effect::Env)
             }
@@ -90,6 +95,7 @@ pub(super) fn builtin_method_effects(method: &str) -> EffectSet {
             builtin_call_effects(&format!("std::command::{method}"))
         }
         "download" | "get_bytes" => EffectSet::of(Effect::Net),
+        "kill" => EffectSet::of(Effect::Task),
         _ => EffectSet::empty(),
     }
 }

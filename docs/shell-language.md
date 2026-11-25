@@ -154,22 +154,44 @@ reader that stopped early is always recorded first, and a reader that read to
 the end is always recorded after its writer. A failing last stage always fails
 the pipeline.
 
-**Sources and sinks.** `std::io` provides three stages that lower to plain
-shell redirections rather than extra processes:
+**Sources and sinks.** `std::io` provides stages that lower to plain shell
+redirections rather than extra processes:
 
 | Stage | Position | Lowers to |
 | --- | --- | --- |
 | `from_file path` | first | `< path` on the next stage |
 | `to_file path` | last | `> path` on the previous stage (truncate) |
 | `append_to path` | last | `>> path` on the previous stage |
+| `to_stderr` | last | `>&2` on the previous stage |
+| `stderr_to path` | after a stage | `2> path` on the previous stage (truncate) |
+| `stderr_append_to path` | after a stage | `2>> path` on the previous stage |
+| `discard_stderr` | after a stage | `2>/dev/null` on the previous stage |
 
-`cmd |& to_file "log"` is `cmd > log 2>&1`. stderr alone already has
-`std::process::redirect`. A path is always one shell word, including spaces
-and newlines. A computed path follows the `std::fs` rules: source-relative
-path references resolve, and an empty path is an error. A failure to open
-the file fails the stage that owns the redirection, and the diagnostic shows
-both: `pipeline stage 1 failed: from_file "notes.txt" | sort`. Calling
-`to_file` outside a pipeline is a compile error.
+```ush
+use $bin::*
+use std::io::{discard_stderr, stderr_to, to_file, to_stderr}
+
+cargo "build" | stderr_to "build.err" | to_file "build.out"
+if git "cat-file" "-e" "HEAD:README.md" | discard_stderr {
+  print "tracked"
+}
+printf "warning: stale cache\n" | to_stderr
+```
+
+`cmd |& to_file "log"` is `cmd > log 2>&1`. The three stderr stages take the
+stderr of the stage before them and let its stdout carry on to the next
+stage, or to the pipeline's output when they come last, so
+`cmd | discard_stderr` streams stdout and drops stderr. They cannot follow
+`|&` or another stderr stage, and `|&` cannot follow them: each would undo
+the other. `to_stderr` sends the last stage's stdout to the script's stderr,
+which makes `cmd |& to_stderr` send both streams there.
+
+A path is always one shell word, including spaces and newlines. A computed
+path follows the `std::fs` rules: source-relative path references resolve,
+and an empty path is an error. A failure to open the file fails the stage
+that owns the redirection, and the diagnostic shows both:
+`pipeline stage 1 failed: from_file "notes.txt" | sort`. Calling any of
+these stages outside a pipeline is a compile error.
 
 **String stdin.** A String expression as the first stage feeds its exact bytes
 to the next stage's stdin, which covers here-strings and here-documents. No
@@ -180,6 +202,167 @@ either. A call to a command is always a command stage and never a String,
 so `git "log" | head` runs git; a call to a function that returns a String
 feeds that String, which has lost its trailing newlines like every returned
 value.
+
+## Command status
+
+```ush
+use $bin::*
+use std::io::discard_stderr
+
+if git "diff" "--quiet" {
+  print "clean"
+}
+if ! grep "-Fxq" "ready" "status.txt" || git "cat-file" "-e" "HEAD:x" | discard_stderr {
+  print "not ready"
+}
+while ! curl "-sf" "http://127.0.0.1:8000/health" {
+  sleep "1"
+}
+let tests = status_of cargo "test"
+allow_fail rm "stale.lock"
+if tests != 0 {
+  fail tests "tests failed"
+}
+```
+
+A *command* here is a `$bin::` command other than `test`,
+`std::process::exec` or `output`, a call to a function returning `()`, or a
+pipeline of these. Used as an `if` or `while` condition, a command tests
+whether it succeeded: its stdout and stderr stream as they would for a
+statement, and a failure takes the `else` branch instead of stopping the
+script. The rule is type-directed and unambiguous: a command in value
+position is a String or `()`, never a Bool, so it cannot be mistaken for a
+Boolean value. A Bool, such as `test "-f" path` or a function returning
+`Bool`, is still a value. A command used as an operand of `==` or `+` is
+still captured, so `if git "branch" "--show-current" == "main"` compares its
+output.
+
+`!` negates a condition, and `&&` and `||` combine commands with Booleans and
+each other, with `||` binding more loosely than `&&` and parentheses to
+group: `!(a || b)`. A pattern binding cannot be negated. A pipeline condition
+fails when any stage fails, leftmost first, exactly as a streamed pipeline
+does, so `if producer | grep "-q" "x"` is false when `producer` fails; a
+reader that stops early, such as `head`, is still not a failure. Nothing is
+reported for a failing condition. Statements inside a function used as a
+condition still report where they failed, because the function body decides
+what to report. `?` on a condition command is rejected, since it would stop
+the script on the very failure being tested.
+
+`status_of command` runs the command the same way and evaluates to its exit
+status as an `Int`, 0 for success. It covers the rest of the expression,
+pipelines included, so parenthesize it to compare: `(status_of make) == 2`.
+`allow_fail command` runs the command and carries on whatever its status,
+like `cmd || true` in sh. Both also take `task.await`, described in
+[background commands](#background-commands). Only the command's own failure
+is handled: an argument that fails to evaluate, such as a captured
+`$(…)?`, still stops the script. A command whose status is tested adds no
+`unknown` to the error row; its streams add `stdout` and `stderr` to the
+effect row as a statement would.
+
+`std::process::status` keeps its meaning: it runs a computed argv with both
+streams silenced. Use `status_of` when the output should be seen.
+
+## Background commands
+
+```ush
+use $bin::*
+use std::io::to_file
+
+let server = spawn python3 "-m" "http.server" "8000"
+defer server.kill()
+let build = spawn cargo "build" |& to_file "build.log"
+print "server pid " + server.pid
+let code = status_of build.await
+```
+
+`let job = spawn command` starts a command, a pipeline or a call to a
+function returning `()` in the background and binds a `Task<()>` handle, the
+same type an `async` block produces. The command runs as it would as a
+statement: its stdout and stderr stream, and stdin is `/dev/null` as for any
+background job. `async f x` still runs a value-returning call and
+`.await` gives that value; `spawn` is for commands whose output should
+stream.
+
+Every task handle has:
+
+| Member | Meaning |
+| --- | --- |
+| `job.await` | Wait for the task. Its failure stops the script with the task's status, as for any `.await`. |
+| `status_of job.await` | Wait and evaluate to the task's exit status. Every later await sees the same status. |
+| `allow_fail job.await` | Wait and ignore the status. |
+| `job.pid` | The task's process ID as an `Int`. |
+| `job.kill()` | Send `TERM` to the task and every process it started. |
+| `job.kill("INT")` | Send another signal: `HUP`, `INT`, `QUIT`, `KILL`, `USR1`, `USR2`, `ALRM`, `TERM`, `STOP` or `CONT`. |
+
+`kill` signals the whole process tree, so a server that starts workers is
+stopped with them. It signals the task, then stops each process below it,
+lists that process's children with `ps`, signals it and continues it, so a
+process cannot start a child unseen.
+POSIX `sh` has no portable way to put a background job in a process group of
+its own, which `kill -- -pid` would need. A program that detaches with
+`setsid` or a double fork leaves the tree and is not reached. `kill` does
+not wait; `.await` afterwards reports the signal's status, such as 143 for
+`TERM`. Killing a task that has finished, or that this scope has already
+awaited, does nothing. A literal signal name is checked at compile time and
+a computed one at run time. Background jobs of a non-interactive shell
+ignore `INT` and `QUIT`, so a program that does not reset them only stops
+for `TERM` or `KILL`.
+
+When a scope ends, it waits for the tasks it started and fails with the
+first failing one. A task stopped through `kill` does not fail its scope.
+Pair a long-running `spawn` with `defer job.kill()`: otherwise the script
+waits for the server at exit. Handles follow the binding rules, so a
+deferred `job.kill()` stops the task the binding holds when the block runs.
+
+## Deferred cleanup
+
+```ush
+use $bin::*
+
+fn with_server(port: String) -> () / unknown, io, exec, fs, env, net, task {
+  let server = spawn python3 "-m" "http.server" port
+  defer server.kill()
+  curl "-sf" ("http://127.0.0.1:" + port)
+}
+
+let work = std::fs::temp_dir
+defer {
+  print "logs kept in " + work
+}
+defer rm "-f" "run.lock"
+with_server "8000"
+```
+
+`defer { … }` and the one-line `defer statement` register a block that runs
+when the enclosing function returns or, at top level, when the script exits.
+They run whether the scope succeeds, fails with `fail`, `?` or a failing
+command, calls `std::process::exit`, or is stopped by `HUP`, `INT` or
+`TERM`. Blocks run last registered first. A `defer` that is never reached,
+as in an `if` branch not taken, registers nothing.
+
+Deferred blocks run before the scope waits for its unfinished tasks, so a
+block can stop a server the script started, and before temporary
+directories from `std::fs::temp_dir` are removed, so a block can still read
+them. The order at exit is: report the failure, if any; run deferred blocks;
+join tasks; remove temporary directories.
+
+A deferred block that fails reports its own line, the remaining blocks still
+run, and its status becomes the exit status unless the scope was already
+failing, in which case the original status is kept. A block reads bindings
+when it runs: an immutable binding has the value it was given, and a
+`let mut` binding has its latest value. It cannot `return`, and `break` and
+`continue` need a loop inside the block.
+
+`defer` is a statement of a function body or the top level, including the
+branches of `if` and `match`. It is rejected inside loops, where every
+iteration would add a block that runs only at exit, inside `cd` and `export`
+blocks, whose directory and variables are restored before the deferred block
+runs, and inside `async` blocks, methods and other deferred blocks. A
+function that defers runs in a process of its own, like a function that
+starts tasks, and installs its own `HUP`, `INT` and `TERM` handlers. A
+signal a shell receives while it waits for a foreground command is handled
+when that command ends, which is why a terminal's Ctrl-C, sent to the whole
+process group, runs deferred blocks at once. `SIGKILL` cannot run them.
 
 ## Local modules
 

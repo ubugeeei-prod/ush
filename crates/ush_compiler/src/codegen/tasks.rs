@@ -150,6 +150,24 @@ pub(crate) fn compile_expr_statement(
 ) -> Result<()> {
     let ty = infer(expr, env, functions, impls, enums)?;
     ensure_value_type(&ty)?;
+    if let Expr::MethodCall(call) = expr
+        && super::task_methods::is_kill(&call.receiver, &call.method, env)
+    {
+        let signal = match call.args.first() {
+            Some(arg) => compile_runtime_primitive_expr(
+                &arg.expr,
+                env,
+                functions,
+                impls,
+                enums,
+                state,
+                inside_function,
+                out,
+            )?,
+            None => "TERM".into(),
+        };
+        return super::task_methods::push_kill(&call.receiver, &signal, env, inside_function, out);
+    }
     let _ = compile_runtime_primitive_expr(
         expr,
         env,

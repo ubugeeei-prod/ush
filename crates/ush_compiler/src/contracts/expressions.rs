@@ -116,6 +116,10 @@ impl Checker {
                 }
                 t
             }
+            Expr::StatusOf(command) => {
+                self.expr(command, locals)?;
+                Ty::named("Int")
+            }
             Expr::Pipeline(pipeline) => {
                 for stage in pipeline.exprs_mut() {
                     self.expr(stage, locals)?;

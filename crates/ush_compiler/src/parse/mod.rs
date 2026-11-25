@@ -17,6 +17,7 @@ mod module_decl;
 mod params;
 mod path;
 mod pipeline;
+mod process;
 mod record;
 mod returns;
 mod scoped;

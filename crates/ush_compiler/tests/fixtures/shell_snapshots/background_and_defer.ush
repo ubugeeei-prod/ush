@@ -1,0 +1,17 @@
+use $bin::*
+use std::io::to_file
+
+fn serve(port: String) -> () / unknown, stdin, stdout, stderr, fs, env, net, exec, task {
+  let server = spawn python3 "-m" "http.server" port
+  defer server.kill()
+  curl "-sf" ("http://127.0.0.1:" + port)
+}
+
+let work = std::fs::temp_dir
+defer {
+  rm "-rf" (work + "/cache")
+}
+let build = spawn cargo "build" |& to_file "build.log"
+let status = status_of build.await
+print "build exited " + status
+serve "8000"

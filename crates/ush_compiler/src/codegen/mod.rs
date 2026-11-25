@@ -10,6 +10,7 @@ mod compare;
 pub(crate) mod comprehension;
 mod control;
 mod control_support;
+mod defer;
 mod docs;
 mod effects_lowering;
 mod enum_registry;
@@ -20,6 +21,7 @@ mod methods;
 mod methods_support;
 mod pipeline;
 mod primitive;
+pub(crate) mod process;
 mod registries;
 mod render;
 mod runtime_expr;
@@ -33,6 +35,7 @@ mod statement_control;
 mod stdlib;
 mod task_block;
 mod task_init;
+mod task_methods;
 mod tasks;
 mod uses_std;
 pub(crate) mod wire;
@@ -56,6 +59,7 @@ pub(crate) use registries::error_rows;
 pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runtime};
 pub(crate) use shared::{binding_for_name, shell_function_name};
 pub(crate) use stdlib::host_required;
+pub(crate) use stdlib::pipe::is_redirection as redirection_stage;
 pub(crate) use stdlib::register_builtins;
 pub(crate) use task_block::infer_async_block_type;
 pub(crate) use tasks::bind_await;
@@ -128,8 +132,10 @@ pub(crate) fn compile_program(
     out.set_section(previous_section);
     let body = out;
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
-    let uses_tasks =
-        body.as_str().contains("__ush_jobs=") || body.as_str().contains("__ush_task_init");
+    // Deferred blocks run from the exit trap the task runtime installs.
+    let uses_tasks = body.as_str().contains("__ush_jobs=")
+        || body.as_str().contains("__ush_task_init")
+        || body.as_str().contains("__ush_defers=");
     source_context::emit(
         &mut out,
         source_context,
@@ -156,6 +162,14 @@ pub(crate) fn compile_program(
     }
     if body.as_str().contains("__ush_pipe_check") {
         out.push_str(include_str!("pipeline_runtime.sh"));
+        out.push('\n');
+    }
+    if body.as_str().contains("__ush_defers=") {
+        out.push_str(include_str!("defer_runtime.sh"));
+        out.push('\n');
+    }
+    if body.as_str().contains("__ush_task_kill") {
+        out.push_str(include_str!("kill_runtime.sh"));
         out.push('\n');
     }
     wire::emit(state.wire_types, &enums, &mut out)?;

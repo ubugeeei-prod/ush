@@ -87,7 +87,24 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("raise", "Raise a typed error (`T / Problem`)."),
     ("return", "Return from the enclosing function."),
     ("shell", "Run a `.ush`-built shell expression."),
-    ("spawn", "Spawn an async task with `spawn name = call ...`."),
+    (
+        "spawn",
+        "Run a command in the background: `let job = spawn cmd`. Its output streams; \
+         `job.await`, `job.pid` and `job.kill()` work on the handle.",
+    ),
+    (
+        "status_of",
+        "Run a command, streaming its output, and evaluate to its exit status as an `Int`.",
+    ),
+    (
+        "allow_fail",
+        "Run a command, streaming its output, and continue whatever its exit status.",
+    ),
+    (
+        "defer",
+        "Run a statement or block when the enclosing function returns or the script exits, \
+         last registered first.",
+    ),
     ("trait", "Declares a trait."),
     ("true", "Boolean true literal."),
     ("type", "Declares a type alias or `type { ... }`."),

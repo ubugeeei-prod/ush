@@ -88,6 +88,8 @@ impl Walker<'_> {
             S::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
             S::Export(bindings) => bindings.iter().any(|b| self.expr(&b.value)),
             S::Scoped { scope, body } => scope.exprs().any(|e| self.expr(e)) || self.body(body),
+            S::AllowFail(e) => self.expr(e),
+            S::Defer(body) => self.body(body),
             _ => false,
         }
     }
@@ -95,6 +97,7 @@ impl Walker<'_> {
         match c {
             Condition::Expr(e) | Condition::Let { expr: e, .. } => self.expr(e),
             Condition::And(cs) | Condition::Or(cs) => cs.iter().any(|c| self.condition(c)),
+            Condition::Not(c) => self.condition(c),
         }
     }
     fn expr(&mut self, e: &Expr) -> bool {
@@ -125,7 +128,7 @@ impl Walker<'_> {
                 start: lhs,
                 end: rhs,
             } => self.expr(lhs) || self.expr(rhs),
-            Expr::Try(e) | Expr::Field { base: e, .. } => self.expr(e),
+            Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => self.expr(e),
             Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(|e| self.expr(e)),
             Expr::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
             Expr::Variant(v) => match &v.fields {

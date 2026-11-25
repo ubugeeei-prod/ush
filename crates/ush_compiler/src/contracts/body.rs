@@ -128,6 +128,10 @@ impl Checker {
                 }
                 self.branch(body, &mut locals.clone(), returns, false)?;
             }
+            S::AllowFail(e) => {
+                self.expr(e, locals)?;
+            }
+            S::Defer(body) => self.branch(body, &mut locals.clone(), &mut Vec::new(), false)?,
             S::Handle { body, handlers } => {
                 self.branch(body, &mut locals.clone(), returns, false)?;
                 for h in handlers {
@@ -197,6 +201,7 @@ impl Checker {
                     self.condition(c, &mut env.clone())?;
                 }
             }
+            Condition::Not(c) => self.condition(c, &mut env.clone())?,
         }
         Ok(())
     }

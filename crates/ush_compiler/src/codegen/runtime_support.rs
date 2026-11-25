@@ -129,6 +129,16 @@ pub(super) fn hoist_expr(
             inside_function,
             out,
         )?,
+        Expr::StatusOf(command) => super::process::hoist_status(
+            command,
+            env,
+            functions,
+            impls,
+            enums,
+            state,
+            inside_function,
+            out,
+        )?,
         Expr::Pipeline(pipeline) => super::pipeline::hoist_capture(
             pipeline,
             env,

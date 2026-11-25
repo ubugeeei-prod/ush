@@ -35,7 +35,7 @@ newlines and shell metacharacters. These APIs do not evaluate shell source.
 | `std::process::arg index` | Zero-based argument, or an empty string if absent |
 | `std::process::exec program arguments` | Stream stdout/stderr; propagate failure |
 | `std::process::output program arguments` | Capture stdout; propagate failure; trailing newlines follow shell capture semantics |
-| `std::process::status program arguments` | Suppress both streams and return the exit status |
+| `std::process::status program arguments` | Suppress both streams and return the exit status; `status_of` keeps them |
 | `std::process::redirect program arguments stdout_path stderr_path` | Write separate streams to files and return status, including failure to open a file |
 | `std::process::exit status` | Exit the current process scope with a status from 0 through 255 |
 | `std::io::eprint text` | Write a line to stderr |
@@ -48,7 +48,8 @@ newlines and shell metacharacters. These APIs do not evaluate shell source.
 
 Programs that read argv handle their own CLI, including `--help` and `--man`.
 Temporary directories are shared with the script's task lifetime and cleaned
-after outstanding tasks finish, including on failure and handled signals.
+after deferred blocks run and outstanding tasks finish, including on failure
+and handled signals.
 As with ordinary process cleanup, SIGKILL cannot run cleanup handlers.
 
 Double-quoted strings decode `\n`, `\r`, `\t`, `\"` and `\\` starting in 0.13.

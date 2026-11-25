@@ -8,6 +8,7 @@ mod loops;
 mod matching;
 mod shell;
 mod side;
+mod status;
 mod support;
 
 use anyhow::{Context, Result};

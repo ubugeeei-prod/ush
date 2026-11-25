@@ -51,7 +51,7 @@
     },
     {
       "name": "keyword.control.ush",
-      "match": "\\b(alias|as|async|await|break|const|continue|do|effect|else|enum|export|extern|fail|fn|for|if|impl|in|let|loop|match|mut|print|raise|return|shell|spawn|test|trait|try|type|unit|use|using|where|while|with)\\b"
+      "match": "\\b(alias|allow_fail|as|async|await|break|const|continue|defer|do|effect|else|enum|export|extern|fail|fn|for|if|impl|in|let|loop|match|mut|print|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b"
     },
     {
       "name": "constant.language.ush",
