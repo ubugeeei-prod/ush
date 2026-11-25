@@ -98,3 +98,24 @@ fn undefined_explicit_variables_are_errors_and_words_are_stable() {
         );
     }
 }
+
+#[test]
+fn echo_streams_when_process_control_observes_its_status() {
+    outputs(
+        r#"
+fn report() -> Int / stdout {
+  status_of echo status
+}
+let code = report
+echo $code
+allow_fail echo allowed
+if echo condition {
+  echo yes
+}
+let job = spawn echo background
+job.await
+defer echo deferred
+"#,
+        "status\n0\nallowed\ncondition\nyes\nbackground\ndeferred\n",
+    );
+}
