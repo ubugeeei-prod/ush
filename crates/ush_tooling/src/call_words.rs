@@ -82,14 +82,14 @@ fn visit(text: &str, base: usize, ranges: &mut Vec<(usize, usize)>) {
         return;
     }
     if head == "for" {
-        if let Some(at) = words.iter().position(|w| *w == "in") {
-            if let Some(value) = words.get(at + 1) {
-                visit(
-                    text[offset(text, value)..].trim_end_matches('{'),
-                    base,
-                    ranges,
-                );
-            }
+        if let Some(at) = words.iter().position(|w| *w == "in")
+            && let Some(value) = words.get(at + 1)
+        {
+            visit(
+                text[offset(text, value)..].trim_end_matches('{'),
+                base,
+                ranges,
+            );
         }
         return;
     }
@@ -157,15 +157,15 @@ fn visit(text: &str, base: usize, ranges: &mut Vec<(usize, usize)>) {
                 visit(item, base, ranges);
             }
         }
-    } else if let Some(open) = text.find('(') {
-        if text.ends_with(')') {
-            for item in split(&text[open + 1..text.len() - 1], Some(',')) {
-                let value = item
-                    .split_once(':')
-                    .filter(|(_, v)| !v.starts_with(':'))
-                    .map_or(item, |(_, v)| v);
-                visit(value, base, ranges);
-            }
+    } else if let Some(open) = text.find('(')
+        && text.ends_with(')')
+    {
+        for item in split(&text[open + 1..text.len() - 1], Some(',')) {
+            let value = item
+                .split_once(':')
+                .filter(|(_, v)| !v.starts_with(':'))
+                .map_or(item, |(_, v)| v);
+            visit(value, base, ranges);
         }
     }
 }
