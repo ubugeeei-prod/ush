@@ -263,7 +263,7 @@ __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__comma
 printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
 __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')" || exit "$?"
-printf '%s\n' $((__ush_value_10))
+printf '%s\n' "${__ush_value_10}"
 __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
 __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"

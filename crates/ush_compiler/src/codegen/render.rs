@@ -40,7 +40,7 @@ pub(crate) fn compile_int_expr(
 ) -> Result<String> {
     match expr {
         Expr::Int(value) => Ok(value.to_string()),
-        Expr::Var(name) => Ok(format!("$(({}))", primitive_int_var(env, name)?)),
+        Expr::Var(name) => Ok(format!("\"${{{}}}\"", primitive_int_var(env, name)?)),
         Expr::Try(inner) => compile_int_expr(inner, env, functions, impls, enums),
         Expr::Call(call) => capture_call(call, env, functions, impls, enums, &Type::Int),
         Expr::Add(parts) => Ok(format!(

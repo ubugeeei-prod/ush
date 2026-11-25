@@ -1,0 +1,42 @@
+use std::string::*
+use std::int::{min, max, abs, sign, clamp}
+use std::test::{assert, assert_eq}
+
+assert (is_empty "")
+assert_eq (is_empty " ") false
+assert (is_ascii "hello\t\n")
+assert_eq (is_ascii "日本語") false
+assert_eq (to_lower_ascii "Hello ÄBC") "hello Äbc"
+assert_eq (to_upper_ascii "Hello äbc") "HELLO äBC"
+assert_eq (trim_start " \t\na b \t") "a b \t"
+assert_eq (trim_end " \ta b\t\r\n") " \ta b"
+assert_eq (trim_start " \t\n") ""
+assert_eq (trim_end " \t\n") ""
+assert_eq (words " \ta\nb  * '[x]' \\c ") ["a", "b", "*", "'[x]'", "\\c"]
+assert_eq (join ["a b", "", "日本語", "'\n*"] "::") "a b::::日本語::'\n*"
+assert_eq (join (words "") ":") ""
+assert_eq (repeat "ab" 5) "ababababab"
+assert_eq (repeat "ab" 0) ""
+assert_eq (count "aaaaa" "aa") 2
+assert_eq (count "*a**" "*") 3
+assert_eq (count "abc" "z") 0
+for value in ["", "a b", "a'b'c", "$HOME; * \n日本語", "-n"] {
+  let command = "printf '%s' " + shell_quote value
+  assert_eq (std::process::output "sh" ["-c", command]) value
+}
+assert_eq (min -8 2) -8
+assert_eq (max -8 2) 2
+assert_eq (abs -8) 8
+assert_eq (abs 0) 0
+assert_eq (sign -8) -1
+assert_eq (sign 0) 0
+assert_eq (sign 8) 1
+assert_eq (clamp -8 0 10) 0
+assert_eq (clamp 8 0 10) 8
+assert_eq (clamp 18 0 10) 10
+let minimum = -9223372036854775808
+assert_eq (min minimum 0) minimum
+assert_eq (max minimum 9223372036854775807) 9223372036854775807
+assert_eq [minimum, 9223372036854775807] [-9223372036854775808, 9223372036854775807]
+std::io::print "pass"
+std::io::println "ed"

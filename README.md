@@ -474,6 +474,8 @@ If none is available, it falls back to `~/.local/bin` and updates your shell rc 
 It refuses to install unless it can verify the archive against the release `sha256sums.txt` with `sha256sum`, `shasum`, or `openssl`.
 
 The installer and repository scripts are [written in native ush](docs/native-scripting.md).
+The [standard library reference](docs/stdlib.md) covers portable text, file,
+path, stream and process helpers.
 Their checked-in shell files are generated bootstrap artifacts.
 Release archives are currently published for:
 

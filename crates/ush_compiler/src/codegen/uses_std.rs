@@ -1,6 +1,6 @@
 //! Only construct builtin signatures when the resolved program actually refers to them.
 use crate::ast::{Condition, Expr, Statement, StatementKind as S};
-pub(super) fn references(body: &[Statement]) -> bool {
+pub(crate) fn references(body: &[Statement]) -> bool {
     body.iter().any(statement)
 }
 fn statement(s: &Statement) -> bool {
@@ -56,7 +56,12 @@ fn expr(e: &Expr) -> bool {
                 })
         }
         Expr::Call(c) => c.name.starts_with("std::") || c.args.iter().any(|a| expr(&a.expr)),
-        Expr::MethodCall(_) => true, // Builtin methods lower to std functions after type inference.
+        Expr::MethodCall(call) => {
+            // Task awaiting needs no std signatures, but its receiver can.
+            call.method != "await"
+                || expr(&call.receiver)
+                || call.args.iter().any(|arg| expr(&arg.expr))
+        }
 
         Expr::Compare { lhs, rhs, .. }
         | Expr::Range {

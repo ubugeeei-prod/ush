@@ -241,7 +241,7 @@ __ush_match_6__1='flake.nix'
 # shellcheck disable=SC2034
 __ush_match_6__2="${work}"'/flake.nix'
 __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'cmp' "$(ush_fn_std__pack __ush_match_6)")" || exit "$?"
-[ "$(if [ $((__ush_value_8)) -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_value_8}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
   __ush_at 10 'fail 1 "flake.nix is stale; run tynix compile flake.tynix -o flake.nix"'
   __ush_status=1

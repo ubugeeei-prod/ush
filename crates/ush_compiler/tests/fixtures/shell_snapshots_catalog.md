@@ -421,7 +421,7 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
   item="${__ush_for_index_1}"
   __ush_for_index_1=$((__ush_for_index_1 + 1))
   __ush_at 13 'print item'
-  printf '%s\n' $((item))
+  printf '%s\n' "${item}"
 done
 __ush_at 16 'let items = [3, 4]'
 items__len='2'
@@ -444,7 +444,7 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
   __ush_at 18 'print item'
-  printf '%s\n' $((item))
+  printf '%s\n' "${item}"
 done
 __ush_at 21 'let pair = (5, 6)'
 pair__len='2'
@@ -456,20 +456,20 @@ __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
 __ush_match_7__0="${pair__0}"
 __ush_match_7__1="${pair__1}"
-item=$((__ush_match_7__0))
+item="${__ush_match_7__0}"
 __ush_at 23 'print item'
-printf '%s\n' $((item))
-item=$((__ush_match_7__1))
+printf '%s\n' "${item}"
+item="${__ush_match_7__1}"
 __ush_at 23 'print item'
-printf '%s\n' $((item))
+printf '%s\n' "${item}"
 __ush_at 26 'let count = 0'
 count=0
 __ush_at 27 'while count < 2 {'
 while {
-[ "$(if [ $((count)) -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; do
   __ush_at 28 'print count'
-  printf '%s\n' $((count))
+  printf '%s\n' "${count}"
   __ush_at 29 'let count = count + 1'
   count=$((count + 1))
 done
@@ -490,11 +490,11 @@ if {
 it="${maybe__0-}"
 [ "${maybe__tag}" = 'Option::Some' ]
 } && {
-[ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${it}" -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }
 }; then
   __ush_at 44 'print it'
-  printf '%s\n' $((it))
+  printf '%s\n' "${it}"
 fi
 ```
 
@@ -874,7 +874,7 @@ ush_fn_bin() {
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)" || return "$?"
   printf '%s\n' "${__ush_value_0}"
   __ush_at 21 'print count'
-  printf '%s\n' $((__ush_fn_bin_arg_1))
+  printf '%s\n' "${__ush_fn_bin_arg_1}"
   __ush_at 22 'print verbose'
   printf '%s\n' "${__ush_fn_bin_arg_2}"
 }
@@ -1688,7 +1688,7 @@ __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__comma
 printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
 __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')" || exit "$?"
-printf '%s\n' $((__ush_value_10))
+printf '%s\n' "${__ush_value_10}"
 __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
 __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"

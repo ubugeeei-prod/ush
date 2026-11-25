@@ -343,7 +343,7 @@ __ush_match_6__len='1'
 # shellcheck disable=SC2034
 __ush_match_6__0="${work}"'/job.sh'
 __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_6)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq $((__ush_value_8)) 23 )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_8}" 23 )
 __ush_at 31 'assert_eq (test "-s" (work + "/out")) false'
 __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_9}" 'false' )
@@ -359,7 +359,7 @@ __ush_match_11__len='1'
 # shellcheck disable=SC2034
 __ush_match_11__0="${work}"'/job.sh'
 __ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_11)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq $((__ush_value_13)) 0 )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_13}" 0 )
 __ush_at 61 'assert_eq (read_text (work + "/out")) "42\n43\n41\n41"'
 __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/out')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_14}" '42'"${__ush_lf}"'43'"${__ush_lf}"'41'"${__ush_lf}"'41' )
@@ -375,7 +375,7 @@ __ush_match_16__len='1'
 # shellcheck disable=SC2034
 __ush_match_16__0="${work}"'/job.sh'
 __ush_value_18="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_16)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq $((__ush_value_18)) 23 )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_18}" 23 )
 __ush_at 77 'assert_eq (test "-s" (work + "/out")) false'
 __ush_value_19="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__test '-s' "${work}"'/out')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_19}" 'false' )

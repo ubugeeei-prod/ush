@@ -65,7 +65,8 @@ pub(super) fn function_for_call<'a>(
 }
 
 pub(super) fn capture_fds(name: &str) -> &'static str {
-    if name.starts_with("std::") || name.starts_with("$bin::") {
+    if name != "std::terminal::is_tty" && (name.starts_with("std::") || name.starts_with("$bin::"))
+    {
         ""
     } else {
         " 4>&1 >&3"

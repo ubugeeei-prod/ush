@@ -200,7 +200,7 @@ ush_fn_bin() {
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)" || return "$?"
   printf '%s\n' "${__ush_value_0}"
   __ush_at 21 'print count'
-  printf '%s\n' $((__ush_fn_bin_arg_1))
+  printf '%s\n' "${__ush_fn_bin_arg_1}"
   __ush_at 22 'print verbose'
   printf '%s\n' "${__ush_fn_bin_arg_2}"
 }

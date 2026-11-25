@@ -28,10 +28,19 @@ pub(super) fn shell_effects(streams_stdout: bool) -> EffectSet {
 pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
     if let Some(rest) = name.strip_prefix("std::") {
         return match rest {
-            "process::args" | "process::arg" | "process::exit" => EffectSet::of(Effect::Env),
+            "process::args" | "process::arg" | "process::exit" | "process::pid" => {
+                EffectSet::of(Effect::Env)
+            }
+            "process::chdir" => [Effect::Env, Effect::Fs].into_iter().collect(),
+            "process::sleep" => EffectSet::of(Effect::Exec),
             "process::exec" => shell_effects(true),
             _ if rest.starts_with("process::") => shell_effects(false),
             "io::eprint" => EffectSet::of(Effect::Stderr),
+            "io::print" | "io::println" => EffectSet::of(Effect::Stdout),
+            "io::read_all" | "io::read_lines" => EffectSet::of(Effect::Stdin),
+            _ if rest.starts_with("os::") || rest.starts_with("terminal::") => {
+                EffectSet::of(Effect::Env)
+            }
             _ if rest.starts_with("test::") => EffectSet::of(Effect::Stderr),
             _ if rest.starts_with("fs::") => EffectSet::of(Effect::Fs),
             _ if rest.starts_with("http::") => EffectSet::of(Effect::Net),
