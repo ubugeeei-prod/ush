@@ -168,3 +168,18 @@ fn wildcards_offering_the_same_name_conflict_unless_disambiguated() {
     );
     assert_eq!(project.run_everywhere("chosen.ush"), "ab\n");
 }
+
+#[test]
+fn module_functions_work_as_pipeline_stages() {
+    let project = Project::new(&[
+        (
+            "lib/github.ush",
+            "use std::io::{read_lines}\nuse std::string::{to_upper_ascii}\n\npub fn summary_stage() -> () / unknown, io {\n  for line in read_lines {\n    print \"- \" + line\n  }\n}\n\nfn shout() -> () / unknown, io {\n  for line in read_lines {\n    print to_upper_ascii line\n  }\n}\n\npub fn loud(text: String) -> () / unknown, io {\n  text | shout\n}\n",
+        ),
+        (
+            "main.ush",
+            "mod \"lib/github.ush\"\nuse github::{summary_stage}\n\n\"a\\nb\\n\" | github::summary_stage\nlet captured = \"c\\n\" | summary_stage\nprint captured\ngithub::loud \"quiet\\n\"\n",
+        ),
+    ]);
+    assert_eq!(project.run_everywhere("main.ush"), "- a\n- b\n- c\nQUIET\n");
+}

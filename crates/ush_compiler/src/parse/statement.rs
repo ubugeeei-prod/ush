@@ -54,19 +54,10 @@ pub(super) fn parse_block(
             None => (trimmed, false),
         };
         if let Some(role) = top
-            && trimmed.starts_with("extern ")
+            && let Some(block) =
+                items::parse_file_block(role, *line_no, trimmed, public, lines, cursor)?
         {
-            let dir = items::library_dir(role);
-            let mut declared = super::external::parse(*line_no, trimmed, lines, cursor, dir)?;
-            items::export_all(&mut declared, public);
-            statements.extend(declared);
-            continue;
-        }
-        if allow_declarations && (trimmed == "test {" || trimmed.starts_with("test ")) {
-            if public {
-                bail!("line {line_no}: test blocks cannot be `pub`");
-            }
-            statements.push(super::testing::parse(*line_no, trimmed, lines, cursor)?);
+            statements.extend(block);
             continue;
         }
         let (trimmed, terminated) = trim_statement_terminator(trimmed);

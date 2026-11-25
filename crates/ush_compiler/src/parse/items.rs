@@ -2,8 +2,11 @@
 
 use anyhow::{Result, bail};
 
-use super::FileRole;
-use crate::ast::{Statement, StatementKind as S};
+use super::{FileRole, SourceLine};
+use crate::{
+    ast::{Statement, StatementKind as S},
+    types::HeapVec as Vec,
+};
 
 /// Splits a leading `pub` from a top-level line.
 pub(super) fn strip_pub(line: &str) -> (&str, bool) {
@@ -13,13 +16,37 @@ pub(super) fn strip_pub(line: &str) -> (&str, bool) {
     }
 }
 
-/// The directory `extern` libraries are sourced from, relative to the
-/// root script's directory.
-pub(super) fn library_dir(role: FileRole<'_>) -> &str {
-    match role {
-        FileRole::Script => "",
-        FileRole::Module { dir } => dir,
+/// `extern` and `test` blocks, which only a file's top level holds.
+pub(super) fn parse_file_block(
+    role: FileRole<'_>,
+    line: usize,
+    header: &str,
+    public: bool,
+    lines: &[SourceLine<'_>],
+    cursor: &mut usize,
+) -> Result<Option<Vec<Statement>>> {
+    if header.starts_with("extern ") {
+        // A module's libraries are sourced from beside the module.
+        let dir = match role {
+            FileRole::Script => "",
+            FileRole::Module { dir } => dir,
+        };
+        let mut declared = super::external::parse(line, header, lines, cursor, dir)?;
+        for statement in &mut declared {
+            // `pub extern` exports every declared function.
+            statement.public = public && matches!(statement.kind, S::Function(_));
+        }
+        return Ok(Some(declared));
     }
+    if header == "test {" || header.starts_with("test ") {
+        if public {
+            bail!("line {line}: test blocks cannot be `pub`");
+        }
+        return Ok(Some(vec![super::testing::parse(
+            line, header, lines, cursor,
+        )?]));
+    }
+    Ok(None)
 }
 
 /// Records `pub` on a parsed top-level statement and keeps executable
@@ -58,11 +85,4 @@ pub(super) fn finish(
         }
     }
     Ok(())
-}
-
-/// `pub extern "x.sh" { … }` exports every declared function.
-pub(super) fn export_all(statements: &mut [Statement], public: bool) {
-    for statement in statements {
-        statement.public = public && matches!(statement.kind, S::Function(_));
-    }
 }
