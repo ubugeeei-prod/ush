@@ -248,7 +248,12 @@ ush_fn_std__io__read_all() {
 
 ush_fn_std__terminal__is_tty() {
   [ "$1" -ge 0 ] || { printf '%s\n' 'std::terminal::is_tty: file descriptor must be nonnegative' >&2; return 1; }
-  if [ -t "$1" ]; then printf true; else printf false; fi
+  if [ -t "$1" ]; then __ush_terminal=true; else __ush_terminal=false; fi
+  if [ "${__ush_capture_return:-0}" = 1 ]; then
+    printf '%s' "$__ush_terminal" >&4
+  else
+    printf '%s' "$__ush_terminal"
+  fi
 }
 
 ush_fn_std__process__pid() {
