@@ -144,7 +144,9 @@ pub(crate) fn path_tail(source: &str) -> Option<&str> {
 pub(crate) fn parse_paren_body(source: &str) -> Option<(&str, &str)> {
     let open = memchr(b'(', source.as_bytes())?;
     let close = memrchr(b')', source.as_bytes())?;
-    (close > open).then_some((source[..open].trim(), source[open + 1..close].trim()))
+    // `then_some` would slice eagerly, and a `)` before the first `(`
+    // makes that range backwards.
+    (close > open).then(|| (source[..open].trim(), source[open + 1..close].trim()))
 }
 
 pub(crate) fn parse_brace_body(source: &str) -> Option<(&str, &str)> {
