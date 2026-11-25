@@ -69,7 +69,7 @@ fn concat_is_shell_quoted() {
         )
         .expect("compile");
 
-    assert!(output.contains("\"${greeting}\"' world'"));
+    assert!(output.contains("\"${__ush_binding_2_greeting}\"' world'"));
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn async_await_lowers_to_task_handle_and_result_read() {
     assert!(output.contains("ush_fn_worker()"));
     assert!(output.contains("__ush_task_0__result=$__ush_slot/result"));
     assert!(output.contains("ush_fn_worker 'ok' ) &"));
-    assert!(output.contains("result=\"$(cat \"${__ush_task_0__result}\")\""));
+    assert!(output.contains("result=\"$(cat \"${__ush_binding_5_task__result}\")\""));
     assert!(output.contains("umask 077"));
     assert!(output.contains("wait \"$__ush_pid\""));
 }
@@ -136,7 +136,7 @@ fn functional_calls_capture_sync_return_values() {
     ));
     assert!(output.contains("value=\"${__ush_value_0}\""));
     assert!(
-        output.contains("__ush_value_1=\"$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet \"${value}\" 4>&1 >&3)\"")
+        output.contains("__ush_value_1=\"$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet \"${__ush_binding_5_value}\" 4>&1 >&3)\"")
     );
     assert!(output.contains("printf '%s\\n' \"${__ush_value_1}\""));
 }

@@ -7,12 +7,12 @@ use super::{
         env::{CodegenState, EnumRegistry, Env},
     },
     alias::compile_alias,
-    blocks::{compile_let, compile_match},
+    blocks::compile_match,
     calls::{compile_call, compile_try_call},
     functions::{FunctionRegistry, compile_function},
     io::{compile_raise, compile_shell, push_print},
     statement_control::compile_control_statement,
-    tasks::{compile_expr_statement, compile_return, compile_spawn},
+    tasks::{compile_expr_statement, compile_return},
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
@@ -91,9 +91,10 @@ pub(crate) fn compile_statement(
                 inside_function,
                 out,
             )?,
-            StatementKind::Let { name, expr } => compile_let(
-                name,
-                expr,
+            StatementKind::Let { .. }
+            | StatementKind::Spawn { .. }
+            | StatementKind::Await { .. } => super::binding::compile(
+                statement,
                 env,
                 globals,
                 functions,
@@ -103,23 +104,8 @@ pub(crate) fn compile_statement(
                 state,
                 inside_function,
                 out,
-            )?,
-            StatementKind::Spawn { name, call } => {
-                let binding = compile_spawn(
-                    call,
-                    env,
-                    functions,
-                    impls,
-                    enums,
-                    state,
-                    inside_function,
-                    out,
-                )?;
-                env.insert(name.clone(), binding);
-            }
-            StatementKind::Await { name, task } => {
-                super::tasks::bind_await(name, task, env, out)?;
-            }
+            )
+            .with_context(|| format!("line {}", statement.line))?,
             StatementKind::Print(expr) => push_print(
                 expr,
                 env,

@@ -159,8 +159,10 @@ ush_fn_std__string__to_int() {
   fi
 }
 
-__ush_at 7 'let failed = 0'
-failed=0
+__ush_at 7 'let mut failed = 0'
+__ush_binding_7_failed=0
+# shellcheck disable=SC2034
+failed="${__ush_binding_7_failed}"
 __ush_at 8 'for file in lines (find "apps" "crates" "-type" "f" "-name" "*.rs") {'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' command find 'apps' 'crates' '-type' 'f' '-name' '*.rs')" || exit "$?"
 __ush_packed_2="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_1}")" || exit "$?"
@@ -172,8 +174,10 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   eval "__ush_for_value_4=\"\${__ush_match_0__${__ush_for_list_index_3}}\""
   file="${__ush_for_value_4}"
   __ush_for_list_index_3=$((__ush_for_list_index_3 + 1))
-  __ush_at 9 'let count = ""'
-  count=''
+  __ush_at 9 'let mut count = ""'
+  __ush_binding_9_count=''
+  # shellcheck disable=SC2034
+  count="${__ush_binding_9_count}"
   __ush_at 10 'for word in split (trim (wc "-l" file)) " " {'
   __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' command wc '-l' "${file}")" || exit "$?"
   __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || exit "$?"
@@ -186,21 +190,25 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
     eval "__ush_for_value_10=\"\${__ush_match_5__${__ush_for_list_index_9}}\""
     word="${__ush_for_value_10}"
     __ush_for_list_index_9=$((__ush_for_list_index_9 + 1))
-    __ush_at 11 'let count = word'
-    count="${word}"
+    __ush_at 11 'count = word'
+    __ush_binding_9_count="${word}"
+    # shellcheck disable=SC2034
+    count="${__ush_binding_9_count}"
     __ush_at 12 'break'
     break
   done
   __ush_at 14 'if to_int count > 250 {'
   if {
-  __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__to_int "${count}")" || exit "$?"
+  __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__to_int "${__ush_binding_9_count}")" || exit "$?"
   [ "$(if [ "${__ush_value_11}" -gt 250 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 15 'eprint (file + " has " + count + " lines (limit: 250)")'
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${file}"' has '"${count}"' lines (limit: 250)' )
-    __ush_at 16 'let failed = 1'
-    failed=1
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${file}"' has '"${__ush_binding_9_count}"' lines (limit: 250)' )
+    __ush_at 16 'failed = 1'
+    __ush_binding_7_failed=1
+    # shellcheck disable=SC2034
+    failed="${__ush_binding_7_failed}"
   fi
 done
 __ush_at 19 'exit failed'
-ush_fn_std__process__exit "${failed}"
+ush_fn_std__process__exit "${__ush_binding_7_failed}"

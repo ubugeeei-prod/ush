@@ -59,11 +59,14 @@ impl<'a> Index<'a> {
             {
                 declarations.push((i + 1, scopes[i], 0));
             }
-            if matches!(names[i], "let" | "const" | "as") && identifier(tokens[i + 1].kind) {
+            let binding_name = i + 1 + usize::from(names[i] == "let" && names[i + 1] == "mut");
+            if matches!(names[i], "let" | "const" | "as")
+                && tokens.get(binding_name).is_some_and(|t| identifier(t.kind))
+            {
                 let after = (i + 2..tokens.len())
                     .find(|&j| tokens[j].line > tokens[i].line)
                     .unwrap_or(tokens.len());
-                declarations.push((i + 1, scopes[i], after));
+                declarations.push((binding_name, scopes[i], after));
             }
             if names[i] == "fn"
                 && let Some(body) = (i + 2..tokens.len())

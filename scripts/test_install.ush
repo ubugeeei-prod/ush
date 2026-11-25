@@ -9,22 +9,22 @@ use std::test::{assert, assert_eq}
 use std::io::eprint
 
 fn target() -> String / unknown, exec, env, stderr {
-  let os = uname "-s"
-  let arch = uname "-m"
+  let mut os = uname "-s"
+  let mut arch = uname "-m"
   if os == "Linux" {
-    let os = "unknown-linux-gnu"
+    os = "unknown-linux-gnu"
   }
   else if os == "Darwin" {
-    let os = "apple-darwin"
+    os = "apple-darwin"
   }
   else {
     fail 1 ("unsupported test OS: " + os)
   }
   if arch == "arm64" {
-    let arch = "aarch64"
+    arch = "aarch64"
   }
   else if arch == "amd64" {
-    let arch = "x86_64"
+    arch = "x86_64"
   }
   arch + "-" + os
 }
@@ -60,9 +60,9 @@ for name in ["USH_PREFIX", "UBSH_PREFIX", "USH_BIN_DIR", "UBSH_BIN_DIR", "USH_VE
 for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relative-prefix", "empty-env", "localhost", "checksum-name", "checksum-content", "profile-failure", "spaces"] {
   let work = temp_dir
   archive work target fixture
-  let home = work + "/home"
+  let mut home = work + "/home"
   if scenario == "spaces" {
-    let home = work + "/home with spaces '$value"
+    home = work + "/home with spaces '$value"
   }
   mkdir_p home
   set "HOME" home
@@ -72,11 +72,11 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
   unset "UBSH_AUTO_PATH"
   set "USH_DOWNLOAD_URL" ("file://" + work + "/ush.tar.gz")
   set "USH_CHECKSUM_URL" ("file://" + work + "/sha256sums.txt")
-  let directory = home + "/.local/bin"
-  let arguments = [installer]
-  let expected = 0
+  let mut directory = home + "/.local/bin"
+  let mut arguments = [installer]
+  let mut expected = 0
   if scenario == "existing" {
-    let directory = home + "/bin"
+    directory = home + "/bin"
     mkdir_p directory
     set "PATH" (directory + ":" + tools_path)
   }
@@ -86,17 +86,17 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
   else if scenario == "flags" {
     set "USH_DOWNLOAD_URL" ("file://" + work + "/missing-archive")
     set "USH_CHECKSUM_URL" ("file://" + work + "/missing-sums")
-    let directory = home + "/tools/bin"
-    let arguments = [installer, "--bin-dir", directory, "--no-modify-path", "--download-url", "file://" + work + "/ush.tar.gz", "--checksum-url", "file://" + work + "/sha256sums.txt"]
+    directory = home + "/tools/bin"
+    arguments = [installer, "--bin-dir", directory, "--no-modify-path", "--download-url", "file://" + work + "/ush.tar.gz", "--checksum-url", "file://" + work + "/sha256sums.txt"]
   }
   else if scenario == "prefix" {
-    let directory = home + "/prefix/bin"
-    let arguments = [installer, "--prefix", home + "/prefix", "--no-modify-path"]
+    directory = home + "/prefix/bin"
+    arguments = [installer, "--prefix", home + "/prefix", "--no-modify-path"]
   }
   else if scenario == "relative-prefix" {
     cd home
-    let directory = home + "/tools/bin"
-    let arguments = [installer, "--prefix", "tools"]
+    directory = home + "/tools/bin"
+    arguments = [installer, "--prefix", "tools"]
   }
   else if scenario == "empty-env" {
     set "USH_AUTO_PATH" ""
@@ -104,19 +104,19 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
   }
   else if scenario == "localhost" {
     set "USH_DOWNLOAD_URL" ("file://localhost" + work + "/ush.tar.gz")
-    let arguments = [installer, "--no-modify-path"]
+    arguments = [installer, "--no-modify-path"]
   }
   else if scenario == "checksum-name" {
     write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tarXgz\n")
-    let expected = 1
+    expected = 1
   }
   else if scenario == "checksum-content" {
     write_text (work + "/sha256sums.txt") ("0000000000000000000000000000000000000000000000000000000000000000  ush-" + target + ".tar.gz\n")
-    let expected = 1
+    expected = 1
   }
   else if scenario == "profile-failure" {
     mkdir_p (home + "/.zshrc")
-    let expected = 1
+    expected = 1
   }
   let code = redirect "sh" arguments (work + "/out") (work + "/err")
   if code != expected {

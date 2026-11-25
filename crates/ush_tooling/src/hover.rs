@@ -52,7 +52,14 @@ const KEYWORDS: &[(&str, &str)] = &[
     ("for", "For-in loop over a list, tuple, or range."),
     ("if", "Conditional expression."),
     ("impl", "Implementation block for a trait."),
-    ("let", "Binds a value to a name."),
+    (
+        "let",
+        "Declares an immutable binding. Use `let mut name = value` to allow reassignment with `name = value`.",
+    ),
+    (
+        "mut",
+        "Makes a `let` binding mutable. Reassignment uses `name = value` and preserves its type.",
+    ),
     ("loop", "Infinite loop; exit with `break`."),
     (
         "mod",

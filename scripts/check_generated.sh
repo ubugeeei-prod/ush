@@ -278,24 +278,30 @@ ush_fn_std__string__lines() {
   done
 }
 
-__ush_at 8 'let compiler = get_or "USH_COMPILER" ""'
+__ush_at 9 'let mut compiler = get_or "USH_COMPILER" ""'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_COMPILER' '')" || exit "$?"
-compiler="${__ush_value_0}"
-__ush_at 9 'if compiler == "" {'
+__ush_binding_9_compiler="${__ush_value_0}"
+# shellcheck disable=SC2034
+compiler="${__ush_binding_9_compiler}"
+__ush_at 10 'if compiler == "" {'
 if {
-[ "$(if [ "${compiler}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${__ush_binding_9_compiler}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 10 'cargo "build" "--locked" "-p" "ush"'
+  __ush_at 11 'cargo "build" "--locked" "-p" "ush"'
   command cargo 'build' '--locked' '-p' 'ush'
-  __ush_at 11 'let compiler = "target/debug/ush"'
-  compiler='target/debug/ush'
+  __ush_at 12 'compiler = "target/debug/ush"'
+  __ush_binding_9_compiler='target/debug/ush'
+  # shellcheck disable=SC2034
+  compiler="${__ush_binding_9_compiler}"
 fi
-__ush_at 13 'let work = temp_dir'
+__ush_at 14 'let work = temp_dir'
 __ush_task_init
-__ush_at 13 'let work = temp_dir'
+__ush_at 14 'let work = temp_dir'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_1}"
-__ush_at 14 'for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {'
+__ush_binding_14_work="${__ush_value_1}"
+# shellcheck disable=SC2034
+work="${__ush_binding_14_work}"
+__ush_at 15 'for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {'
 __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' command find 'install.ush' 'scripts' '-name' '*.ush' '-type' 'f')" || exit "$?"
 __ush_packed_4="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_3}")" || exit "$?"
 __ush_match_2__len=0
@@ -306,46 +312,52 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   source="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
-  __ush_at 15 'let name = basename source'
+  __ush_at 16 'let name = basename source'
   __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__basename "${source}")" || exit "$?"
-  name="${__ush_value_7}"
-  __ush_at 16 'let artifact = trim_suffix source ".ush" + ".sh"'
+  __ush_binding_16_name="${__ush_value_7}"
+  # shellcheck disable=SC2034
+  name="${__ush_binding_16_name}"
+  __ush_at 17 'let artifact = trim_suffix source ".ush" + ".sh"'
   __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${source}" '.ush')" || exit "$?"
-  artifact="${__ush_value_8}"'.sh'
-  __ush_at 17 'let generated = work + "/" + trim_suffix name ".ush" + ".sh"'
-  __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${name}" '.ush')" || exit "$?"
-  generated="${work}"'/'"${__ush_value_9}"'.sh'
-  __ush_at 18 'cp source (work + "/" + name)'
-  command cp "${source}" "${work}"'/'"${name}"
-  __ush_at 19 'exec compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]'
+  __ush_binding_17_artifact="${__ush_value_8}"'.sh'
+  # shellcheck disable=SC2034
+  artifact="${__ush_binding_17_artifact}"
+  __ush_at 18 'let generated = work + "/" + trim_suffix name ".ush" + ".sh"'
+  __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_binding_16_name}" '.ush')" || exit "$?"
+  __ush_binding_18_generated="${__ush_binding_14_work}"'/'"${__ush_value_9}"'.sh'
+  # shellcheck disable=SC2034
+  generated="${__ush_binding_18_generated}"
+  __ush_at 19 'cp source (work + "/" + name)'
+  command cp "${source}" "${__ush_binding_14_work}"'/'"${__ush_binding_16_name}"
+  __ush_at 20 'exec compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]'
   __ush_match_10__len='5'
   # shellcheck disable=SC2034
   __ush_match_10__0='compile'
   # shellcheck disable=SC2034
-  __ush_match_10__1="${work}"'/'"${name}"
+  __ush_match_10__1="${__ush_binding_14_work}"'/'"${__ush_binding_16_name}"
   # shellcheck disable=SC2034
   __ush_match_10__2='--checked-in'
   # shellcheck disable=SC2034
   __ush_match_10__3='-o'
   # shellcheck disable=SC2034
-  __ush_match_10__4="${generated}"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_10)" )
-  __ush_at 20 'if status "cmp" ["-s", artifact, generated] != 0 {'
+  __ush_match_10__4="${__ush_binding_18_generated}"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${__ush_binding_9_compiler}" "$(ush_fn_std__pack __ush_match_10)" )
+  __ush_at 21 'if status "cmp" ["-s", artifact, generated] != 0 {'
   if {
   __ush_match_12__len='3'
   # shellcheck disable=SC2034
   __ush_match_12__0='-s'
   # shellcheck disable=SC2034
-  __ush_match_12__1="${artifact}"
+  __ush_match_12__1="${__ush_binding_17_artifact}"
   # shellcheck disable=SC2034
-  __ush_match_12__2="${generated}"
+  __ush_match_12__2="${__ush_binding_18_generated}"
   __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'cmp' "$(ush_fn_std__pack __ush_match_12)")" || exit "$?"
   [ "$(if [ "${__ush_value_14}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 21 'fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)'
+    __ush_at 22 'fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)'
     __ush_status=1
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-    __ush_report "$__ush_status" 'stale artifact: '"${artifact}"'; regenerate from '"${source}"
+    __ush_report "$__ush_status" 'stale artifact: '"${__ush_binding_17_artifact}"'; regenerate from '"${source}"
     exit "$__ush_status"
   fi
 done

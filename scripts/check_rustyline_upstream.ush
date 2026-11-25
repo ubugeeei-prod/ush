@@ -28,13 +28,13 @@ let index = work + "/index.jsonl"
 curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" index
 # jq performs JSON decoding and numeric version ordering; policy stays in ush.
 let versions = output "jq" ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]
-let latest = ""
-let patch = ""
+let mut latest = ""
+let mut patch = ""
 let major = first pinned "."
 for version in lines versions {
-  let latest = version
+  latest = version
   if first version "." == major {
-    let patch = version
+    patch = version
   }
 }
 if latest == "" || patch == "" {

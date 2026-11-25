@@ -6,6 +6,7 @@ pub fn format_source(source: &str) -> String {
 
     let mut shell_indent = None;
     let mut continued = false;
+    let mut after_use = false;
     for raw in source.lines() {
         if let Some(indent) = shell_indent {
             out.push_str(raw);
@@ -14,6 +15,13 @@ pub fn format_source(source: &str) -> String {
                 shell_indent = None;
             }
             continue;
+        }
+        let is_use = raw.trim_start().starts_with("use ");
+        if !in_multiline && !raw.trim().is_empty() {
+            if after_use && !is_use && !last_blank {
+                out.push('\n');
+            }
+            after_use = is_use;
         }
         if !in_multiline && ush_compiler::opens_shell_capture(raw) {
             shell_indent = Some(&raw[..raw.len() - raw.trim_start().len()]);
@@ -88,13 +96,20 @@ fn normalize_line(line: &str) -> String {
 
 fn assignment_parts(line: &str) -> Option<(String, String)> {
     let (left, right) = line.split_once('=')?;
-    let mut words = left.split_whitespace();
-    let keyword = words.next()?;
-    let name = words.next()?;
-    let is_name = name
-        .chars()
-        .all(|ch| ch == '_' || ch.is_ascii_alphanumeric());
-    if !matches!(keyword, "let" | "alias" | "export") || !is_name || words.next().is_some() {
+    if right.starts_with('=') {
+        return None;
+    }
+    let words: Vec<_> = left.split_whitespace().collect();
+    let name = match words.as_slice() {
+        [name] => *name,
+        ["let" | "alias" | "export", name] | ["let", "mut", name] => *name,
+        _ => return None,
+    };
+    if !name.starts_with(|ch: char| ch == '_' || ch.is_ascii_alphabetic())
+        || !name
+            .chars()
+            .all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
+    {
         return None;
     }
     Some((left.trim().to_string(), right.trim().to_string()))

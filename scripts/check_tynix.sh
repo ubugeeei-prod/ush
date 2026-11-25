@@ -205,22 +205,26 @@ ush_fn_std__process__status() {
   if (ush_fn_std__process__exec "$@") >/dev/null 2>&1; then printf 0; else printf '%s' "$?"; fi
 }
 
-__ush_at 5 'let compiler = get_or "TYNIX" "tynix"'
+__ush_at 6 'let compiler = get_or "TYNIX" "tynix"'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'TYNIX' 'tynix')" || exit "$?"
-compiler="${__ush_value_0}"
-__ush_at 6 'let work = temp_dir'
+__ush_binding_6_compiler="${__ush_value_0}"
+# shellcheck disable=SC2034
+compiler="${__ush_binding_6_compiler}"
+__ush_at 7 'let work = temp_dir'
 __ush_task_init
-__ush_at 6 'let work = temp_dir'
+__ush_at 7 'let work = temp_dir'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_1}"
-__ush_at 7 'exec compiler ["check", "flake.tynix"]'
+__ush_binding_7_work="${__ush_value_1}"
+# shellcheck disable=SC2034
+work="${__ush_binding_7_work}"
+__ush_at 8 'exec compiler ["check", "flake.tynix"]'
 __ush_match_2__len='2'
 # shellcheck disable=SC2034
 __ush_match_2__0='check'
 # shellcheck disable=SC2034
 __ush_match_2__1='flake.tynix'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_2)" )
-__ush_at 8 'exec compiler ["compile", "flake.tynix", "-o", work + "/flake.nix"]'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${__ush_binding_6_compiler}" "$(ush_fn_std__pack __ush_match_2)" )
+__ush_at 9 'exec compiler ["compile", "flake.tynix", "-o", work + "/flake.nix"]'
 __ush_match_4__len='4'
 # shellcheck disable=SC2034
 __ush_match_4__0='compile'
@@ -229,9 +233,9 @@ __ush_match_4__1='flake.tynix'
 # shellcheck disable=SC2034
 __ush_match_4__2='-o'
 # shellcheck disable=SC2034
-__ush_match_4__3="${work}"'/flake.nix'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_4)" )
-__ush_at 9 'if status "cmp" ["-s", "flake.nix", work + "/flake.nix"] != 0 {'
+__ush_match_4__3="${__ush_binding_7_work}"'/flake.nix'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${__ush_binding_6_compiler}" "$(ush_fn_std__pack __ush_match_4)" )
+__ush_at 10 'if status "cmp" ["-s", "flake.nix", work + "/flake.nix"] != 0 {'
 if {
 __ush_match_6__len='3'
 # shellcheck disable=SC2034
@@ -239,11 +243,11 @@ __ush_match_6__0='-s'
 # shellcheck disable=SC2034
 __ush_match_6__1='flake.nix'
 # shellcheck disable=SC2034
-__ush_match_6__2="${work}"'/flake.nix'
+__ush_match_6__2="${__ush_binding_7_work}"'/flake.nix'
 __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'cmp' "$(ush_fn_std__pack __ush_match_6)")" || exit "$?"
 [ "$(if [ "${__ush_value_8}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 10 'fail 1 "flake.nix is stale; run tynix compile flake.tynix -o flake.nix"'
+  __ush_at 11 'fail 1 "flake.nix is stale; run tynix compile flake.tynix -o flake.nix"'
   __ush_status=1
   if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
   __ush_report "$__ush_status" 'flake.nix is stale; run tynix compile flake.tynix -o flake.nix'

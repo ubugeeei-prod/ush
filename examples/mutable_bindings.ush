@@ -1,0 +1,18 @@
+use std::test::assert_eq
+
+test "mutable state and immutable shadowing" {
+  let name = "ush"
+  let mut count = 0
+  while count < 3 {
+    count = count + 1
+  }
+  assert_eq count 3
+  if true {
+    let name = "inner"
+    assert_eq name "inner"
+  }
+  assert_eq name "ush"
+  let mut items = [1, 2]
+  items = [n + count for n in items]
+  assert_eq items [4, 5]
+}

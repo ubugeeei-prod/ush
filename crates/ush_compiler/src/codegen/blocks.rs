@@ -11,7 +11,6 @@ use super::{
     },
     compile_runtime_primitive_expr,
     functions::FunctionRegistry,
-    infer,
     shared::{binding_for_name, push_line, push_output},
     statement::compile_statement,
     task_block::compile_async_block,
@@ -23,6 +22,7 @@ use crate::traits::TraitImplRegistry;
 pub(crate) fn compile_let(
     name: &str,
     expr: &Expr,
+    ty: &Type,
     env: &mut Env,
     globals: &Env,
     functions: &FunctionRegistry,
@@ -45,12 +45,12 @@ pub(crate) fn compile_let(
             state,
             out,
         )?;
-        env.insert(name.into(), binding);
+        super::binding::store_task(name, &binding, out);
+        env.insert(name.into(), binding_for_name(name, binding.ty));
         return Ok(());
     }
 
-    let ty = infer(expr, env, functions, impls, enums)?;
-    match &ty {
+    match ty {
         Type::String | Type::Int | Type::Bool | Type::Unit => {
             let rendered = compile_runtime_primitive_expr(
                 expr,
@@ -70,7 +70,7 @@ pub(crate) fn compile_let(
         Type::Adt(_) => emit_value_to_target(
             name,
             expr,
-            &ty,
+            ty,
             env,
             functions,
             impls,
@@ -82,7 +82,7 @@ pub(crate) fn compile_let(
         Type::Tuple(_) | Type::List(_) => emit_value_to_target(
             name,
             expr,
-            &ty,
+            ty,
             env,
             functions,
             impls,
@@ -93,7 +93,7 @@ pub(crate) fn compile_let(
         )?,
         Type::Task(_) => bail!("task expressions must be bound before awaiting"),
     }
-    env.insert(name.into(), binding_for_name(name, ty));
+    env.insert(name.into(), binding_for_name(name, ty.clone()));
     Ok(())
 }
 

@@ -39,8 +39,10 @@ pub(super) fn parse_inline_body(
             StatementKind::Return(parse_statement_expr(rest)?),
         ));
     }
-    if let Some(rest) = source.strip_prefix("let ") {
-        return Ok(Statement::new(line_no, control::parse_let_binding(rest)?));
+    if let Some((binding, rest)) = super::statement_support::binding_source(source) {
+        let mut statement = Statement::new(line_no, control::parse_let_binding(rest)?);
+        statement.binding = binding;
+        return Ok(statement);
     }
     if let Some(rest) = source.strip_prefix("alias ") {
         return Ok(Statement::new(line_no, parse_alias(rest)?));

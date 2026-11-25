@@ -22,12 +22,17 @@ pub(super) fn bind_pattern(
             // that did not match is still unset and `set -u` would
             // abort the script. The value is only ever read once the
             // condition has passed.
-            plan.prelude.push(format!("{name}=\"${{{var}-}}\""));
+            let storage = if plan.env.contains_key(name) {
+                format!("__ush_pattern_{var}_{name}").into()
+            } else {
+                name.clone()
+            };
+            plan.prelude.push(format!("{storage}=\"${{{var}-}}\""));
             plan.env.insert(
                 name.clone(),
                 Binding {
                     ty: subject.ty.clone(),
-                    storage: Storage::Primitive(name.clone()),
+                    storage: Storage::Primitive(storage),
                 },
             );
         }

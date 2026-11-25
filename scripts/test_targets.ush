@@ -13,17 +13,17 @@ fn run_fixture(compiler: String, target: String, source: String, directory: Stri
 }
 
 let root = pwd
-let compiler = get_or "USH_BIN" "target/debug/ush"
+let mut compiler = get_or "USH_BIN" "target/debug/ush"
 if std::path::is_absolute compiler == false {
-  let compiler = root + "/" + compiler
+  compiler = root + "/" + compiler
 }
 let work = temp_dir
-let targets = ["sh", "bash", "zsh"]
+let mut targets = ["sh", "bash", "zsh"]
 if exists "busybox" {
   let busybox = output "command" ["-v", "busybox"]
   ln "-s" busybox (work + "/ash")
   set "PATH" (work + ":" + get "PATH")
-  let targets = ["sh", "bash", "zsh", "ash"]
+  targets = ["sh", "bash", "zsh", "ash"]
 }
 else if uname "-s" == "Linux" {
   fail 1 "BusyBox is required to check the ash target on Linux"
@@ -48,7 +48,7 @@ for target in targets {
   exec compiler ["compile", "examples/pipelines.ush", "--target", target, "-o", work + "/script"]
   let piped = "first: apple\nSHOUTED\nTO STDERR\nhello from a child process\n1"
   assert_eq (output target [work + "/script"]) piped
-  exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush"]
+  exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush", "examples/mutable_bindings.ush"]
   exec compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]
   assert_eq (redirect target [work + "/script"] (work + "/out") (work + "/err")) 1
   assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")

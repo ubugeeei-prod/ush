@@ -1,5 +1,35 @@
 # Shell-style language
 
+## Bindings and reassignment
+
+`let` declares an immutable binding. Opt into reassignment with `let mut`;
+assignment uses the existing name without `let` and must preserve its type.
+
+```ush
+use std::test::assert_eq
+
+let greeting = "hello"
+let mut count = 0
+while count < 3 {
+  count = count + 1
+}
+assert_eq count 3
+```
+
+`greeting = "goodbye"` is a compile error that suggests `let mut greeting`.
+Parameters, loop variables, and pattern bindings are immutable too. To change a
+parameter locally, introduce a mutable binding: `let mut value = value`.
+A new `let` shadows the previous binding; a declaration in an inner block does
+not overwrite an outer value. Bare assignments in branches and loops update
+the selected outer mutable binding. Lists, records, tuples, task handles, and
+awaited results use the same rules. Structured assignment evaluates the complete
+right-hand side before replacing the destination.
+
+Migration from earlier releases: change the original declaration to `let mut`
+and remove `let` from each intended reassignment. Leave new declarations as
+`let`. Imports are separated from the following body by one blank line;
+`ush format` and editor formatting insert that separator.
+
 ## Imports and calls
 
 ```ush

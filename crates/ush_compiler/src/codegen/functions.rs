@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 
 use super::{
     super::{
@@ -74,7 +74,9 @@ pub(crate) fn analyze_globals(
             }
             _ => continue,
         };
-        env.insert(name.clone(), binding_for_name(name, ty));
+        let target = super::binding::target(statement, name, &ty, &env)
+            .with_context(|| format!("line {}", statement.line))?;
+        env.insert(name.clone(), binding_for_name(&target, ty));
     }
     Ok(env)
 }

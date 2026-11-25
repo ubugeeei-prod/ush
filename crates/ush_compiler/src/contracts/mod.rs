@@ -1,4 +1,5 @@
 //! Checked source types are erased after call-site instantiation.
+mod binding;
 mod body;
 mod callable;
 mod comprehension;

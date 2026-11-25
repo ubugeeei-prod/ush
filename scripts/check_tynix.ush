@@ -2,6 +2,7 @@
 use std::env::get_or
 use std::fs::temp_dir
 use std::process::{exec, status}
+
 let compiler = get_or "TYNIX" "tynix"
 let work = temp_dir
 exec compiler ["check", "flake.tynix"]

@@ -1,6 +1,6 @@
 # Types at the shell boundary
 
-`ush check script.ush` runs the compiler’s type and effect checks. Local bindings infer their types. Functions can infer their argument and return types.
+`ush check script.ush` runs the compiler’s type and effect checks. Local bindings infer their types and are immutable by default. Use `let mut name = value` for mutable bindings and `name = value` for reassignment; assignments preserve the binding type. Functions can infer their argument and return types.
 
 ```ush
 fn identity(x) {

@@ -169,7 +169,9 @@ __ush_value_2="$(
   ); } 8>&1
   __ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: git "branch" "--show-current"' 'pipeline stage 2 failed: tr "a-z" "A-Z"'
 )" || { __ush_status=$?; __ush_line=''; exit "$__ush_status"; }
-branch="${__ush_value_2}"
+__ush_binding_9_branch="${__ush_value_2}"
+# shellcheck disable=SC2034
+branch="${__ush_binding_9_branch}"
 __ush_at 10 'cargo "build" |& tee "build.log"'
 { __ush_pipe=$(
   exec 7>&1 >&8 8>&-
@@ -194,7 +196,7 @@ __ush_at 12 'from_file "notes.txt" | sort | to_file "sorted.txt"'
 ); } 8>&1
 __ush_pipe_check "$__ush_pipe" 'pipeline stage 1 failed: from_file "notes.txt" | sort | to_file "sorted.txt"' || exit "$?"
 __ush_at 13 'printf "done\n" |'
-__ush_std_fs_path "${branch}"'.log' || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+__ush_std_fs_path "${__ush_binding_9_branch}"'.log' || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
 __ush_path_3=$__ush_path
 { __ush_pipe=$(
   exec 7>&1 >&8 8>&-

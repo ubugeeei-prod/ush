@@ -31,10 +31,10 @@ fn build(checkout: String, package: String, suite: String, destination: String, 
 }
 
 fn cases(binary: String) -> String / unknown, stderr, exec, env, fs, stdin, net {
-  let names = ""
+  let mut names = ""
   for line in lines (output binary ["--list"]) {
     if ends_with line ": benchmark" {
-      let names = names + trim_suffix line ": benchmark" + "\n"
+      names = names + trim_suffix line ": benchmark" + "\n"
     }
   }
   if names == "" {
@@ -52,11 +52,11 @@ fn measure(binary: String, name: String) -> String / unknown, exec, env, fs, std
     eprint (read_text (run + "/err"))
     fail code ("benchmark failed: " + name)
   }
-  let estimate = ""
-  let count = 0
+  let mut estimate = ""
+  let mut count = 0
   for file in lines (find run "-path" "*/new/estimates.json") {
-    let estimate = file
-    let count = count + 1
+    estimate = file
+    count = count + 1
   }
   if count != 1 {
     fail 1 ("expected one Criterion estimate for " + name)
@@ -73,12 +73,12 @@ fn geometric(first: String, second: String) -> String / unknown, exec, env, fs, 
 fn compare(base: String, head: String, summary: String) -> Int / unknown, exec, env, fs, stderr, stdin, stdout, net {
   let before_cases = cases base + "\n"
   let after_cases = cases head + "\n"
-  let seen = "\n"
-  let failures = 0
+  let mut seen = "\n"
+  let mut failures = 0
   for name in lines (before_cases + after_cases) {
     let key = "\n" + name + "\n"
     if contains seen key == false {
-      let seen = seen + name + "\n"
+      seen = seen + name + "\n"
       let in_base = contains ("\n" + before_cases) key
       let in_head = contains ("\n" + after_cases) key
       if in_base && in_head {
@@ -93,7 +93,7 @@ fn compare(base: String, head: String, summary: String) -> Int / unknown, exec, 
         let row = printf "| %s | %.2f | %.2f | %.3f× |" name before after ratio
         report row summary
         if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {
-          let failures = failures + 1
+          failures = failures + 1
         }
       }
       else if in_head {
@@ -123,15 +123,15 @@ report "" summary
 report "| Benchmark | Base (ns) | PR (ns) | Ratio |" summary
 report "| --- | ---: | ---: | ---: |" summary
 let work = temp_dir
-let failures = 0
+let mut failures = 0
 for package in ["ush_shell", "ush_compiler"] {
-  let suite = "parser"
+  let mut suite = "parser"
   if package == "ush_compiler" {
-    let suite = "compile"
+    suite = "compile"
   }
   let before = build base package suite (work + "/base-" + suite) (head + "/target/bench-base") work
   let after = build head package suite (work + "/head-" + suite) (head + "/target") work
-  let failures = failures + compare before after summary
+  failures = failures + compare before after summary
 }
 if failures > 0 {
   fail 1 ("Performance regression above 25% in " + failures + " benchmark(s)")

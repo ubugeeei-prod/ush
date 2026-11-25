@@ -29,6 +29,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 mod ast;
+mod bindings;
 mod commands;
 mod contracts;
 pub use commands::command_names;
@@ -123,7 +124,8 @@ impl UshCompiler {
             anyhow::bail!("bin.ush requires concrete parameter types for its shell entrypoint");
         }
         let docs = ScriptDocs::parse(source);
-        let out = contracts::elaborate(program)
+        let out = bindings::validate(&program)
+            .and_then(|()| contracts::elaborate(program))
             .and_then(|program| {
                 codegen::compile_program(
                     &program,
@@ -173,6 +175,7 @@ impl UshCompiler {
         let modules::Linked { program, space } =
             modules::link(source, loader).map_err(|error| anyhow::anyhow!("{error:#}"))?;
         let report = || {
+            bindings::validate(&program)?;
             let mut functions = effects::describe_function_effects(&program)?;
             let lowered = contracts::elaborate(program.clone())?;
             for actual in effects::describe_function_effects(&lowered)? {

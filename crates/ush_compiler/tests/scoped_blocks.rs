@@ -27,9 +27,9 @@ fn succeeds(body: &str, expected: &str) {
 fn cd_blocks_restore_the_directory_and_keep_outer_assignments() {
     succeeds(
         r#"let start = pwd
-let inside = ""
+let mut inside = ""
 cd "a b" {
-  let inside = basename pwd
+  inside = basename pwd
 }
 print inside
 print (pwd) == start

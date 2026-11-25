@@ -191,28 +191,38 @@ ush_fn_std__path__join() {
 
 __ush_at 4 'let source_root = from_source "."'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')" || exit "$?"
-source_root="${__ush_value_0}"
+__ush_binding_4_source_root="${__ush_value_0}"
+# shellcheck disable=SC2034
+source_root="${__ush_binding_4_source_root}"
 __ush_at 5 'let payload = source_root.join("payload.txt")'
-__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${source_root}" 'payload.txt')
-payload="${__ush_value_1}"
+__ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${__ush_binding_4_source_root}" 'payload.txt')
+__ush_binding_5_payload="${__ush_value_1}"
+# shellcheck disable=SC2034
+payload="${__ush_binding_5_payload}"
 __ush_at 6 'let cwd_file = from_cwd "notes.txt"'
 __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')" || exit "$?"
-cwd_file="${__ush_value_2}"
+__ush_binding_6_cwd_file="${__ush_value_2}"
+# shellcheck disable=SC2034
+cwd_file="${__ush_binding_6_cwd_file}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
-__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url='file://'"${__ush_value_3}"
+__ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_5_payload}")
+__ush_binding_7_url='file://'"${__ush_value_3}"
+# shellcheck disable=SC2034
+url="${__ush_binding_7_url}"
 __ush_at 8 'let copy = tmpfile()'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
-copy="${__ush_value_4}"
+__ush_binding_8_copy="${__ush_value_4}"
+# shellcheck disable=SC2034
+copy="${__ush_binding_8_copy}"
 __ush_at 10 'print payload'
-printf '%s\n' "${payload}"
+printf '%s\n' "${__ush_binding_5_payload}"
 __ush_at 11 'print $ cwd_file.resolve()'
-__ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${cwd_file}")
+__ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_6_cwd_file}")
 printf '%s\n' "${__ush_value_5}"
 __ush_at 12 'print $ get url'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")" || exit "$?"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${__ush_binding_7_url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 13 'download url copy'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${url}" "${copy}" )
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${__ush_binding_7_url}" "${__ush_binding_8_copy}" )
 __ush_at 14 'copy.remove()'
-__ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${copy}")
+__ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_8_copy}")

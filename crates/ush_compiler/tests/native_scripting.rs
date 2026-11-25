@@ -40,9 +40,9 @@ assert_eq (split "a::b:" ":") ["a", "", "b", ""]
 assert_eq (lines "a\r\nb\n") ["a", "b"]
 assert_eq (to_int (trim " \t0042\r\n")) 42
 fn nested() -> String {
-  let text = ""
+  let mut text = ""
   for value in ["first", "second"] {
-    let text = text + value + "\n"
+    text = text + value + "\n"
   }
   text
 }

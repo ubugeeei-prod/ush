@@ -53,6 +53,7 @@ Implemented today:
 - `ush explain` to map a `/bin/sh` line number from a failing generated script back to the `.ush` line behind it
 - Typed language features include `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, error and I/O rows such as `String / Problem, stderr`, and Rust-like `?` propagation
 - Inferred and generic functions, higher-kinded parameters, unit-tagged integers, indexed sequences, and integer refinements. [Type guide](docs/types.md)
+- Bind immutable values with `let name = value`; use `let mut name = value` and `name = next` for mutable state.
 - Invoke installed tools with `$bin::git "status"` or `use $bin::*` and `git "status"`. Capture shell pipelines with `let text = $( … )?` and launch ordinary functions with `let job = async build path`.
 - Native pipelines: `git "log" | head "-n1"` streams or captures, fails like `pipefail` on every target with the failing stage named, and does not fail when a reader such as `head` stops early. `|&` merges stderr; `from_file`, `to_file` and `append_to` redirect without an extra process; a String first stage feeds stdin byte for byte
 - Scoped working directory and environment: `cd dir { … }` and `export NAME = value, … { … }` restore the previous state afterwards, and `export NAME = value` sets a variable for the rest of the script

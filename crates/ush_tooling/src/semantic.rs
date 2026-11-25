@@ -11,9 +11,9 @@ use crate::token::{SemanticToken, SemanticTokenKind};
 
 const KEYWORDS: &[&str] = &[
     "alias", "async", "const", "do", "export", "fail", "using", "unit", "where", "effect", "enum",
-    "extern", "test", "fn", "impl", "let", "match", "print", "raise", "return", "shell", "trait",
-    "try", "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop", "break",
-    "continue", "true", "false", "await", "spawn", "mod", "pub",
+    "extern", "test", "fn", "impl", "let", "mut", "match", "print", "raise", "return", "shell",
+    "trait", "try", "type", "use", "with", "as", "in", "for", "if", "else", "while", "loop",
+    "break", "continue", "true", "false", "await", "spawn", "mod", "pub",
 ];
 
 #[derive(Clone, Copy)]
@@ -145,7 +145,7 @@ fn tokenize_line(
             push(out, line_no, index, end - index, kind);
             context = match ident {
                 "fn" => Func,
-                "let" => Let,
+                "let" | "mut" => Let,
                 "enum" | "type" | "trait" | "impl" => Decl,
                 _ => NoKeyword,
             };

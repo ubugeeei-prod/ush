@@ -23,6 +23,8 @@ pub(crate) struct Statement {
     /// back to a file and a line within it.
     pub line: usize,
     pub kind: StatementKind,
+    /// Binding intent for Let, Spawn, and Await; ignored on other statements.
+    pub binding: BindingMode,
     /// `pub` on a top-level declaration: other files may import it.
     pub public: bool,
 }
@@ -32,9 +34,17 @@ impl Statement {
         Self {
             line,
             kind,
+            binding: BindingMode::Immutable,
             public: false,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum BindingMode {
+    Immutable,
+    Mutable,
+    Assign,
 }
 
 #[derive(Debug, Clone)]

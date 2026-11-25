@@ -78,12 +78,12 @@ fn compile_can_write_sourcemap_json() {
         .expect("parse map");
     let assign_line = shell
         .lines()
-        .position(|line| line == "greeting='hello'")
+        .position(|line| line == "__ush_binding_1_greeting='hello'")
         .map(|index| index + 1)
         .expect("assignment line");
     let print_line = shell
         .lines()
-        .position(|line| line == "printf '%s\\n' \"${greeting}\"")
+        .position(|line| line == "printf '%s\\n' \"${__ush_binding_1_greeting}\"")
         .map(|index| index + 1)
         .expect("print line");
 
@@ -93,7 +93,7 @@ fn compile_can_write_sourcemap_json() {
     assert_eq!(map["version"], 2);
     assert_eq!(map["source"], script.display().to_string());
     assert_eq!(map["generated"], compiled.display().to_string());
-    assert_eq!(summary["mapped_line_count"], 4);
+    assert_eq!(summary["mapped_line_count"], 6);
     assert_eq!(summary["source_line_count"], 2);
     assert!(
         summary["generated_line_count"]
@@ -107,7 +107,7 @@ fn compile_can_write_sourcemap_json() {
             .expect("summary sections")
             .iter()
             .any(|section| {
-                section["section"] == "user-code" && section["mapped_line_count"] == 4
+                section["section"] == "user-code" && section["mapped_line_count"] == 6
             })
     );
     assert!(sources.iter().any(|line| {
@@ -130,7 +130,7 @@ fn compile_can_write_sourcemap_json() {
     assert_eq!(map["lines"][assign_line - 1]["source_line"], 1);
     assert_eq!(
         map["lines"][assign_line - 1]["generated_text"],
-        "greeting='hello'"
+        "__ush_binding_1_greeting='hello'"
     );
     assert_eq!(
         map["lines"][assign_line - 1]["source_text"],
@@ -140,7 +140,7 @@ fn compile_can_write_sourcemap_json() {
     assert_eq!(map["lines"][print_line - 1]["source_line"], 2);
     assert_eq!(
         map["lines"][print_line - 1]["generated_text"],
-        "printf '%s\\n' \"${greeting}\""
+        "printf '%s\\n' \"${__ush_binding_1_greeting}\""
     );
     assert_eq!(
         map["lines"][print_line - 1]["source_text"],

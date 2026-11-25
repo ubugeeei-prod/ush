@@ -1,5 +1,6 @@
 mod alias;
 mod bin;
+mod binding;
 mod blocks;
 mod builtin_methods;
 mod call_capture;

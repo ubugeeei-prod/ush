@@ -23,7 +23,7 @@ impl Checker {
         match &mut s.kind {
             S::Let { name, expr } => {
                 let t = self.expr(expr, locals)?;
-                locals.insert(name.clone(), t);
+                super::binding::bind(s.binding, name, t, locals)?;
             }
             S::Return(expr) => returns.push(self.expr(expr, locals)?),
             S::Expr(expr) => {
@@ -34,7 +34,7 @@ impl Checker {
             }
             S::Spawn { name, call } => {
                 let t = self.call(call, locals)?;
-                locals.insert(name.clone(), Ty::app("Task", vec![t]));
+                super::binding::bind(s.binding, name, Ty::app("Task", vec![t]), locals)?;
             }
             S::Await { name, task } => {
                 let t = locals
@@ -43,7 +43,7 @@ impl Checker {
                     .ok_or_else(|| anyhow!("unknown task: {task}"))?
                     .args[0]
                     .clone();
-                locals.insert(name.clone(), t);
+                super::binding::bind(s.binding, name, t, locals)?;
             }
             S::Print(e) | S::Shell(e) | S::TryShell(e) | S::Alias { value: e, .. } => {
                 self.expr(e, locals)?;
