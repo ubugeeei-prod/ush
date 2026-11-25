@@ -3,6 +3,7 @@ mod exhaustiveness;
 mod pattern;
 mod read;
 pub(crate) use read::read_expr;
+mod comprehension;
 mod sequence;
 
 pub(crate) use exhaustiveness::check_exhaustive;

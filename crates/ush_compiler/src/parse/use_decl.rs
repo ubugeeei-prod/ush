@@ -11,6 +11,20 @@ use crate::types::HeapVec as Vec;
 
 pub(super) fn parse_use(source: &str) -> Result<StatementKind> {
     let trimmed = source.trim();
+    if let Some(prefix) = trimmed.strip_suffix("::*") {
+        let path = if prefix == "$bin" {
+            "$bin".into()
+        } else {
+            parse_import_path(prefix)?
+        };
+        return Ok(StatementKind::Use(vec![UseItem {
+            path,
+            alias: "*".into(),
+        }]));
+    }
+    if trimmed.ends_with("::") {
+        anyhow::bail!("wildcard imports must use `use module::*`");
+    }
     if let Some((head, inner)) = parse_brace_body(trimmed) {
         let prefix = parse_import_path(
             head.trim()

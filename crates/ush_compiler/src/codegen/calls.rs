@@ -115,6 +115,9 @@ pub(crate) fn rendered_call(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<String> {
+    if call.name == "std::test::assert_eq" {
+        return stdlib::testing::render_eq(call, env, functions, impls, enums);
+    }
     if let Some(command) = crate::commands::lookup(&call.name) {
         command.validate(call.args.len())?;
         let mut words = if command.output == crate::commands::Output::Predicate {

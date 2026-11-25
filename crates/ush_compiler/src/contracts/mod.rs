@@ -1,6 +1,10 @@
 //! Checked source types are erased after call-site instantiation.
 mod body;
+mod callable;
+mod comprehension;
+mod detect;
 mod expressions;
+mod instance;
 mod instantiate;
 mod refine;
 mod returns;
@@ -38,16 +42,18 @@ struct Checker {
 }
 
 pub(crate) fn elaborate(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
-    if !program.iter().any(|s| {
-        matches!(
-            &s.kind,
-            StatementKind::UnitDef(_)
-                | StatementKind::Function(FunctionDef {
-                    scheme: Some(_),
-                    ..
-                })
-        )
-    }) {
+    if !detect::references(&program)
+        && !program.iter().any(|s| {
+            matches!(
+                &s.kind,
+                StatementKind::UnitDef(_)
+                    | StatementKind::Function(FunctionDef {
+                        scheme: Some(_),
+                        ..
+                    })
+            )
+        })
+    {
         return Ok(program);
     }
     crate::effects::analyze_function_effects(&program)?;
@@ -140,6 +146,7 @@ pub(crate) fn elaborate(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
         if let StatementKind::Function(def) = &s.kind
             && let Some(scheme) = &def.scheme
             && scheme.variables.is_empty()
+            && !scheme.params.iter().any(|p| p.1.name == "Fn")
         {
             let args = scheme.params.iter().map(|p| p.1.clone()).collect();
             checker

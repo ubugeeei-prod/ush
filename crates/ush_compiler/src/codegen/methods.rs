@@ -134,7 +134,7 @@ pub(crate) fn compile_method_capture(
     out: &mut OutputBuffer,
 ) -> Result<String> {
     let mode = if propagate {
-        FailureMode::Propagate { inside_function }
+        FailureMode::Propagate
     } else {
         FailureMode::Abort
     };

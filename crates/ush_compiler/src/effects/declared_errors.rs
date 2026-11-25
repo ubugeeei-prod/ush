@@ -17,6 +17,9 @@ pub(super) fn validate_function_errors(
     inferred: &ErrorSet,
     enums: &EnumRegistry,
 ) -> Result<()> {
+    if def.attrs.iter().any(|a| a.name == "test") {
+        return Ok(());
+    }
     match &def.declared_errors {
         Some(declared) => {
             validate_declared_error_types(def, declared, enums)?;

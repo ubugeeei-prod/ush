@@ -1,5 +1,6 @@
 mod attr;
 mod compare;
+mod comprehension;
 mod condition;
 mod control;
 mod declaration;
@@ -7,6 +8,7 @@ mod declaration_support;
 mod effect_decl;
 mod expr;
 mod expr_support;
+mod external;
 mod handle;
 mod impls;
 mod inline;
@@ -17,6 +19,7 @@ mod returns;
 mod signature;
 mod statement;
 mod statement_support;
+mod testing;
 mod use_decl;
 
 use anyhow::{Result, bail};

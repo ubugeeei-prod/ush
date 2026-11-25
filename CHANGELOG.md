@@ -10,6 +10,38 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.12.0] — 2026-11-25
+
+### Added
+
+- Import module exports with `use module::*`, including `use $bin::*` and
+  source-relative `.sh` extern modules. Explicit imports and local functions
+  override wildcards; ambiguous wildcard exports are diagnosed.
+- Call functions with consecutive, space-separated arguments in statements,
+  bindings and nested expressions. Zero-argument functions can be called as
+  bare names. No `$` application is needed; existing call forms remain accepted.
+- Pass named function values with `&name` and typed `Fn<A, B>` parameters.
+  Generic callbacks specialize from their expected types; constructor kinds
+  such as `F<_>` compose with higher-order functions. Actual callback errors
+  and effects are checked before shell generation.
+- Build lists with `[value for item in items if condition]`, including multiple
+  generators, filters, nested structured values and empty results. Bindings are
+  scoped to the comprehension.
+- Write named `test "name" { ... }` and anonymous `test { ... }` blocks.
+  `ush test` isolates cases, reports each result, and continues after failures.
+  Assertions require an explicit `std::test` import or qualified call.
+- Load shell libraries with `extern "helpers.sh" as helpers { fn ... }`.
+  Declared scalar arguments are passed as quoted argv values, scalar results
+  are checked, and nonzero exit status propagates. Checked-in artifacts retain
+  source-relative library paths.
+
+### Fixed
+
+- Parse grouped nested arguments and qualified arguments without confusing
+  their parentheses or `::` separators with call punctuation and labels.
+- Clamp descending range lengths to zero when materializing an empty list.
+
+
 ## [0.11.1] — 2026-11-23
 
 ### Fixed

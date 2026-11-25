@@ -72,8 +72,8 @@ fn parse_call_inner(source: &str, asynchronous: bool, allow_bare_name: bool) -> 
 }
 
 fn looks_like_call_inner(source: &str, allow_bare_name: bool) -> bool {
-    split_paren_form(source)
-        .map(|(name, _, tail)| looks_like_call_target(name) && tail.is_empty())
+    paren_call_form(source)
+        .map(|(_, _, tail)| tail.is_empty())
         .unwrap_or_else(|| {
             parse_call_parts(source, allow_bare_name)
                 .ok()
@@ -83,7 +83,7 @@ fn looks_like_call_inner(source: &str, allow_bare_name: bool) -> bool {
 }
 
 fn parse_call_parts(source: &str, allow_bare_name: bool) -> Result<Option<(String, Vec<CallArg>)>> {
-    if let Some((name, inner, tail)) = split_paren_form(source) {
+    if let Some((name, inner, tail)) = paren_call_form(source) {
         if !tail.is_empty() {
             bail!("invalid function call: {source}");
         }
@@ -104,6 +104,16 @@ fn parse_call_parts(source: &str, allow_bare_name: bool) -> Result<Option<(Strin
         parse_call_tokens(&parts[1..])?
     };
     Ok(Some((parse_call_target(parts[0])?, args)))
+}
+
+fn paren_call_form(source: &str) -> Option<(&str, &str, &str)> {
+    split_paren_form(source).filter(|(name, _, _)| {
+        looks_like_call_target(name)
+            && source
+                .trim_start()
+                .strip_prefix(name)
+                .is_some_and(|rest| rest.starts_with('('))
+    })
 }
 
 fn parse_args(source: &str) -> Result<Vec<CallArg>> {
@@ -167,7 +177,10 @@ fn parse_call_tokens(parts: &[&str]) -> Result<Vec<CallArg>> {
     let mut index = 0usize;
     while index < parts.len() {
         let current = parts[index];
-        if let Some(label) = current.strip_suffix(':') {
+        if let Some(label) = current
+            .strip_suffix(':')
+            .filter(|label| !label.ends_with(':'))
+        {
             args.push(CallArg {
                 label: Some(parse_identifier(label)?),
                 expr: parse_expr(
@@ -187,6 +200,7 @@ fn parse_call_tokens(parts: &[&str]) -> Result<Vec<CallArg>> {
 
 fn parse_call_arg(source: &str) -> Result<CallArg> {
     if let Some((name, expr)) = split_once_top_level(source, ':')
+        && !expr.starts_with(':')
         && super::path::looks_like_call_target(name)
     {
         return Ok(CallArg {

@@ -1,242 +1,238 @@
-use alloc::vec::Vec;
-
-use anyhow::{Result, bail};
-
+mod collect;
+mod condition;
+mod pattern;
+mod qualified;
 use crate::{
-    ast::{Call, Expr, FunctionDef, Statement, StatementKind},
-    types::{Map as HashMap, Set as HashSet},
+    ast::{Call, Expr, FunctionDef, Statement, StatementKind as S},
+    types::{AstString as Name, Map, Set},
 };
+use alloc::vec::Vec;
+use anyhow::Result;
+use pattern::bind_pattern;
 
 pub(crate) fn resolve_program(mut program: Vec<Statement>) -> Result<Vec<Statement>> {
-    let locals = local_functions(&program);
-    let imports = collect_imports(&program, &locals)?;
-    for statement in &mut program {
-        resolve_statement(statement, &imports);
+    let locals = collect::local_functions(&program);
+    if program.is_empty() {
+        return Ok(program);
     }
+    let mut functions = Map::default();
+    if program.iter().any(|s| matches!(&s.kind, S::Use(items) if items.iter().any(|i| i.alias == "*" && i.path.starts_with("std::")))) {
+        crate::codegen::register_builtins(&mut functions)?;
+    }
+    for s in &program {
+        if let S::Function(f) = &s.kind
+            && f.name.contains("::")
+        {
+            functions.insert(f.name.clone(), f.clone());
+        }
+    }
+    let imports = collect::collect_imports(&program, &locals, &functions)?;
+    let mut known: Set<Name> = functions.into_keys().collect();
+    known.extend(locals);
+    known.extend(imports.values().cloned());
+    let globals = program
+        .iter()
+        .filter_map(|s| match &s.kind {
+            S::Let { name, .. } | S::Spawn { name, .. } | S::Await { name, .. } => {
+                Some(name.clone())
+            }
+            _ => None,
+        })
+        .collect();
+    let resolver = Resolver {
+        imports,
+        known,
+        globals,
+    };
+    resolver.block(&mut program, &mut Set::default());
     Ok(program)
 }
-
-fn local_functions(program: &[Statement]) -> HashSet<crate::types::AstString> {
-    let mut names = HashSet::with_hasher(Default::default());
-    for statement in program {
-        if let StatementKind::Function(def) = &statement.kind {
-            names.insert(def.name.clone());
-        }
-    }
-    names
+struct Resolver {
+    imports: Map<Name, Name>,
+    known: Set<Name>,
+    globals: Set<Name>,
 }
-
-fn collect_imports(
-    program: &[Statement],
-    locals: &HashSet<crate::types::AstString>,
-) -> Result<HashMap<crate::types::AstString, crate::types::AstString>> {
-    let mut imports = HashMap::with_hasher(Default::default());
-    for statement in program {
-        let StatementKind::Use(items) = &statement.kind else {
-            continue;
-        };
-        for item in items {
-            if locals.contains(&item.alias) {
-                bail!("import alias conflicts with local function: {}", item.alias);
-            }
-            if imports
-                .insert(item.alias.clone(), item.path.clone())
-                .is_some()
-            {
-                bail!("duplicate import alias: {}", item.alias);
+impl Resolver {
+    fn name(&self, name: &mut Name) {
+        if !name.contains("::") {
+            if let Some(path) = self.imports.get(name) {
+                *name = path.clone();
+            } else if self.imports.contains_key("*") && crate::commands::contains(name) {
+                *name = format!("$bin::{name}").into();
             }
         }
     }
-    if imports.contains_key("*") {
-        for name in locals {
-            imports.insert(name.clone(), name.clone());
+    fn block(&self, body: &mut [Statement], scope: &mut Set<Name>) {
+        for statement in body {
+            self.statement(statement, scope);
         }
     }
-    Ok(imports)
-}
-
-fn resolve_statement(
-    statement: &mut Statement,
-    imports: &HashMap<crate::types::AstString, crate::types::AstString>,
-) {
-    match &mut statement.kind {
-        StatementKind::Use(_)
-        | StatementKind::UnitDef(_)
-        | StatementKind::Enum(_)
-        | StatementKind::Trait(_)
-        | StatementKind::Await { .. }
-        | StatementKind::Effect(_)
-        | StatementKind::Break
-        | StatementKind::Continue => {}
-        StatementKind::Handle { body, handlers } => {
-            for statement in body {
-                resolve_statement(statement, imports);
+    fn function(&self, def: &mut FunctionDef) {
+        let mut scope = self.globals.clone();
+        if def.receiver.is_some() {
+            scope.insert("self".into());
+        }
+        for param in &mut def.params {
+            if let Some(default) = &mut param.default {
+                self.expr(default, &scope);
             }
-            for handler in handlers {
-                for statement in &mut handler.body {
-                    resolve_statement(statement, imports);
+            scope.insert(param.name.clone());
+        }
+        self.block(&mut def.body, &mut scope);
+    }
+    fn statement(&self, statement: &mut Statement, scope: &mut Set<Name>) {
+        match &mut statement.kind {
+            S::Function(def) => self.function(def),
+            S::Impl(item) => {
+                for method in &mut item.methods {
+                    self.function(method);
                 }
             }
-        }
-        StatementKind::Impl(item) => {
-            for method in &mut item.methods {
-                resolve_function(method, imports);
-            }
-        }
-        StatementKind::Fail { status, message } => {
-            resolve_expr(status, imports);
-            resolve_expr(message, imports);
-        }
-        StatementKind::Function(def) => resolve_function(def, imports),
-        StatementKind::Alias { value, .. }
-        | StatementKind::Let { expr: value, .. }
-        | StatementKind::Print(value)
-        | StatementKind::Shell(value)
-        | StatementKind::TryShell(value)
-        | StatementKind::Raise(value)
-        | StatementKind::Expr(value)
-        | StatementKind::Return(value) => resolve_expr(value, imports),
-        StatementKind::Spawn { call, .. }
-        | StatementKind::Call(call)
-        | StatementKind::TryCall(call) => resolve_call(call, imports),
-        StatementKind::Match { expr, arms, .. } => {
-            resolve_expr(expr, imports);
-            for (_, arm) in arms {
-                resolve_statement(arm, imports);
-            }
-        }
-        StatementKind::If { branch, .. } => {
-            resolve_condition(&mut branch.condition, imports);
-            for statement in &mut branch.then_body {
-                resolve_statement(statement, imports);
-            }
-            if let Some(body) = &mut branch.else_body {
-                for statement in body {
-                    resolve_statement(statement, imports);
+            S::Handle { body, handlers } => {
+                self.block(body, &mut scope.clone());
+                for handler in handlers {
+                    let mut inner = scope.clone();
+                    inner.extend(handler.params.iter().cloned());
+                    self.block(&mut handler.body, &mut inner);
                 }
             }
-        }
-        StatementKind::While { condition, body } => {
-            resolve_condition(condition, imports);
-            for statement in body {
-                resolve_statement(statement, imports);
+            S::Let { name, expr } => {
+                self.expr(expr, scope);
+                scope.insert(name.clone());
             }
-        }
-        StatementKind::For { iterable, body, .. } => {
-            resolve_expr(iterable, imports);
-            for statement in body {
-                resolve_statement(statement, imports);
+            S::Spawn { name, call } => {
+                self.call(call, scope);
+                scope.insert(name.clone());
             }
-        }
-        StatementKind::Loop { body } => {
-            for statement in body {
-                resolve_statement(statement, imports);
+            S::Await { name, .. } => {
+                scope.insert(name.clone());
             }
-        }
-    }
-}
-
-fn resolve_function(
-    def: &mut FunctionDef,
-    imports: &HashMap<crate::types::AstString, crate::types::AstString>,
-) {
-    for param in &mut def.params {
-        if let Some(default) = &mut param.default {
-            resolve_expr(default, imports);
-        }
-    }
-    for statement in &mut def.body {
-        resolve_statement(statement, imports);
-    }
-}
-
-fn resolve_expr(
-    expr: &mut Expr,
-    imports: &HashMap<crate::types::AstString, crate::types::AstString>,
-) {
-    match expr {
-        Expr::Add(parts) => {
-            for part in parts {
-                resolve_expr(part, imports);
+            S::Fail { status, message } => {
+                self.expr(status, scope);
+                self.expr(message, scope);
             }
-        }
-        Expr::Compare { lhs, rhs, .. } => {
-            resolve_expr(lhs, imports);
-            resolve_expr(rhs, imports);
-        }
-        Expr::Try(inner) => resolve_expr(inner, imports),
-        Expr::Field { base, .. } => resolve_expr(base, imports),
-        Expr::MethodCall(call) => {
-            resolve_expr(&mut call.receiver, imports);
-            for arg in &mut call.args {
-                resolve_expr(&mut arg.expr, imports);
-            }
-        }
-        Expr::Call(call) => resolve_call(call, imports),
-        Expr::Tuple(items) | Expr::List(items) => {
-            for item in items {
-                resolve_expr(item, imports);
-            }
-        }
-        Expr::Range { start, end } => {
-            resolve_expr(start, imports);
-            resolve_expr(end, imports);
-        }
-        Expr::AsyncBlock(body) => {
-            for statement in body {
-                resolve_statement(statement, imports);
-            }
-        }
-        Expr::Variant(variant) => match &mut variant.fields {
-            crate::ast::ExprFields::Unit => {}
-            crate::ast::ExprFields::Tuple(items) => {
-                for item in items {
-                    resolve_expr(item, imports);
+            S::Alias { value, .. }
+            | S::Print(value)
+            | S::Shell(value)
+            | S::TryShell(value)
+            | S::Raise(value)
+            | S::Expr(value)
+            | S::Return(value) => self.expr(value, scope),
+            S::Call(call) | S::TryCall(call) => self.call(call, scope),
+            S::Match { expr, arms, .. } => {
+                self.expr(expr, scope);
+                for (pattern, arm) in arms {
+                    let mut inner = scope.clone();
+                    bind_pattern(pattern, &mut inner);
+                    self.statement(arm, &mut inner);
                 }
             }
-            crate::ast::ExprFields::Struct(items) => {
-                for item in items {
-                    resolve_expr(&mut item.expr, imports);
+            S::If { branch, .. } => {
+                let mut inner = scope.clone();
+                self.condition(&mut branch.condition, &mut inner);
+                self.block(&mut branch.then_body, &mut inner);
+                if let Some(body) = &mut branch.else_body {
+                    self.block(body, &mut scope.clone());
                 }
             }
-        },
-        Expr::ShellCapture(_)
-        | Expr::Quantity(..)
-        | Expr::String(_)
-        | Expr::Int(_)
-        | Expr::Bool(_)
-        | Expr::Unit
-        | Expr::Var(_) => {}
-    }
-}
-
-fn resolve_condition(
-    condition: &mut crate::ast::Condition,
-    imports: &HashMap<crate::types::AstString, crate::types::AstString>,
-) {
-    match condition {
-        crate::ast::Condition::Expr(expr) => resolve_expr(expr, imports),
-        crate::ast::Condition::Let { expr, .. } => resolve_expr(expr, imports),
-        crate::ast::Condition::And(items) | crate::ast::Condition::Or(items) => {
-            for item in items {
-                resolve_condition(item, imports);
+            S::While { condition, body } => {
+                let mut inner = scope.clone();
+                self.condition(condition, &mut inner);
+                self.block(body, &mut inner);
             }
+            S::For {
+                name,
+                iterable,
+                body,
+            } => {
+                self.expr(iterable, scope);
+                let mut inner = scope.clone();
+                inner.insert(name.clone());
+                self.block(body, &mut inner);
+            }
+            S::Loop { body } => self.block(body, &mut scope.clone()),
+            _ => {}
         }
     }
-}
-
-fn resolve_call(
-    call: &mut Call,
-    imports: &HashMap<crate::types::AstString, crate::types::AstString>,
-) {
-    if !call.name.contains("::") {
-        if let Some(path) = imports.get(&call.name) {
-            call.name = path.clone();
-        } else if imports.contains_key("*") && crate::commands::contains(&call.name) {
-            call.name = format!("$bin::{}", call.name).into();
+    fn call(&self, call: &mut Call, scope: &Set<Name>) {
+        if !scope.contains(&call.name) {
+            self.name(&mut call.name);
+        }
+        for arg in &mut call.args {
+            self.expr(&mut arg.expr, scope);
         }
     }
-    for arg in &mut call.args {
-        resolve_expr(&mut arg.expr, imports);
+    fn expr(&self, expr: &mut Expr, scope: &Set<Name>) {
+        self.qualified_call(expr);
+        match expr {
+            Expr::Var(name) if !scope.contains(name) => {
+                let mut target = name.clone();
+                self.name(&mut target);
+                if self.known.contains(&target)
+                    || target.starts_with("std::")
+                    || crate::commands::lookup(&target).is_some()
+                {
+                    *expr = Expr::Call(Call {
+                        name: target,
+                        args: Vec::new(),
+                        asynchronous: false,
+                    });
+                }
+            }
+            Expr::FunctionRef(name) => {
+                if !scope.contains(name) {
+                    self.name(name);
+                }
+            }
+            Expr::Comprehension(c) => {
+                let mut inner = scope.clone();
+                for clause in &mut c.clauses {
+                    match clause {
+                        crate::ast::ComprehensionClause::For { name, iterable } => {
+                            self.expr(iterable, &inner);
+                            inner.insert(name.clone());
+                        }
+                        crate::ast::ComprehensionClause::If(e) => self.expr(e, &inner),
+                    }
+                }
+                self.expr(&mut c.value, &inner);
+            }
+            Expr::Call(call) => self.call(call, scope),
+            Expr::MethodCall(call) => {
+                self.expr(&mut call.receiver, scope);
+                for arg in &mut call.args {
+                    self.expr(&mut arg.expr, scope);
+                }
+            }
+            Expr::Add(es) | Expr::Tuple(es) | Expr::List(es) => {
+                for e in es {
+                    self.expr(e, scope);
+                }
+            }
+            Expr::Compare { lhs, rhs, .. }
+            | Expr::Range {
+                start: lhs,
+                end: rhs,
+            } => {
+                self.expr(lhs, scope);
+                self.expr(rhs, scope);
+            }
+            Expr::Try(e) | Expr::Field { base: e, .. } => self.expr(e, scope),
+            Expr::AsyncBlock(body) => self.block(body, &mut scope.clone()),
+            Expr::Variant(v) => match &mut v.fields {
+                crate::ast::ExprFields::Tuple(es) => {
+                    for e in es {
+                        self.expr(e, scope);
+                    }
+                }
+                crate::ast::ExprFields::Struct(es) => {
+                    for e in es {
+                        self.expr(&mut e.expr, scope);
+                    }
+                }
+                _ => {}
+            },
+            _ => {}
+        }
     }
 }

@@ -53,7 +53,7 @@ Implemented today:
 - `ush explain` to map a `/bin/sh` line number from a failing generated script back to the `.ush` line behind it
 - Typed language features include `type { ... }`, enums, traits, marker `impl`, `match`, typed `fn`, error and I/O rows such as `String / Problem, stderr`, and Rust-like `?` propagation
 - Inferred and generic functions, higher-kinded parameters, unit-tagged integers, indexed sequences, and integer refinements. [Type guide](docs/types.md)
-- Invoke installed tools with `$bin::git("status")` or `using $bin::` and `git("status")`. Capture shell pipelines with `let text = $( … )?` and launch ordinary functions with `let job = async build(path)`.
+- Invoke installed tools with `$bin::git "status"` or `use $bin::*` and `git "status"`. Capture shell pipelines with `let text = $( … )?` and launch ordinary functions with `let job = async build path`.
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
 - Rust-like `std::module::function` paths plus `use` imports for selected std helpers, including `std::env`, `std::path`, `std::fs`, `std::command`, `std::string`, `std::http`, and `std::regex` with capture support
 - Labeled function arguments plus parameter attributes such as `#[default(...)]` and `#[alias("n")]`
@@ -431,6 +431,38 @@ Start here for more detail:
 - `docs/sourcemaps.md` for the sourcemap JSON format, sections, reverse lookup, and runtime diagnostics
 - `docs/typed-errors.md` for a step-by-step walkthrough of `T / Problem`, `fail`, inferred `# raises:`, `?`, and external-command `unknown`
 - `docs/lsp.md` for editor integration with `ush_lsp`
+
+## Shell-style language
+
+```ush
+use std::string::*
+use std::test::{assert, assert_eq}
+
+fn greet(name: String) -> String {
+  "hello " + name
+}
+
+fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
+  [f x for x in items]
+}
+
+print greet "ush"
+let greetings = map ["Ada", "Lin"] &greet
+
+test "greetings" {
+  assert_eq greetings ["hello Ada", "hello Lin"]
+  assert (starts_with (greet "ush") "hello")
+}
+```
+
+Arguments follow the function name, separated by spaces. Zero-argument
+functions work as bare names, including `let path = std::path::tmpfile`.
+Parentheses group nested argument expressions; `$` is not needed for calls.
+`use module::*` imports a module's functions. Assertions are imported explicitly.
+Run named or anonymous `test { ... }` blocks with `ush test file.ush`.
+
+[Language guide](docs/shell-language.md) covers calls, generic and higher-order
+functions, constructor kinds, comprehensions, tests and typed `.sh` externs.
 
 ## Install
 

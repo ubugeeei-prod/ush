@@ -22,7 +22,7 @@ pub(super) fn parse_call_target(source: &str) -> Result<String> {
 
 pub(super) fn parse_import_path(source: &str) -> Result<String> {
     let trimmed = source.trim();
-    if is_path(trimmed) {
+    if is_path(trimmed) || is_identifier(trimmed) {
         Ok(trimmed.into())
     } else {
         bail!("invalid import path: {trimmed}")

@@ -117,12 +117,24 @@ fn condition_effects(condition: &Condition, ctx: Context<'_>) -> EffectSet {
 
 fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
     match expr {
-        Expr::Quantity(..)
+        Expr::FunctionRef(_)
+        | Expr::Quantity(..)
         | Expr::String(_)
         | Expr::Int(_)
         | Expr::Bool(_)
         | Expr::Unit
         | Expr::Var(_) => EffectSet::empty(),
+        Expr::Comprehension(c) => {
+            let mut effects = expr_effects(&c.value, ctx);
+            for clause in &c.clauses {
+                let e = match clause {
+                    crate::ast::ComprehensionClause::For { iterable, .. } => iterable,
+                    crate::ast::ComprehensionClause::If(e) => e,
+                };
+                effects.merge(&expr_effects(e, ctx));
+            }
+            effects
+        }
         Expr::Add(parts) | Expr::Tuple(parts) | Expr::List(parts) => {
             let mut effects = EffectSet::empty();
             for part in parts {

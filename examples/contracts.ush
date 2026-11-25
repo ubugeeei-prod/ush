@@ -1,4 +1,4 @@
-using $bin::
+use $bin::*
 
 unit ms
 
@@ -18,11 +18,11 @@ fn label(value) {
   value
 }
 
-let names = keep(["test", "release"])
-print length(names)
-print delay(20ms)
-let job = async label("ready")
+let names = keep ["test", "release"]
+print length names
+print delay 20ms
+let job = async label "ready"
 let value = job.await
 let line = $(printf '%s' "$value")?
 print line
-print $bin::printf("%s", "done")
+print $bin::printf "%s" "done"

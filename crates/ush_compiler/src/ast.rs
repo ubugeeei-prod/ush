@@ -94,6 +94,8 @@ pub(crate) enum StatementKind {
 
 #[derive(Debug, Clone)]
 pub(crate) enum Expr {
+    FunctionRef(String),
+    Comprehension(Box<Comprehension>),
     ShellCapture(String),
     Quantity(i64, String),
     String(String),
@@ -136,3 +138,14 @@ pub(crate) enum Pattern {
 }
 
 pub(crate) type MatchArm = (Pattern, Box<Statement>);
+
+#[derive(Debug, Clone)]
+pub(crate) struct Comprehension {
+    pub value: Expr,
+    pub clauses: Vec<ComprehensionClause>,
+}
+#[derive(Debug, Clone)]
+pub(crate) enum ComprehensionClause {
+    For { name: String, iterable: Expr },
+    If(Expr),
+}

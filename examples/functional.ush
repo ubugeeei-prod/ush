@@ -10,5 +10,5 @@ fn label() -> String {
   "ush"
 }
 
-let value = wrap $ greet (label ())
+let value = wrap (greet label)
 print value

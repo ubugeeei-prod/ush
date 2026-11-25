@@ -1,4 +1,6 @@
 mod analyze;
+mod bindings;
+mod comprehension;
 mod control;
 mod declared_errors;
 mod handled;
@@ -112,7 +114,7 @@ pub(crate) fn analyze_function_errors(
 
 fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
     let mut errors = registry.get(name).cloned().unwrap_or_default();
-    if crate::commands::lookup(name).is_some() {
+    if crate::commands::lookup(name).is_some() || name.starts_with("std::test::") {
         errors.insert(ErrorType::Unknown);
     }
     errors

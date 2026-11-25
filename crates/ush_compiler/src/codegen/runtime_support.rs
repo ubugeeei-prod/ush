@@ -16,7 +16,7 @@ use crate::traits::TraitImplRegistry;
 #[derive(Clone, Copy)]
 pub(super) enum FailureMode {
     Abort,
-    Propagate { inside_function: bool },
+    Propagate,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -97,7 +97,7 @@ pub(super) fn hoist_expr(
             impls,
             enums,
             state,
-            FailureMode::Propagate { inside_function },
+            FailureMode::Propagate,
             inside_function,
             out,
         )?,
@@ -119,7 +119,7 @@ pub(super) fn hoist_expr(
             impls,
             enums,
             state,
-            matches!(mode, FailureMode::Propagate { .. }),
+            matches!(mode, FailureMode::Propagate),
             inside_function,
             out,
         )?,
@@ -130,7 +130,7 @@ pub(super) fn hoist_expr(
             impls,
             enums,
             state,
-            matches!(mode, FailureMode::Propagate { .. }),
+            matches!(mode, FailureMode::Propagate),
             inside_function,
             out,
         )?,
@@ -227,7 +227,10 @@ fn hoist_call_capture(
     out.push_str(&rendered);
     out.push_str(super::call_support::capture_fds(&prepared.name));
     out.push_str(")\"");
-    if let FailureMode::Propagate { inside_function } = mode {
+    if matches!(mode, FailureMode::Propagate)
+        || call.name.starts_with("std::test::")
+        || call.name.starts_with("std::__extern::")
+    {
         out.push_str(" || ");
         out.push_str(if inside_function {
             "return \"$?\""

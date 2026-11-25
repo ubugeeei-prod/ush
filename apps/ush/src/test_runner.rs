@@ -7,7 +7,11 @@ use std::{
 
 use anyhow::{Context, Result, bail};
 
-pub fn run(targets: &[String], config: Option<&Path>) -> Result<i32> {
+pub fn run(
+    targets: &[String],
+    config: Option<&Path>,
+    target: ush_compiler::ShellTarget,
+) -> Result<i32> {
     let cwd = env::current_dir().context("failed to read current directory")?;
     let tests = discover_tests(targets, &cwd)?;
     if tests.is_empty() {
@@ -19,21 +23,43 @@ pub fn run(targets: &[String], config: Option<&Path>) -> Result<i32> {
     let mut passed = 0usize;
     let mut failed = 0usize;
 
+    let compiler = ush_compiler::UshCompiler::for_target(target);
     for script in tests {
-        let output = command_for_script(&exe, &script, config)
-            .output()
-            .with_context(|| format!("failed to run {}", script.display()))?;
         let label = display_path(&script, &cwd);
-        if output.status.success() {
-            println!("ok   {label}");
-            passed += 1;
+        let cases = fs::read_to_string(&script)
+            .map_err(anyhow::Error::from)
+            .and_then(|source| compiler.test_cases_source(&source));
+        let cases = match cases {
+            Ok(cases) => cases,
+            Err(error) => {
+                println!("fail {label}\n  {error:#}");
+                failed += 1;
+                continue;
+            }
+        };
+        if cases.is_empty() {
+            let output = command_for_script(&exe, &script, config)
+                .output()
+                .with_context(|| format!("failed to run {}", script.display()))?;
+            report(&label, &output, &mut passed, &mut failed);
             continue;
         }
-
-        println!("fail {label}");
-        print_stream("stdout", &output.stdout);
-        print_stream("stderr", &output.stderr);
-        failed += 1;
+        for case in cases {
+            let label = format!("{label}:{} ({})", case.line, case.name);
+            let shell = match compiler.compile_test_file(&script, case.line) {
+                Ok(shell) => shell,
+                Err(error) => {
+                    println!("fail {label}\n  {error:#}");
+                    failed += 1;
+                    continue;
+                }
+            };
+            let dir = tempfile::tempdir()?;
+            let generated = dir.path().join("test.sh");
+            fs::write(&generated, shell)?;
+            let output = Command::new(target.to_string()).arg(&generated).output()?;
+            report(&label, &output, &mut passed, &mut failed);
+        }
     }
 
     println!("\n{passed} passed; {failed} failed");
@@ -118,4 +144,16 @@ fn print_stream(label: &str, bytes: &[u8]) {
 
 fn is_ush(path: &Path) -> bool {
     path.extension().and_then(|ext| ext.to_str()) == Some("ush")
+}
+
+fn report(label: &str, output: &std::process::Output, passed: &mut usize, failed: &mut usize) {
+    if output.status.success() {
+        println!("ok   {label}");
+        *passed += 1;
+    } else {
+        println!("fail {label}");
+        print_stream("stdout", &output.stdout);
+        print_stream("stderr", &output.stderr);
+        *failed += 1;
+    }
 }

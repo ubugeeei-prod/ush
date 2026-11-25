@@ -1,0 +1,8 @@
+extern "helpers.sh" as helpers {
+  fn greet(name: String) -> String
+  fn answer() -> Int
+}
+use helpers::*
+
+print greet "ush"
+print answer

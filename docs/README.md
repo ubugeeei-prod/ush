@@ -4,6 +4,8 @@ Step-by-step guides for `ush` live here.
 
 Available today:
 
+- [`shell-language.md`](./shell-language.md): shell-style calls, generics, function values, comprehensions, tests and `.sh` externs
+
 - [`architecture.md`](./architecture.md): top-down map of the workspace —
   which crate owns what, how the request flows go, and where to look first
   when a bug report lands

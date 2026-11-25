@@ -107,6 +107,7 @@ fn compile_string_fragment(
     enums: &EnumRegistry,
 ) -> Result<String> {
     match expr {
+        Expr::FunctionRef(_) => bail!("function reference must be checked before lowering"),
         Expr::Quantity(..) => bail!("unit literal must be checked before lowering"),
         Expr::ShellCapture(command) => Ok(format!("\"$(\n{command}\n)\"")),
         Expr::String(value) => Ok(super::super::util::shell_quote(value)),
@@ -136,7 +137,7 @@ fn compile_string_fragment(
         }
         Expr::AsyncBlock(_) => bail!("async blocks cannot be stringified implicitly"),
         Expr::Variant(_) => bail!("ADT values cannot be stringified implicitly"),
-        Expr::Tuple(_) | Expr::List(_) | Expr::Range { .. } => {
+        Expr::Comprehension(_) | Expr::Tuple(_) | Expr::List(_) | Expr::Range { .. } => {
             bail!("structured values cannot be stringified implicitly")
         }
     }

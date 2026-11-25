@@ -5,6 +5,7 @@ mod builtin_methods;
 mod call_support;
 pub(crate) mod calls;
 mod compare;
+pub(crate) mod comprehension;
 mod control;
 mod control_support;
 mod docs;

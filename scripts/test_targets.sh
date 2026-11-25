@@ -19,6 +19,14 @@ for target in sh bash zsh ash; do
   actual=$("$tmp/script")
   [ "$actual" = "$(printf '%s\n' 2 20 ready 'done')" ]
 
+  "$ush" compile examples/collections.ush --target "$target" -o "$tmp/script"
+  actual=$("$target" "$tmp/script")
+  [ "$actual" = "$(printf '%s\n' 2 3 4 3)" ]
+  "$ush" compile examples/extern.ush --target "$target" -o "$tmp/script"
+  actual=$("$target" "$tmp/script")
+  [ "$actual" = "$(printf '%s\n' 'hello ush' 42)" ]
+  "$ush" --shell-target "$target" test examples/smoke_test.ush
+
   "$ush" compile examples/error_streams.ush --target "$target" -o "$tmp/script"
   code=0
   "$tmp/script" >"$tmp/out" 2>"$tmp/err" || code=$?

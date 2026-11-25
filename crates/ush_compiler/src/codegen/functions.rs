@@ -107,8 +107,7 @@ pub(crate) fn compile_function(
         out.push_str(&errors.render());
         out.push('\n');
     }
-    out.push_str("ush_fn_");
-    out.push_str(&def.name);
+    out.push_str(&super::shared::shell_function_name(&def.name));
     out.push_str("() {\n");
 
     let mut env = globals.clone();
@@ -191,7 +190,11 @@ fn compile_many(
 }
 
 fn param_storage(function_name: &str, index: usize) -> String {
-    format!("__ush_fn_{}_arg_{}", function_name, index)
+    format!(
+        "__{}_arg_{}",
+        super::shared::shell_function_name(function_name),
+        index
+    )
 }
 
 fn ensure_function_attrs(def: &FunctionDef) -> Result<()> {
@@ -201,7 +204,7 @@ fn ensure_function_attrs(def: &FunctionDef) -> Result<()> {
             bail!("duplicate function attribute: {}::{}", def.name, attr.name);
         }
         match (attr.name.as_str(), &attr.value) {
-            ("alias", Some(Expr::String(_))) => {}
+            ("alias" | "test", Some(Expr::String(_))) => {}
             ("alias", Some(_)) => bail!("function attribute `alias` expects a string literal"),
             ("alias", None) => bail!("function attribute `alias` requires a string literal"),
             (other, _) => bail!("unsupported function attribute on `{}`: {other}", def.name),

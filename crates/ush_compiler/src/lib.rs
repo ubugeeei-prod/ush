@@ -46,6 +46,8 @@ mod scan;
 mod sourcemap;
 mod string_literal;
 mod target;
+mod testing;
+pub use testing::TestCase;
 mod traits;
 mod types;
 pub use target::ShellTarget;
@@ -141,9 +143,21 @@ impl UshCompiler {
 
     pub fn effects_source(&self, source: &str) -> Result<EffectReport> {
         let program = imports::resolve_program(parse::parse_program(source)?)?;
+        let mut functions = effects::describe_function_effects(&program)?;
+        let lowered = contracts::elaborate(program)?;
+        for actual in effects::describe_function_effects(&lowered)? {
+            let name = actual
+                .name
+                .strip_prefix("__ush_inst_")
+                .and_then(|name| name.rsplit_once('_').map(|(name, _)| name))
+                .unwrap_or(&actual.name);
+            if let Some(original) = functions.iter_mut().find(|f| f.name == name) {
+                original.inferred.merge(&actual.inferred);
+            }
+        }
         Ok(EffectReport {
-            functions: effects::describe_function_effects(&program)?,
-            top_level: effects::top_level_effects(&program)?,
+            functions,
+            top_level: effects::top_level_effects(&lowered)?,
         })
     }
 }
