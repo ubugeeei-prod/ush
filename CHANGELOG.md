@@ -23,10 +23,6 @@ project adheres to [Semantic Versioning][semver].
   invalid inputs, metadata, atomic replacement and UTC formatting across TZs.
 
 
-## [0.14.0] — 2026-11-25
-
-### Added
-
 - 48 portable std APIs for text, lexical paths, filesystem operations, streams,
   process state, host information and integer helpers. Generated programs use
   POSIX sh and standard utilities without an installed ush runtime.
@@ -35,8 +31,7 @@ project adheres to [Semantic Versioning][semver].
 - A standard-library reference with API contracts, portability boundaries and
   a POSIX/libc coverage roadmap.
 
-
-## [0.13.0] — 2026-11-25
+### Native scripting and packaging
 
 - Rewrite the installer and all repository scripts as native ush, including argument parsing, checksum lookup, PATH configuration, tests and paired benchmark orchestration.
 - Add typed process argv, execution, capture, status and redirection APIs, managed temporary directories, stderr output and string splitting/lines/integer conversion.
