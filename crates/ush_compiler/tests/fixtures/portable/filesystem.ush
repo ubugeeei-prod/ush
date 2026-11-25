@@ -1,0 +1,49 @@
+use std::fs::*
+use std::test::{assert, assert_eq}
+
+mkdir "-directory with spaces"
+std::process::chdir "-directory with spaces"
+write_text "-file" "a\r\n\nb\\c"
+touch ".hidden"
+touch "..another"
+assert_eq (size "-file") 7
+assert_eq (read_lines "-file") ["a\r", "", "b\\c"]
+assert (is_readable "-file")
+assert (is_writable "-file")
+chmod "-file" "600"
+assert_eq (is_executable "-file") false
+chmod "-file" "700"
+assert (is_executable "-file")
+hard_link "-file" "hard"
+symlink "-file" "link"
+symlink "missing" "broken"
+assert (is_symlink "link")
+assert (is_symlink "broken")
+assert_eq (read_text "hard") "a\r\n\nb\\c"
+assert_eq (read_text "link") "a\r\n\nb\\c"
+assert_eq (is_fifo "hard") false
+std::process::exec "mkfifo" ["pipe"]
+assert (is_fifo "pipe")
+let count = 0
+for entry in read_dir "." {
+  assert_eq entry (std::path::join "." (std::path::basename entry))
+  let count = count + 1
+}
+assert_eq count 7
+mkdir "empty"
+assert_eq (std::string::join (read_dir "empty") ",") ""
+rmdir "empty"
+std::process::chdir ".."
+remove_tree "-directory with spaces"
+assert_eq (exists "-directory with spaces") false
+mkdir "newline"
+touch "newline/file\n"
+assert_eq (read_dir "newline") ["./newline/file\n"]
+assert (is_readable "newline/file\n")
+assert_eq (size "newline/file\n") 0
+hard_link "newline/file\n" "newline/hard\n"
+symlink "file\n" "newline/link\n"
+assert (is_symlink "newline/link\n")
+assert_eq (size "newline/link\n") 0
+remove_tree "newline"
+print "passed"

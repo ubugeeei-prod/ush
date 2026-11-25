@@ -1,0 +1,30 @@
+use std::path::{is_absolute, extension, stem, normalize}
+use std::test::{assert, assert_eq}
+
+assert (is_absolute "/x")
+assert_eq (is_absolute "x") false
+assert_eq (extension "dir/file.tar.gz") "gz"
+assert_eq (extension ".profile") ""
+assert_eq (extension ".config.json") "json"
+assert_eq (extension "dir.with.dots/file") ""
+assert_eq (extension "..") ""
+assert_eq (stem "dir/file.tar.gz") "file.tar"
+assert_eq (stem ".profile") ".profile"
+assert_eq (stem ".config.json") ".config"
+assert_eq (stem "..") ".."
+assert_eq (normalize "") "."
+assert_eq (normalize "a//b/.././c/") "a/c"
+assert_eq (normalize "../a/../../b") "../../b"
+assert_eq (normalize "/../../a/./b") "/a/b"
+assert_eq (normalize "//server//share/../file") "//server/file"
+assert_eq (normalize "///a") "/a"
+assert_eq (normalize "a/..") "."
+assert (std::process::pid > 0)
+assert (std::os::uid >= 0)
+assert (std::os::gid >= 0)
+assert_eq (std::string::is_empty std::os::name) false
+assert_eq (std::string::is_empty std::os::arch) false
+assert_eq (std::string::is_empty std::os::hostname) false
+assert_eq (std::terminal::is_tty 1) false
+std::process::sleep 0
+print "passed"

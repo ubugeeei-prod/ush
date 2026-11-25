@@ -10,6 +10,19 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.14.0] — 2026-11-25
+
+### Added
+
+- 48 portable std APIs for text, lexical paths, filesystem operations, streams,
+  process state, host information and integer helpers. Generated programs use
+  POSIX sh and standard utilities without an installed ush runtime.
+- Literal shell quoting, byte-preserving line lists, hidden directory entries,
+  safe handling of option-like paths, and explicit argument-error diagnostics.
+- A standard-library reference with API contracts, portability boundaries and
+  a POSIX/libc coverage roadmap.
+
+
 ## [0.13.0] — 2026-11-25
 
 - Rewrite the installer and all repository scripts as native ush, including argument parsing, checksum lookup, PATH configuration, tests and paired benchmark orchestration.
@@ -461,7 +474,7 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.11.1...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.14.0...HEAD
 [0.11.1]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.1
 [0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
 [0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
