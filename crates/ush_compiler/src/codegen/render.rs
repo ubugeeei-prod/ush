@@ -129,7 +129,7 @@ fn compile_string_fragment(
             "\"{}\"",
             capture_call(call, env, functions, impls, enums, &Type::String)?
         )),
-        Expr::Field { .. } | Expr::MethodCall(_) | Expr::Pipeline(_) => {
+        Expr::Field { .. } | Expr::MethodCall(_) | Expr::Pipeline(_) | Expr::StatusOf(_) => {
             bail!("unsupported string expression before runtime hoisting")
         }
         Expr::AsyncBlock(_) => bail!("async blocks cannot be stringified implicitly"),

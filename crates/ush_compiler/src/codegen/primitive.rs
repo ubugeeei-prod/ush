@@ -64,6 +64,17 @@ pub(crate) fn infer(
         Expr::AsyncBlock(body) => infer_async_block_type(body, env, functions, impls, enums)
             .map(|ty| Type::Task(Box::new(ty))),
         Expr::Pipeline(pipeline) => super::pipeline::infer(pipeline, env, functions, impls, enums),
+        Expr::StatusOf(command) => {
+            if super::process::operand(command, env, functions, true)?.is_none() {
+                bail!(
+                    "`status_of` runs a command, a pipeline, a function returning `()` or `task.await`"
+                );
+            }
+            if let Expr::Pipeline(pipeline) = &**command {
+                super::pipeline::check_statement(pipeline, env, functions, impls, enums)?;
+            }
+            Ok(Type::Int)
+        }
     }
 }
 

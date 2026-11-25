@@ -83,6 +83,8 @@ impl Resolver<'_> {
                 kind.exprs_mut().for_each(|e| self.expr(e, scope));
                 self.block(body, &mut scope.clone());
             }
+            S::AllowFail(command) => self.expr(command, scope),
+            S::Defer(body) => self.block(body, &mut scope.clone()),
             _ => {}
         }
     }
@@ -149,7 +151,7 @@ impl Resolver<'_> {
                 self.expr(lhs, scope);
                 self.expr(rhs, scope);
             }
-            Expr::Try(e) | Expr::Field { base: e, .. } => self.expr(e, scope),
+            Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => self.expr(e, scope),
             Expr::AsyncBlock(body) => self.block(body, &mut scope.clone()),
             Expr::Pipeline(pipeline) => pipeline.exprs_mut().for_each(|e| self.expr(e, scope)),
             Expr::Variant(v) => match &mut v.fields {

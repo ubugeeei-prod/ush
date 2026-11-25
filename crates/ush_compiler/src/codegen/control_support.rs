@@ -30,10 +30,25 @@ pub(super) fn compile_condition(
 ) -> Result<ConditionPlan> {
     match condition {
         Condition::Expr(expr) => {
-            if super::infer(expr, env, ctx.functions, ctx.impls, ctx.enums)? != Type::Bool {
-                bail!("if/while conditions must be boolean");
-            }
+            super::process::check_condition(expr, env, ctx.functions, ctx.impls, ctx.enums)?;
             let mut buffer = OutputBuffer::new(ctx.state.mapped);
+            if let Some(operand) = super::process::operand(expr, env, ctx.functions, false)? {
+                let test = super::process::render(
+                    operand,
+                    env,
+                    ctx.functions,
+                    ctx.impls,
+                    ctx.enums,
+                    ctx.state,
+                    ctx.inside_function,
+                    &mut buffer,
+                )?;
+                return Ok(ConditionPlan {
+                    script: block_script(buffer, &test),
+                    env: env.clone(),
+                    binds: false,
+                });
+            }
             let rendered = compile_runtime_primitive_expr(
                 expr,
                 env,
@@ -83,6 +98,14 @@ pub(super) fn compile_condition(
                 script: format!("{{\n{}\n}}", parts.join(" && ")),
                 env: current_env,
                 binds,
+            })
+        }
+        Condition::Not(inner) => {
+            let plan = compile_condition(inner, env, ctx)?;
+            Ok(ConditionPlan {
+                script: format!("! {}", plan.script),
+                env: env.clone(),
+                binds: false,
             })
         }
         Condition::Or(items) => {

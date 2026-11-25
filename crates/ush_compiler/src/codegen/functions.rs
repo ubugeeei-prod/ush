@@ -137,6 +137,8 @@ pub(crate) fn compile_function(
         );
     }
 
+    let blocked = state.defer_blocked.take();
+    let deferred = core::mem::take(&mut state.deferred);
     let body = compile_many(
         &def.body,
         &mut env,
@@ -147,9 +149,21 @@ pub(crate) fn compile_function(
         function_errors,
         state,
         def.return_type.as_ref(),
-    )?;
-    if body.as_str().contains("__ush_jobs=") {
-        out.push_str("  (\n    __ush_task_scope\n");
+    );
+    state.defer_blocked = blocked;
+    let defers = core::mem::replace(&mut state.deferred, deferred);
+    let body = body?;
+    // Tasks and deferred blocks belong to this call, so the body runs in a
+    // process of its own whose exit runs the blocks and joins the tasks.
+    let tasks = body.as_str().contains("__ush_jobs=");
+    if tasks || defers {
+        out.push_str("  (\n");
+        if defers {
+            out.push_str("    __ush_defer_scope\n");
+        }
+        if tasks {
+            out.push_str("    __ush_task_scope\n");
+        }
         push_output(out, &body, 4);
         out.push_str("  )\n");
     } else if body.is_empty() {

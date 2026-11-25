@@ -35,6 +35,9 @@ pub(super) fn parse_let_binding(source: &str) -> Result<StatementKind> {
     let (name, expr) = super::statement_support::split_assignment(source)
         .ok_or_else(|| anyhow!("invalid let binding"))?;
     super::path::parse_identifier(name)?;
+    if expr.starts_with("spawn ") {
+        bail!("`let {name} = spawn …` must be a statement of its own");
+    }
     if let Some(rest) = expr.strip_prefix("async ")
         && !rest.trim_start().starts_with('{')
     {
@@ -43,7 +46,9 @@ pub(super) fn parse_let_binding(source: &str) -> Result<StatementKind> {
             call: signature::parse_call(rest, true)?,
         });
     }
-    if let Some(task) = signature::parse_await_task(expr)? {
+    if !expr.starts_with("status_of ")
+        && let Some(task) = signature::parse_await_task(expr)?
+    {
         return Ok(StatementKind::Await {
             name: name.into(),
             task,
@@ -63,6 +68,15 @@ pub(super) fn parse_let_binding_block(
     let (name, expr) = super::statement_support::split_assignment(source)
         .ok_or_else(|| anyhow!("invalid let binding"))?;
     super::path::parse_identifier(name)?;
+    if let Some(command) = expr.strip_prefix("spawn ") {
+        let line_no = lines.get(*cursor).map_or(0, |(line_no, _)| *line_no);
+        let expr = super::process::spawn(line_no, command)?;
+        *cursor += 1;
+        return Ok(StatementKind::Let {
+            name: name.into(),
+            expr,
+        });
+    }
     if expr != "async {" {
         return parse_let_binding(source);
     }

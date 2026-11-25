@@ -44,6 +44,12 @@ pub(super) fn parse_inline_body(
         statement.binding = binding;
         return Ok(statement);
     }
+    if let Some(rest) = source.strip_prefix("allow_fail ") {
+        return Ok(Statement::new(
+            line_no,
+            StatementKind::AllowFail(parse_expr(rest)?),
+        ));
+    }
     if let Some(rest) = source.strip_prefix("alias ") {
         return Ok(Statement::new(line_no, parse_alias(rest)?));
     }

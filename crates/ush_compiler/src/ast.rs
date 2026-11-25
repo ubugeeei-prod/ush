@@ -123,6 +123,12 @@ pub(crate) enum StatementKind {
         scope: Scope,
         body: Vec<Statement>,
     },
+    /// `allow_fail command`: run it, streaming, and continue whatever its
+    /// exit status.
+    AllowFail(Expr),
+    /// `defer { … }`: run the block when the enclosing function returns or
+    /// the script exits, last registered first.
+    Defer(Vec<Statement>),
 }
 
 #[derive(Debug, Clone)]
@@ -159,6 +165,9 @@ pub(crate) enum Expr {
     AsyncBlock(Vec<Statement>),
     /// `a | b` in value position: the last stage's captured stdout.
     Pipeline(Box<Pipeline>),
+    /// `status_of command`: run it, streaming, and evaluate to its exit
+    /// status as an `Int` instead of failing.
+    StatusOf(Box<Expr>),
 }
 
 #[derive(Debug, Clone)]

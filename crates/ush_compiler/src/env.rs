@@ -32,6 +32,10 @@ pub(crate) struct CodegenState {
     pub(crate) loop_depth: usize,
     /// Scoped blocks being compiled, innermost last.
     pub(crate) scopes: crate::types::HeapVec<ScopeFrame>,
+    /// Why `defer` cannot be used where the compiler is, if it cannot.
+    pub(crate) defer_blocked: Option<&'static str>,
+    /// A `defer` was compiled in the current function or script body.
+    pub(crate) deferred: bool,
 }
 
 /// A `cd` or `export` block whose body is being compiled. `break` and
@@ -58,6 +62,8 @@ impl CodegenState {
             wire_types: Default::default(),
             loop_depth: 0,
             scopes: Default::default(),
+            defer_blocked: None,
+            deferred: false,
         }
     }
     pub(crate) fn temp_var(&mut self, prefix: &str) -> String {

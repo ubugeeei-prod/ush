@@ -13,6 +13,7 @@ impl Resolver<'_> {
                     self.condition(c, scope);
                 }
             }
+            Condition::Not(c) => self.condition(c, &mut scope.clone()),
             Condition::Or(cs) => {
                 for c in cs {
                     self.condition(c, &mut scope.clone());

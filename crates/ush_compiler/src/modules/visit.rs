@@ -111,6 +111,8 @@ pub(crate) fn walk_statement<V: VisitMut + ?Sized>(v: &mut V, statement: &mut St
             scope.exprs_mut().for_each(|e| v.expr(e));
             walk_block(v, body);
         }
+        S::AllowFail(e) => v.expr(e),
+        S::Defer(body) => walk_block(v, body),
         S::Use(_)
         | S::Module(_)
         | S::UnitDef(_)
@@ -147,6 +149,7 @@ pub(crate) fn walk_condition<V: VisitMut + ?Sized>(v: &mut V, condition: &mut Co
         Condition::And(items) | Condition::Or(items) => {
             items.iter_mut().for_each(|item| walk_condition(v, item));
         }
+        Condition::Not(inner) => walk_condition(v, inner),
     }
 }
 
@@ -185,7 +188,7 @@ pub(crate) fn walk_expr<V: VisitMut + ?Sized>(v: &mut V, expr: &mut Expr) {
             v.expr(lhs);
             v.expr(rhs);
         }
-        Expr::Try(inner) | Expr::Field { base: inner, .. } => v.expr(inner),
+        Expr::Try(inner) | Expr::Field { base: inner, .. } | Expr::StatusOf(inner) => v.expr(inner),
         Expr::AsyncBlock(body) => walk_block(v, body),
         Expr::Pipeline(pipeline) => pipeline.exprs_mut().for_each(|e| v.expr(e)),
         Expr::Variant(variant) => match &mut variant.fields {

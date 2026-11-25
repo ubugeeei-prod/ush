@@ -18,6 +18,11 @@ use super::{
 };
 
 pub(super) fn parse_expr(source: &str) -> Result<Expr> {
+    // `status_of` covers the rest of the expression, a whole pipeline
+    // included, so it is read before the pipe.
+    if let Some(command) = source.trim().strip_prefix("status_of ") {
+        return Ok(Expr::StatusOf(Box::new(parse_expr(command)?)));
+    }
     // A pipe binds more loosely than anything else in an expression.
     if let Some(pipeline) = super::pipeline::parse_pipeline(source)? {
         return Ok(Expr::Pipeline(Box::new(pipeline)));

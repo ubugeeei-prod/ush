@@ -32,6 +32,9 @@ pub(crate) fn infer_field_expr(
     {
         return Ok(*result);
     }
+    if let Some(ty) = super::task_methods::infer_field(&base_ty, name) {
+        return Ok(ty);
+    }
     let field = struct_field(&base_ty, name, enums)?;
     Ok(field.ty.clone())
 }
@@ -44,6 +47,11 @@ pub(crate) fn infer_method_call(
     enums: &EnumRegistry,
 ) -> Result<Type> {
     let receiver_ty = infer(&call.receiver, env, functions, impls, enums)?;
+    if let Some(ty) =
+        super::task_methods::infer_method(call, &receiver_ty, env, functions, impls, enums)?
+    {
+        return Ok(ty);
+    }
     if let Some(ty) = infer_builtin_method(call, env, functions, impls, enums)? {
         return Ok(ty);
     }
@@ -166,6 +174,19 @@ pub(crate) fn compile_method_capture(
             )
         })
         .collect::<Result<Vec<_>>>()?;
+    if let Some(rendered) = super::task_methods::compile_kill(
+        &receiver,
+        method,
+        &args,
+        &runtime_env,
+        functions,
+        impls,
+        enums,
+        inside_function,
+        out,
+    )? {
+        return Ok(rendered);
+    }
     if let Some(rendered) = capture_builtin_method(
         &receiver,
         method,

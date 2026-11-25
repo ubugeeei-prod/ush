@@ -36,6 +36,14 @@ pub(super) fn hoist_field_access(
         super::tasks::bind_await(&temp, task, env, out)?;
         return Ok(Expr::Var(temp));
     }
+    if let Expr::Var(task) = base
+        && let Some(binding) = super::task_methods::pid(task, env)
+        && name == "pid"
+    {
+        let temp = state.temp_var("pid");
+        env.insert(temp.clone(), binding);
+        return Ok(Expr::Var(temp));
+    }
     let binding = read_expr(
         base,
         env,

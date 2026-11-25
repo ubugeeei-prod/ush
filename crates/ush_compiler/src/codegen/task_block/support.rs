@@ -20,9 +20,11 @@ pub(super) fn condition_env(
 ) -> Result<Env> {
     match condition {
         Condition::Expr(expr) => {
-            if infer(expr, env, functions, impls, enums)? != Type::Bool {
-                bail!("if/while conditions must be boolean");
-            }
+            crate::codegen::process::check_condition(expr, env, functions, impls, enums)?;
+            Ok(env.clone())
+        }
+        Condition::Not(inner) => {
+            condition_env(inner, env, functions, impls, enums)?;
             Ok(env.clone())
         }
         Condition::Let { pattern, expr } => Ok(compile_pattern(
@@ -66,5 +68,6 @@ fn has_pattern_binding(condition: &Condition) -> bool {
         Condition::Let { .. } => true,
         Condition::And(items) | Condition::Or(items) => items.iter().any(has_pattern_binding),
         Condition::Expr(_) => false,
+        Condition::Not(inner) => has_pattern_binding(inner),
     }
 }

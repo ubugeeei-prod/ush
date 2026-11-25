@@ -183,6 +183,18 @@ fn statement_errors(
             function_errors,
         ),
         StatementKind::Break | StatementKind::Continue => Ok(ErrorSet::default()),
+        StatementKind::AllowFail(command) => {
+            super::status::errors(command, env, functions, impls, enums, function_errors)
+        }
+        StatementKind::Defer(body) => block_errors(
+            body,
+            &mut env.clone(),
+            &mut tasks.clone(),
+            functions,
+            impls,
+            enums,
+            function_errors,
+        ),
         StatementKind::Pipeline(pipeline) => {
             super::shell::pipeline_errors(pipeline, env, functions, impls, enums, function_errors)
         }

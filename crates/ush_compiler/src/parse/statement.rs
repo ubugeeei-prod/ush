@@ -105,7 +105,7 @@ fn parse_statement(
     {
         return Ok(Statement::new(line_no, kind));
     }
-    if let Some(kind) = super::scoped::parse(trimmed, lines, cursor)? {
+    if let Some(kind) = super::scoped::parse(line_no, trimmed, lines, cursor)? {
         return Ok(Statement::new(line_no, kind));
     }
     if let Some((binding, rest)) = super::statement_support::binding_source(trimmed) {
@@ -157,11 +157,10 @@ fn parse_statement(
             control::parse_loop(trimmed, lines, cursor)?,
         ));
     }
-    if trimmed == "break" {
-        return Ok(Statement::new(line_no, StatementKind::Break));
-    }
-    if trimmed == "continue" {
-        return Ok(Statement::new(line_no, StatementKind::Continue));
+    match trimmed {
+        "break" => return Ok(Statement::new(line_no, StatementKind::Break)),
+        "continue" => return Ok(Statement::new(line_no, StatementKind::Continue)),
+        _ => {}
     }
     if let Some(rest) = trimmed.strip_prefix("print ") {
         return Ok(Statement::new(
@@ -238,6 +237,7 @@ fn is_block_statement(statement: &Statement) -> bool {
             | StatementKind::Loop { .. }
             | StatementKind::Handle { .. }
             | StatementKind::Scoped { .. }
+            | StatementKind::Defer(_)
             | StatementKind::Let {
                 expr: Expr::AsyncBlock(_),
                 ..

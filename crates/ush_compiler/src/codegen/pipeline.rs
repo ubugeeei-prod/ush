@@ -19,25 +19,22 @@
 //! The program does not inherit descriptor 7, so a daemon it starts cannot
 //! hold the pipeline open.
 
+mod lower;
 mod render;
 mod stage;
 
 use anyhow::Result;
 
-use super::{
-    FunctionRegistry, compile_runtime_primitive_expr, control::ControlContext,
-    io::push_failure_guard, rendered_call_runtime,
-};
+use super::{FunctionRegistry, control::ControlContext};
 use crate::{
     ast::{Expr, Pipeline, Type},
     env::{Binding, CodegenState, EnumRegistry, Env, Storage},
     sourcemap::OutputBuffer,
     traits::TraitImplRegistry,
-    types::{HeapVec as Vec, OutputString as String},
-    util::shell_value_quote,
+    types::OutputString as String,
 };
-use render::{Process, process, render};
-use stage::{StageKind, Types};
+use lower::lower;
+use stage::Types;
 
 /// The type of a captured pipeline, after checking every stage.
 pub(crate) fn infer(
@@ -57,6 +54,23 @@ pub(crate) fn infer(
     Ok(Type::String)
 }
 
+/// Check every stage of a pipeline that runs as a statement.
+pub(crate) fn check_statement(
+    pipeline: &Pipeline,
+    env: &Env,
+    functions: &FunctionRegistry,
+    impls: &TraitImplRegistry,
+    enums: &EnumRegistry,
+) -> Result<()> {
+    let types = Types {
+        env,
+        functions,
+        impls,
+        enums,
+    };
+    stage::classify(pipeline, false, &types).map(drop)
+}
+
 pub(crate) fn compile_statement(
     pipeline: &Pipeline,
     env: &Env,
@@ -69,7 +83,15 @@ pub(crate) fn compile_statement(
         impls: ctx.impls,
         enums: ctx.enums,
     };
-    let block = lower(pipeline, false, &types, ctx.state, ctx.inside_function, out)?;
+    let block = lower(
+        pipeline,
+        false,
+        false,
+        &types,
+        ctx.state,
+        ctx.inside_function,
+        out,
+    )?;
     out.push_str(&block);
     out.push_str(&format!(" || {} \"$?\"\n", leave(ctx.inside_function)));
     Ok(())
@@ -94,7 +116,7 @@ pub(crate) fn hoist_capture(
         impls,
         enums,
     };
-    let block = lower(pipeline, true, &types, state, inside_function, out)?;
+    let block = lower(pipeline, true, false, &types, state, inside_function, out)?;
     let temp = state.temp_var("value");
     out.push_str(&format!("{temp}=\"$(\n"));
     for line in block.lines() {
@@ -117,109 +139,30 @@ fn leave(inside_function: bool) -> &'static str {
     if inside_function { "return" } else { "exit" }
 }
 
-/// Evaluate every stage's arguments, left to right, then return the
-/// shell that runs the stages and checks their statuses.
-fn lower(
+/// The shell whose exit status is the pipeline's, with the same
+/// left-to-right rule, but without reporting the failing stage: a
+/// condition, `status_of` or `allow_fail` handles the status itself.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn compile_status(
     pipeline: &Pipeline,
-    captured: bool,
-    types: &Types<'_>,
+    env: &Env,
+    functions: &FunctionRegistry,
+    impls: &TraitImplRegistry,
+    enums: &EnumRegistry,
     state: &mut CodegenState,
     inside_function: bool,
     out: &mut OutputBuffer,
 ) -> Result<String> {
-    let kinds = stage::classify(pipeline, captured, types)?;
-    let mut processes: Vec<Process> = Vec::new();
-    let mut source = None;
-    for (index, (stage, kind)) in pipeline.stages.iter().zip(&kinds).enumerate() {
-        let command = match kind {
-            StageKind::Source(path) => {
-                source = Some((path_word(path, types, state, inside_function, out)?, index));
-                continue;
-            }
-            StageKind::Sink { path, append } => {
-                let path = path_word(path, types, state, inside_function, out)?;
-                if processes.is_empty() {
-                    // `from_file a | to_file b` copies a file.
-                    processes.push(process("(command cat)".into(), source.take(), false, 0));
-                }
-                if let Some(last) = processes.last_mut() {
-                    last.output = Some((path, *append));
-                    last.last = index;
-                }
-                continue;
-            }
-            StageKind::Command(call) => format!(
-                "({})",
-                rendered_call_runtime(
-                    call,
-                    types.env,
-                    types.functions,
-                    types.impls,
-                    types.enums,
-                    state,
-                    inside_function,
-                    out,
-                )?
-            ),
-            StageKind::Function(call) => format!(
-                "( __ush_capture_return='0' __ush_return_path=''; {} )",
-                rendered_call_runtime(
-                    call,
-                    types.env,
-                    types.functions,
-                    types.impls,
-                    types.enums,
-                    state,
-                    inside_function,
-                    out,
-                )?
-            ),
-            StageKind::Text(expr) => format!(
-                "(printf '%s' {})",
-                compile_runtime_primitive_expr(
-                    expr,
-                    types.env,
-                    types.functions,
-                    types.impls,
-                    types.enums,
-                    state,
-                    inside_function,
-                    out,
-                )?
-            ),
-        };
-        let merge = stage.merge_stderr;
-        processes.push(process(command, source.take(), merge, index));
-    }
-    Ok(render(pipeline, &processes))
-}
-
-/// A literal path is used as written. A computed path goes through the
-/// same resolution as `std::fs`, which also rejects an empty path.
-fn path_word(
-    path: &Expr,
-    types: &Types<'_>,
-    state: &mut CodegenState,
-    inside_function: bool,
-    out: &mut OutputBuffer,
-) -> Result<String> {
-    if let Expr::String(path) = path {
-        anyhow::ensure!(!path.is_empty(), "a file path must not be empty");
-        return Ok(shell_value_quote(path));
-    }
-    let value = compile_runtime_primitive_expr(
-        path,
-        types.env,
-        types.functions,
-        types.impls,
-        types.enums,
-        state,
-        inside_function,
-        out,
-    )?;
-    let temp = state.temp_var("path");
-    out.push_str(&format!("__ush_std_fs_path {value}"));
-    push_failure_guard(out, inside_function);
-    out.push_str(&format!("{temp}=$__ush_path\n"));
-    Ok(format!("\"${temp}\""))
+    let types = Types {
+        env,
+        functions,
+        impls,
+        enums,
+    };
+    let block = lower(pipeline, false, true, &types, state, inside_function, out)?;
+    Ok(if block.contains('\n') {
+        format!("{{\n{block}\n}}")
+    } else {
+        block
+    })
 }

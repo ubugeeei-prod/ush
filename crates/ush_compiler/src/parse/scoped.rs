@@ -10,13 +10,18 @@ use crate::{
     util::{is_identifier, split_once_top_level, split_top_level},
 };
 
-/// Parse a `cd` block or an `export` statement. Plain `cd path` and any
-/// `export` that is not `NAME = value` keep their command meaning.
+/// Parse a `cd` block or an `export` statement, or one of the process
+/// statements, `allow_fail` and `defer`. Plain `cd path` and any `export`
+/// that is not `NAME = value` keep their command meaning.
 pub(super) fn parse(
+    line_no: usize,
     trimmed: &str,
     lines: &[SourceLine<'_>],
     cursor: &mut usize,
 ) -> Result<Option<StatementKind>> {
+    if let Some(kind) = super::process::parse(line_no, trimmed, lines, cursor)? {
+        return Ok(Some(kind));
+    }
     if let Some(path) = trimmed.strip_prefix("cd ").and_then(block_header) {
         let scope = Scope::Cd(parse_expr(path)?);
         return block(scope, lines, cursor).map(Some);
@@ -83,7 +88,7 @@ mod tests {
             .enumerate()
             .map(|(i, l)| (i + 1, l))
             .collect();
-        super::parse(lines[0].1.trim(), &lines, &mut 0).unwrap()
+        super::parse(1, lines[0].1.trim(), &lines, &mut 0).unwrap()
     }
 
     #[test]
@@ -125,9 +130,9 @@ mod tests {
     #[test]
     fn duplicate_and_malformed_bindings_are_rejected() {
         let lines = [(1, r#"export A = "1", A = "2""#)];
-        let error = super::parse(lines[0].1, &lines, &mut 0).unwrap_err();
+        let error = super::parse(1, lines[0].1, &lines, &mut 0).unwrap_err();
         assert!(format!("{error}").contains("twice"));
         let lines = [(1, r#"export A = "1", "B""#)];
-        assert!(super::parse(lines[0].1, &lines, &mut 0).is_err());
+        assert!(super::parse(1, lines[0].1, &lines, &mut 0).is_err());
     }
 }

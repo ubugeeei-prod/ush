@@ -56,8 +56,9 @@ pub(super) fn compile_method_body(
     state: &mut CodegenState,
 ) -> Result<String> {
     let mut out = OutputBuffer::new(state.mapped);
+    let blocked = state.defer_blocked.replace("inside a method");
     for (index, statement) in def.body.iter().enumerate() {
-        compile_statement(
+        let compiled = compile_statement(
             statement,
             env,
             globals,
@@ -70,8 +71,13 @@ pub(super) fn compile_method_body(
             true,
             index + 1 == def.body.len(),
             &mut out,
-        )?;
+        );
+        if compiled.is_err() {
+            state.defer_blocked = blocked;
+            compiled?;
+        }
     }
+    state.defer_blocked = blocked;
     Ok(out.into_shell())
 }
 

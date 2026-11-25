@@ -6,7 +6,9 @@ use super::super::{
     FunctionRegistry,
     calls::call_return_type,
     infer,
-    stdlib::pipe::{APPEND_TO, FROM_FILE, TO_FILE},
+    stdlib::pipe::{
+        APPEND_TO, DISCARD_STDERR, FROM_FILE, STDERR_APPEND_TO, STDERR_TO, TO_FILE, TO_STDERR,
+    },
 };
 use crate::{
     ast::{Call, Expr, Pipeline, Stage, Type},
@@ -26,6 +28,15 @@ pub(super) enum StageKind<'a> {
     Source(&'a Expr),
     /// `to_file path` or `append_to path`: the previous stage's stdout.
     Sink { path: &'a Expr, append: bool },
+    /// `to_stderr`: the previous stage's stdout goes to stderr.
+    ToStderr,
+    /// `stderr_to path`, `stderr_append_to path` or `discard_stderr`
+    /// (`path` is `None`): the previous stage's stderr, while its stdout
+    /// carries on to the next stage.
+    Stderr {
+        path: Option<&'a Expr>,
+        append: bool,
+    },
 }
 
 pub(super) struct Types<'a> {
@@ -56,7 +67,12 @@ pub(super) fn classify<'a>(
                 .map_err(|error| anyhow!("pipeline stage {} `{}`: {error}", index + 1, stage.text))
         })
         .collect::<Result<Vec<_>>>()?;
-    if captured && matches!(kinds.last(), Some(StageKind::Sink { .. })) {
+    if captured
+        && matches!(
+            kinds.last(),
+            Some(StageKind::Sink { .. } | StageKind::ToStderr)
+        )
+    {
         bail!(
             "a pipeline that ends in a file sink has no output to capture; \
              as a function's last line, end it with `;` to run it as a statement"
@@ -79,6 +95,30 @@ fn classify_stage<'a>(
             FROM_FILE if index != 0 => bail!("`from_file` can only be the first stage"),
             FROM_FILE if stage.merge_stderr => bail!("`from_file` has no stderr to merge"),
             FROM_FILE => return Ok(StageKind::Source(path_arg(call, types)?)),
+            STDERR_TO | STDERR_APPEND_TO | DISCARD_STDERR | TO_STDERR if index == 0 => {
+                bail!("`{}` needs a stage before it", short(&call.name));
+            }
+            STDERR_TO | STDERR_APPEND_TO | DISCARD_STDERR if stage.merge_stderr => bail!(
+                "`{}` sends stderr elsewhere, so it cannot be followed by `|&`",
+                short(&call.name)
+            ),
+            STDERR_TO | STDERR_APPEND_TO => {
+                return Ok(StageKind::Stderr {
+                    path: Some(path_arg(call, types)?),
+                    append: call.name == STDERR_APPEND_TO,
+                });
+            }
+            DISCARD_STDERR | TO_STDERR if !call.args.is_empty() => {
+                bail!("`{}` takes no arguments", short(&call.name));
+            }
+            DISCARD_STDERR => {
+                return Ok(StageKind::Stderr {
+                    path: None,
+                    append: false,
+                });
+            }
+            TO_STDERR if index != last => bail!("`to_stderr` can only be the last stage"),
+            TO_STDERR => return Ok(StageKind::ToStderr),
             TO_FILE | APPEND_TO if index != last => bail!("a file sink can only be the last stage"),
             TO_FILE | APPEND_TO => {
                 let append = call.name == APPEND_TO;
@@ -110,6 +150,10 @@ fn classify_stage<'a>(
              a function stage prints its output instead of returning it"
         ),
     }
+}
+
+fn short(name: &str) -> &str {
+    name.rsplit("::").next().unwrap_or(name)
 }
 
 fn path_arg<'a>(call: &'a Call, types: &Types<'_>) -> Result<&'a Expr> {

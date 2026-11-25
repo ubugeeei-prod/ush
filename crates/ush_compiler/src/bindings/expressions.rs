@@ -45,7 +45,7 @@ pub(super) fn expr(e: &Expr, scope: &Scope, globals: &Scope) -> Result<()> {
             expr(lhs, scope, globals)?;
             expr(rhs, scope, globals)?;
         }
-        Expr::Try(e) | Expr::Field { base: e, .. } => expr(e, scope, globals)?,
+        Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => expr(e, scope, globals)?,
         Expr::Pipeline(p) => {
             for e in p.exprs() {
                 expr(e, scope, globals)?;

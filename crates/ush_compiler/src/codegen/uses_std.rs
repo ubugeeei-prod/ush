@@ -42,6 +42,8 @@ fn statement(s: &Statement) -> bool {
         S::Scoped { scope, body } => {
             matches!(scope, crate::ast::Scope::Cd(_)) || scope.exprs().any(expr) || references(body)
         }
+        S::AllowFail(e) => expr(e),
+        S::Defer(body) => references(body),
         _ => false,
     }
 }
@@ -49,6 +51,7 @@ fn condition(c: &Condition) -> bool {
     match c {
         Condition::Expr(e) | Condition::Let { expr: e, .. } => expr(e),
         Condition::And(cs) | Condition::Or(cs) => cs.iter().any(condition),
+        Condition::Not(c) => condition(c),
     }
 }
 fn expr(e: &Expr) -> bool {
@@ -74,7 +77,7 @@ fn expr(e: &Expr) -> bool {
             start: lhs,
             end: rhs,
         } => expr(lhs) || expr(rhs),
-        Expr::Try(e) | Expr::Field { base: e, .. } => expr(e),
+        Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => expr(e),
         Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(expr),
         Expr::AsyncBlock(body) => references(body),
         Expr::Pipeline(pipeline) => pipeline.exprs().any(expr),
