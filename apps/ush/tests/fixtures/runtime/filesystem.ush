@@ -18,10 +18,10 @@ symlink "hard" "link"
 assert_eq (read_link "link") "hard"
 assert_eq (canonicalize "link") (canonicalize "hard")
 write_atomic "atomic" "old"
-chmod "atomic" "440"
+chmod "atomic" "4440"
 write_atomic "atomic" "new\n\n"
 assert_eq (read_bytes "atomic") [110, 101, 119, 10, 10]
-assert_eq (mode "atomic") 288
+assert_eq (mode "atomic") 2336
 assert (is_socket "socket")
 assert_eq (is_socket "hard") false
 assert_eq (is_socket "missing") false

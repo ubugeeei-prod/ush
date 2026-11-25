@@ -67,15 +67,17 @@ fn atomic_write(path: &Path, bytes: &[u8]) -> Result<()> {
         .filter(|p| !p.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
     let mut file = tempfile::NamedTempFile::new_in(parent)?;
-    match fs::symlink_metadata(path) {
-        Ok(metadata) if metadata.is_file() => {
-            file.as_file().set_permissions(metadata.permissions())?
-        }
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+    let permissions = match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.is_file() => Some(metadata.permissions()),
+        Ok(_) => None,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
         Err(error) => return Err(error.into()),
-    }
+    };
     file.write_all(bytes)?;
+    if let Some(permissions) = permissions {
+        // A write may clear set-ID bits, so restore the mode after writing.
+        file.as_file().set_permissions(permissions)?;
+    }
     file.as_file().sync_all()?;
     file.persist(path)?;
     Ok(())
