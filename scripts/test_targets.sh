@@ -36,6 +36,7 @@ __ush_report() {
 }
 
 __ush_jobs=''
+__ush_signal=''
 __ush_task_seq=0
 __ush_task_dir=''
 __ush_task_init() {
