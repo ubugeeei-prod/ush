@@ -18,7 +18,7 @@ use std::time::{unix_seconds, format_utc}
 
 let contents = read_bytes "input.bin"
 write_bytes "copy.bin" $contents
-write_atomic "timestamp.txt" (format_utc $unix_seconds "%Y-%m-%dT%H:%M:%SZ")
+write_atomic "timestamp.txt" (format_utc (unix_seconds) "%Y-%m-%dT%H:%M:%SZ")
 echo (encode_base64 $contents)
 ```
 

@@ -589,7 +589,7 @@ extern "helpers.sh" as helpers {
 use helpers::*
 
 echo (greet "ush")
-echo $answer
+echo (answer)
 ```
 
 The optional module name provides qualified calls such as `helpers::greet`;

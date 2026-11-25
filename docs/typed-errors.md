@@ -27,7 +27,7 @@ fn load(path: String) -> String {
 }
 
 let config = load "app.toml"?
-echo $head_sha
+echo (head_sha)
 ```
 
 `ush effects` prints every function's row, written or inferred, error
