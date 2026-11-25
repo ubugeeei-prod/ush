@@ -209,12 +209,17 @@ jobs:
         if: github.event_name == 'pull_request'
         run: sh scripts/compare_benchmarks.sh .bench-base
 
+      # Cached estimates can be restored without sample.json; isolate measurement data.
       - name: Run parser bench
         if: github.event_name == 'push'
+        env:
+          CRITERION_HOME: ${{ runner.temp }}/ush-bench-history-${{ github.run_id }}-${{ github.run_attempt }}
         run: cargo bench --locked -p ush_shell --bench parser -- --output-format bencher | tee bench-output.txt
 
       - name: Run compile bench
         if: github.event_name == 'push'
+        env:
+          CRITERION_HOME: ${{ runner.temp }}/ush-bench-history-${{ github.run_id }}-${{ github.run_attempt }}
         run: cargo bench --locked -p ush_compiler --bench compile -- --output-format bencher | tee -a bench-output.txt
 
       - name: Publish benchmark history on main
