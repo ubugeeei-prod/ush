@@ -25,6 +25,33 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
+  tynix:
+    name: Typed Nix configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Verify with pinned tynix release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          work=$(mktemp -d)
+          gh release download v2.0.0 --repo ubugeeei-prod/tynix --pattern 'tynix-v2.0.0-linux-x64.tar.gz' --pattern 'tynix-v2.0.0-linux-x64.sha256' --dir "$work"
+          (cd "$work" && sha256sum -c tynix-v2.0.0-linux-x64.sha256 && tar -xzf tynix-v2.0.0-linux-x64.tar.gz)
+          TYNIX="$work/tynix-2.0.0-linux-x64/bin/tynix" sh scripts/check_tynix.sh
+
+  editor:
+    name: Editor extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: Test grammar and verify the bundled client
+        working-directory: editors/vscode
+        run: |
+          npm ci --ignore-scripts
+          npm test
+          npm run build
+          git diff --exit-code -- dist/extension.js
+
   line-limit:
     name: Line Limit
     runs-on: ubuntu-latest
@@ -180,7 +207,7 @@ jobs:
 
       - name: Compare base and PR benchmarks on the same runner
         if: github.event_name == 'pull_request'
-        run: python3 scripts/compare_benchmarks.py .bench-base
+        run: sh scripts/compare_benchmarks.sh .bench-base
 
       - name: Run parser bench
         if: github.event_name == 'push'
@@ -240,6 +267,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y busybox zsh shellcheck
           sh scripts/test_targets.sh
+
+      - name: Verify generated bootstrap scripts
+        run: sh scripts/check_generated.sh
 
       - name: Test installer flow
         run: sh scripts/test_install.sh

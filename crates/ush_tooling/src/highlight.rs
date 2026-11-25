@@ -7,9 +7,6 @@
 //! lines up with what is already highlighted as a variable /
 //! function / type / property.
 
-use crate::semantic::semantic_tokens;
-use crate::token::{SemanticToken, SemanticTokenKind};
-
 /// Where in the document a highlight should be drawn.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Highlight {
@@ -30,85 +27,27 @@ pub enum HighlightKind {
     Text,
 }
 
-/// Token kinds we are willing to highlight occurrences for. Strings,
-/// numbers, comments, keywords, and decorators do not get
-/// "occurrence" highlighting because that is the job of the syntax
-/// highlighter, not of `documentHighlight`.
-fn is_identifier_like(kind: SemanticTokenKind) -> bool {
-    matches!(
-        kind,
-        SemanticTokenKind::Variable
-            | SemanticTokenKind::Function
-            | SemanticTokenKind::Type
-            | SemanticTokenKind::Property
-    )
-}
-
 /// Compute the highlights for the identifier under the cursor.
 ///
 /// Returns an empty `Vec` when the cursor is not on an identifier or
 /// the identifier appears only once.
 pub fn document_highlights(source: &str, line: u32, character: u32) -> Vec<Highlight> {
-    let tokens = semantic_tokens(source);
-    let cursor = match cursor_token(&tokens, line, character) {
-        Some(token) => token,
-        None => return Vec::new(),
-    };
-    if !is_identifier_like(cursor.kind) {
-        return Vec::new();
-    }
-    let lines: Vec<&str> = source.lines().collect();
-    let needle = token_text(&lines, cursor);
-    if needle.is_empty() {
-        return Vec::new();
-    }
-
-    tokens
-        .iter()
-        .filter(|token| is_identifier_like(token.kind))
-        .filter(|token| token_text(&lines, **token) == needle)
-        .map(|token| Highlight {
-            line: token.line,
-            start: token.start,
-            length: token.length,
-            kind: classify(*token, cursor),
+    let declaration = crate::references::definition(source, line, character);
+    crate::references::references(source, line, character)
+        .into_iter()
+        .map(|r| Highlight {
+            line: r.line,
+            start: r.start,
+            length: r.length,
+            kind: if r.line == line && r.start <= character && character < r.start + r.length {
+                HighlightKind::Text
+            } else if declaration == Some(r) {
+                HighlightKind::Write
+            } else {
+                HighlightKind::Read
+            },
         })
         .collect()
-}
-
-fn cursor_token(tokens: &[SemanticToken], line: u32, character: u32) -> Option<SemanticToken> {
-    tokens
-        .iter()
-        .find(|token| {
-            token.line == line && token.start <= character && character < token.start + token.length
-        })
-        .copied()
-}
-
-fn token_text(lines: &[&str], token: SemanticToken) -> String {
-    lines
-        .get(token.line as usize)
-        .and_then(|line| {
-            let start = token.start as usize;
-            let end = start + token.length as usize;
-            line.get(start..end).map(str::to_string)
-        })
-        .unwrap_or_default()
-}
-
-fn classify(token: SemanticToken, cursor: SemanticToken) -> HighlightKind {
-    if token == cursor {
-        // The token under the cursor itself is described as Text;
-        // the editor will use a neutral background.
-        return HighlightKind::Text;
-    }
-    match token.kind {
-        SemanticTokenKind::Variable => HighlightKind::Read,
-        SemanticTokenKind::Function | SemanticTokenKind::Type | SemanticTokenKind::Property => {
-            HighlightKind::Text
-        }
-        _ => HighlightKind::Text,
-    }
 }
 
 #[cfg(test)]

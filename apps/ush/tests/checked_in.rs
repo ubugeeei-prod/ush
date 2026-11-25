@@ -40,7 +40,7 @@ fn output_is_deterministic_and_documents_regeneration() {
 
     assert_eq!(first_shell, second_shell);
     assert!(first_shell.starts_with(
-        "#!/bin/sh\n# Generated from 'greet.ush' by ush.\n# DO NOT EDIT MANUALLY.\n# Regenerate with: ush compile 'greet.ush' --checked-in -o 'greet.sh'\n"
+        "#!/bin/sh\n# Generated from 'greet.ush' by ush.\n# DO NOT EDIT MANUALLY.\n# Source: greet.ush\n# Source map: embedded __ush_at markers; ush explain SOURCE LINE\n# Regenerate with: ush compile 'greet.ush' --checked-in -o 'greet.sh'\n"
     ));
     assert!(!first_shell.contains(first.path().to_str().unwrap()));
     assert!(!first_shell.contains(second.path().to_str().unwrap()));

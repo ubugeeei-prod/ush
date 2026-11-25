@@ -28,6 +28,7 @@ mod statement_control;
 mod stdlib;
 mod task_block;
 mod tasks;
+mod uses_std;
 pub(crate) mod wire;
 
 use anyhow::Result;
@@ -68,7 +69,9 @@ pub(crate) fn compile_program(
     let mut state = CodegenState::new(source, mapped);
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
 
-    stdlib::register_builtins(&mut functions)?;
+    if uses_std::references(program) {
+        stdlib::register_builtins(&mut functions)?;
+    }
 
     for statement in program {
         match &statement.kind {

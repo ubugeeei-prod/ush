@@ -1,0 +1,85 @@
+{
+  "name": "ush",
+  "scopeName": "source.ush",
+  "patterns": [
+    {
+      "name": "meta.attribute.ush",
+      "begin": "#\\[",
+      "end": "\\]",
+      "patterns": [
+        {
+          "name": "entity.other.attribute-name.ush",
+          "match": "[A-Za-z_][A-Za-z0-9_]*"
+        }
+      ]
+    },
+    {
+      "name": "comment.line.number-sign.ush",
+      "match": "#.*$"
+    },
+    {
+      "name": "string.quoted.triple.ush",
+      "begin": "\"\"\"",
+      "end": "\"\"\""
+    },
+    {
+      "name": "string.quoted.double.ush",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.ush",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.single.ush",
+      "begin": "'",
+      "end": "'"
+    },
+    {
+      "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+      "captures": {
+        "1": {
+          "name": "storage.type.function.ush"
+        },
+        "2": {
+          "name": "entity.name.function.ush"
+        }
+      }
+    },
+    {
+      "name": "keyword.control.ush",
+      "match": "\\b(alias|as|async|await|break|const|continue|do|effect|else|enum|extern|fail|fn|for|if|impl|in|let|loop|match|print|raise|return|shell|spawn|test|trait|try|type|unit|use|using|where|while|with)\\b"
+    },
+    {
+      "name": "constant.language.ush",
+      "match": "\\b(true|false)\\b"
+    },
+    {
+      "name": "entity.name.type.ush",
+      "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+    },
+    {
+      "name": "constant.numeric.ush",
+      "match": "\\b[0-9]+\\b"
+    },
+    {
+      "name": "variable.other.ush",
+      "match": "\\$[A-Za-z_][A-Za-z0-9_]*"
+    },
+    {
+      "name": "entity.name.function.ush",
+      "match": "(?<=&)[A-Za-z_][A-Za-z0-9_:]*"
+    },
+    {
+      "name": "entity.name.function.ush",
+      "match": "\\b[a-z_][A-Za-z0-9_]*(?=\\()"
+    },
+    {
+      "name": "keyword.operator.ush",
+      "match": "::|->|=>|\\.\\.|[+*/=<>&|!$:-]"
+    }
+  ]
+}

@@ -34,6 +34,7 @@ pub(crate) fn compile_statement(
 ) -> Result<()> {
     let previous_origin = out.set_origin(Some(statement.line));
     super::io::track_statement(statement, state, out);
+    super::io::track_shell_body(statement, state, out);
     let result = (|| -> Result<()> {
         if let Some(control) = compile_control_statement(
             &statement.kind,

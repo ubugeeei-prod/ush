@@ -1,0 +1,20 @@
+# Verify bootstrap artifacts without rewriting the checkout.
+shell """
+set -eu
+USH_COMPILER=${USH_COMPILER:-target/debug/ush}
+if [ ! -x "$USH_COMPILER" ]; then
+  cargo build --locked -p ush
+fi
+work=$(mktemp -d)
+trap 'rm -rf "$work"' 0
+for source in install.ush scripts/*.ush; do
+  name=${source##*/}
+  artifact=${source%.ush}.sh
+  cp "$source" "$work/$name"
+  "$USH_COMPILER" compile "$work/$name" --checked-in -o "$work/${name%.ush}.sh"
+  if ! cmp -s "$artifact" "$work/${name%.ush}.sh"; then
+    printf 'stale artifact: %s; regenerate from %s\n' "$artifact" "$source" >&2
+    exit 1
+  fi
+done
+"""

@@ -9,8 +9,7 @@ use lsp_types::{
 use ush_tooling::{
     completions, definition as ush_definition, document_highlights, document_symbols,
     folding_ranges, format_source, hover as ush_hover, prepare_rename as ush_prepare_rename,
-    references as ush_refs, rename_locations, semantic_tokens,
-    signature_help as ush_signature_help,
+    references as ush_refs, rename_locations, signature_help as ush_signature_help,
 };
 
 use crate::{convert, document::DocumentStore};
@@ -23,7 +22,7 @@ pub(super) fn formatting(
     let params: DocumentFormattingParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document.uri)?;
     let formatted = format_source(&source);
-    let edits = if source == formatted {
+    let edits = if source.as_ref() == formatted {
         Vec::new()
     } else {
         vec![convert::full_document_edit(&source, &formatted)]
@@ -38,7 +37,7 @@ pub(super) fn semantic_full(
 ) -> Result<()> {
     let params: SemanticTokensParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document.uri)?;
-    let tokens = convert::semantic_tokens(&semantic_tokens(&source));
+    let tokens = convert::semantic_tokens(&source, &docs.tokens(&params.text_document.uri)?);
     respond_ok(connection, request.id, serde_json::to_value(tokens)?)
 }
 
@@ -50,11 +49,14 @@ pub(super) fn highlight(
     let params: DocumentHighlightParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document_position_params.text_document.uri)?;
     let position = params.text_document_position_params.position;
-    let highlights = convert::document_highlights(&document_highlights(
+    let highlights = convert::document_highlights(
         &source,
-        position.line,
-        position.character,
-    ));
+        &document_highlights(
+            &source,
+            position.line,
+            convert::byte_character(&source, position),
+        ),
+    );
     respond_ok(connection, request.id, serde_json::to_value(highlights)?)
 }
 
@@ -65,8 +67,10 @@ pub(super) fn symbols(
 ) -> Result<()> {
     let params: DocumentSymbolParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document.uri)?;
-    let response =
-        DocumentSymbolResponse::Nested(convert::document_symbols(&document_symbols(&source)));
+    let response = DocumentSymbolResponse::Nested(convert::document_symbols(
+        &source,
+        &document_symbols(&source),
+    ));
     respond_ok(connection, request.id, serde_json::to_value(response)?)
 }
 
@@ -100,7 +104,12 @@ pub(super) fn hover(
     let params: HoverParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document_position_params.text_document.uri)?;
     let position = params.text_document_position_params.position;
-    let result = ush_hover(&source, position.line, position.character).map(convert::hover);
+    let result = ush_hover(
+        &source,
+        position.line,
+        convert::byte_character(&source, position),
+    )
+    .map(|item| convert::hover(&source, item));
     respond_ok(connection, request.id, serde_json::to_value(result)?)
 }
 
@@ -117,10 +126,15 @@ pub(super) fn definition(
         .clone();
     let source = docs.read(&uri)?;
     let position = params.text_document_position_params.position;
-    let result = ush_definition(&source, position.line, position.character).map(|reference| {
+    let result = ush_definition(
+        &source,
+        position.line,
+        convert::byte_character(&source, position),
+    )
+    .map(|reference| {
         GotoDefinitionResponse::Scalar(Location {
             uri: uri.clone(),
-            range: convert::range_of_reference(&reference),
+            range: convert::range_of_reference(&source, &reference),
         })
     });
     respond_ok(connection, request.id, serde_json::to_value(result)?)
@@ -135,13 +149,26 @@ pub(super) fn references(
     let uri = params.text_document_position.text_document.uri.clone();
     let source = docs.read(&uri)?;
     let position = params.text_document_position.position;
-    let locations: Vec<Location> = ush_refs(&source, position.line, position.character)
-        .into_iter()
-        .map(|reference| Location {
-            uri: uri.clone(),
-            range: convert::range_of_reference(&reference),
-        })
-        .collect();
+    let locations: Vec<Location> = ush_refs(
+        &source,
+        position.line,
+        convert::byte_character(&source, position),
+    )
+    .into_iter()
+    .filter(|reference| {
+        params.context.include_declaration
+            || Some(*reference)
+                != ush_definition(
+                    &source,
+                    position.line,
+                    convert::byte_character(&source, position),
+                )
+    })
+    .map(|reference| Location {
+        uri: uri.clone(),
+        range: convert::range_of_reference(&source, &reference),
+    })
+    .collect();
     respond_ok(connection, request.id, serde_json::to_value(locations)?)
 }
 
@@ -153,8 +180,12 @@ pub(super) fn signature_help(
     let params: SignatureHelpParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document_position_params.text_document.uri)?;
     let position = params.text_document_position_params.position;
-    let result =
-        ush_signature_help(&source, position.line, position.character).map(convert::signature_help);
+    let result = ush_signature_help(
+        &source,
+        position.line,
+        convert::byte_character(&source, position),
+    )
+    .map(convert::signature_help);
     respond_ok(connection, request.id, serde_json::to_value(result)?)
 }
 
@@ -165,8 +196,12 @@ pub(super) fn prepare_rename(
 ) -> Result<()> {
     let params: TextDocumentPositionParams = serde_json::from_value(request.params)?;
     let source = docs.read(&params.text_document.uri)?;
-    let result = ush_prepare_rename(&source, params.position.line, params.position.character)
-        .map(|reference| convert::range_of_reference(&reference));
+    let result = ush_prepare_rename(
+        &source,
+        params.position.line,
+        convert::byte_character(&source, params.position),
+    )
+    .map(|reference| convert::range_of_reference(&source, &reference));
     respond_ok(connection, request.id, serde_json::to_value(result)?)
 }
 
@@ -179,16 +214,21 @@ pub(super) fn rename(
     let uri = params.text_document_position.text_document.uri.clone();
     let source = docs.read(&uri)?;
     let position = params.text_document_position.position;
-    match rename_locations(&source, position.line, position.character, &params.new_name) {
+    match rename_locations(
+        &source,
+        position.line,
+        convert::byte_character(&source, position),
+        &params.new_name,
+    ) {
         Ok(locations) => {
-            let edit = convert::rename_workspace_edit(&uri, &locations, &params.new_name);
+            let edit = convert::rename_workspace_edit(&source, &uri, &locations, &params.new_name);
             respond_ok(connection, request.id, serde_json::to_value(edit)?)
         }
-        Err(_) => {
+        Err(error) => {
             connection.sender.send(Message::Response(Response::new_err(
                 request.id,
                 -32602,
-                format!("`{}` is not a valid .ush identifier", params.new_name),
+                format!("cannot rename to `{}`: {error:?}", params.new_name),
             )))?;
             Ok(())
         }

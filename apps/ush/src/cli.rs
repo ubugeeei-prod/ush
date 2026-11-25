@@ -130,6 +130,12 @@ impl Cli {
 
 #[derive(Debug, Clone, Subcommand)]
 pub enum Action {
+    /// Install editor language support without a marketplace or package manager.
+    #[command(alias = "ide")]
+    Editor {
+        #[command(subcommand)]
+        action: crate::editor::Action,
+    },
     /// Lower a `.ush` source file to POSIX `sh`.
     Compile {
         /// Interpreter for the generated executable.

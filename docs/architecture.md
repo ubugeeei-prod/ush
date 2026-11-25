@@ -81,8 +81,8 @@ ush  ──parse args──>  apps/ush::cli
 | Formatter (`ush format`) bug | `crates/ush_tooling/src/format.rs` |
 | Diagnostic underline at the wrong span | `crates/ush_tooling/src/diagnostic.rs` |
 | LSP request / response wire issue | `apps/ush_lsp/src/server.rs` |
-| Installer (`install.sh`) bug | `install.sh` (+ `scripts/test_install.sh`) |
-| Release archive layout bug | `.github/workflows/release.yml` (+ `Dockerfile`) |
+| Installer (`install.sh`) bug | `install.ush` (+ `scripts/test_install.ush`); regenerate the shell artifacts |
+| Release archive layout bug | `.github/workflows/release.yml` (+ `flake.tynix`) |
 
 ## Stability layers
 

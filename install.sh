@@ -1,4 +1,115 @@
 #!/bin/sh
+# Generated from 'install.ush' by ush.
+# DO NOT EDIT MANUALLY.
+# Source: install.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
+# Regenerate with: ush compile 'install.ush' --checked-in -o 'install.sh'
+set -eu
+
+__ush_entrypoint=$0
+case $__ush_entrypoint in
+  */*) ;;
+  *) __ush_entrypoint=$(command -v "$__ush_entrypoint") ;;
+esac
+__ush_source_dir=$(CDPATH= cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
+__ush_source_path=$__ush_source_dir/'install.ush'
+__ush_origin='install.ush'
+
+__ush_at() { __ush_line=$1; __ush_source=$2; }
+__ush_report() {
+  if [ "$1" -ne 0 ] && [ -n "${__ush_line:-}" ]; then
+    __ush_message=${2:-command failed}
+    if [ "$#" -lt 2 ]; then
+      case "$1" in
+        127) __ush_message='command not found; check the command name and PATH' ;;
+        126) __ush_message='command cannot be executed; check permissions and interpreter' ;;
+        130) __ush_message='interrupted' ;;
+        137) __ush_message='process killed (SIGKILL)' ;;
+        143) __ush_message='terminated (SIGTERM)' ;;
+      esac
+    fi
+    printf '%s:%s: %s (exit %s)\n  %s\n' "$__ush_origin" "$__ush_line" "$__ush_message" "$1" "$__ush_source" >&2
+    __ush_line=''
+  fi
+}
+trap '__ush_report "$?"' 0
+
+__ush_print_help() {
+  cat <<'__USH_DOC__'
+install.ush - Install ush and ush_lsp from a checksum-verified release archive.
+
+Usage:
+  install.ush [--help]
+  install.ush [--man [ITEM]]
+  install.ush [--complete [PREFIX]]
+
+Description:
+  Options: --version VERSION, --bin-dir DIR, --prefix DIR,
+  --download-url URL, --checksum-url URL, --no-modify-path.
+  Run sh install.sh --version v0.12.0 to install a specific release.
+__USH_DOC__
+}
+
+__ush_print_man() {
+  case "${1:-}" in
+    '')
+      cat <<'__USH_MAIN__'
+NAME
+install.ush - Install ush and ush_lsp from a checksum-verified release archive.
+
+SYNOPSIS
+install.ush [--help]
+install.ush [--man [ITEM]]
+install.ush [--complete [PREFIX]]
+
+DESCRIPTION
+Install ush and ush_lsp from a checksum-verified release archive.
+Options: --version VERSION, --bin-dir DIR, --prefix DIR,
+--download-url URL, --checksum-url URL, --no-modify-path.
+Run sh install.sh --version v0.12.0 to install a specific release.
+__USH_MAIN__
+      ;;
+    *)
+      printf '%s\n' "No documented item named: ${1}" >&2
+      return 1
+      ;;
+  esac
+}
+
+__ush_complete() {
+  __ush_prefix="${1:-}"
+  while IFS= read -r __ush_item; do
+    case "$__ush_item" in
+      "$__ush_prefix"*) printf '%s\n' "$__ush_item" ;;
+    esac
+  done <<'__USH_COMPLETE__'
+--complete
+--help
+--man
+-h
+complete
+man
+__USH_COMPLETE__
+}
+
+case "${1:-}" in
+  -h|--help)
+    __ush_print_help
+    exit 0
+    ;;
+  man|--man)
+    shift
+    __ush_print_man "${1:-}"
+    exit $?
+    ;;
+  complete|--complete)
+    shift
+    __ush_complete "${1:-}"
+    exit 0
+    ;;
+esac
+
+__ush_at 6 'shell """'
 set -eu
 
 # Defend against world-readable files created during the install, in
@@ -213,7 +324,7 @@ detect_target() {
     Darwin) os="apple-darwin" ;;
     *)
       echo "install.sh: unsupported operating system: $os" >&2
-      echo "install.sh: build from source or use Docker/Nix on this platform" >&2
+      echo "install.sh: build from source or use the tynix/Nix package on this platform" >&2
       exit 1
       ;;
   esac
@@ -421,59 +532,96 @@ fi
 need_cmd tar
 need_cmd install
 
-REPO="$(normalize_repo "$REPO_INPUT")"
-TARGET="$(detect_target)"
-BIN_DIR="$(pick_bin_dir)"
-ASSET="ush-$TARGET.tar.gz"
-URL="$(build_download_url "$REPO" "$VERSION" "$TARGET")"
-ARCHIVE="$INSTALL_WORK_DIR/ush.tar.gz"
-UNPACK_DIR="$INSTALL_WORK_DIR/unpack"
-PACKAGE_DIR="$UNPACK_DIR/ush-$TARGET"
+__ush_at 432 'let repo = $(normalize_repo "$REPO_INPUT")?'
+__ush_stdout_0="$(
+normalize_repo "$REPO_INPUT"
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+repo="${__ush_stdout_0}"
+__ush_at 433 'let target = $(detect_target)?'
+__ush_stdout_1="$(
+detect_target
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+target="${__ush_stdout_1}"
+__ush_at 434 'let bin_dir = $(pick_bin_dir)?'
+__ush_stdout_2="$(
+pick_bin_dir
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+bin_dir="${__ush_stdout_2}"
+__ush_at 435 'let asset = "ush-" + target + ".tar.gz"'
+asset="$(printf '%s' 'ush-' "${target}" '.tar.gz')"
+__ush_at 436 'let url = $(build_download_url "$repo" "$VERSION" "$target")?'
+__ush_stdout_3="$(
+build_download_url "$repo" "$VERSION" "$target"
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+url="${__ush_stdout_3}"
+__ush_at 437 'let work_dir = $(printf '"'"'%s'"'"' "$INSTALL_WORK_DIR")?'
+__ush_stdout_4="$(
+printf '%s' "$INSTALL_WORK_DIR"
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+work_dir="${__ush_stdout_4}"
+__ush_at 438 'let archive = work_dir + "/ush.tar.gz"'
+archive="$(printf '%s' "${work_dir}" '/ush.tar.gz')"
+__ush_at 439 'let unpack_dir = work_dir + "/unpack"'
+unpack_dir="$(printf '%s' "${work_dir}" '/unpack')"
+__ush_at 441 'shell '"'"'echo "install.sh: downloading $url" >&2'"'"''
+echo "install.sh: downloading $url" >&2
+__ush_at 442 'shell '"'"'fetch "$url" "$archive"'"'"''
+fetch "$url" "$archive"
+__ush_at 443 'shell '"'"'verify_archive "$repo" "$VERSION" "$asset" "$archive"'"'"''
+verify_archive "$repo" "$VERSION" "$asset" "$archive"
+__ush_at 444 'shell '"'"'mkdir -p "$unpack_dir"'"'"''
+mkdir -p "$unpack_dir"
+__ush_at 445 'shell '"'"'tar -xzf "$archive" -C "$unpack_dir"'"'"''
+tar -xzf "$archive" -C "$unpack_dir"
+__ush_at 446 'let package_dir = $('
+__ush_stdout_5="$(
 
-echo "install.sh: downloading $URL" >&2
-fetch "$URL" "$ARCHIVE"
-verify_archive "$REPO" "$VERSION" "$ASSET" "$ARCHIVE"
+  PACKAGE_DIR="$unpack_dir/ush-$target"
+  if [ ! -f "$PACKAGE_DIR/ush" ] && [ -f "$unpack_dir/ush" ]; then
+    PACKAGE_DIR="$unpack_dir"
+  fi
+  if [ ! -f "$PACKAGE_DIR/ush" ]; then
+    echo "install.sh: release archive did not contain ush" >&2
+    exit 1
+  fi
+  printf '%s' "$PACKAGE_DIR"
 
-mkdir -p "$UNPACK_DIR"
-tar -xzf "$ARCHIVE" -C "$UNPACK_DIR"
-
-if [ ! -f "$PACKAGE_DIR/ush" ] && [ -f "$UNPACK_DIR/ush" ]; then
-  PACKAGE_DIR="$UNPACK_DIR"
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+package_dir="${__ush_stdout_5}"
+__ush_at 457 'shell '"'"'mkdir -p "$bin_dir"'"'"''
+mkdir -p "$bin_dir"
+__ush_at 458 'shell '"'"'install -m 755 "$package_dir/ush" "$bin_dir/ush"'"'"''
+install -m 755 "$package_dir/ush" "$bin_dir/ush"
+__ush_at 459 'shell """'
+if [ -f "$package_dir/ush_lsp" ]; then
+  install -m 755 "$package_dir/ush_lsp" "$bin_dir/ush_lsp"
+fi
+__ush_at 464 'let path_status = $(ensure_path "$bin_dir")?'
+__ush_stdout_6="$(
+ensure_path "$bin_dir"
+)" || { __ush_status=$?; __ush_report "$__ush_status"; exit "$__ush_status"; }
+path_status="${__ush_stdout_6}"
+__ush_at 465 'print "ush installed to " + bin_dir + "/ush"'
+printf '%s\n' "$(printf '%s' 'ush installed to ' "${bin_dir}" '/ush')"
+__ush_at 466 'shell """'
+if [ -f "$package_dir/ush_lsp" ]; then
+  echo "ush_lsp installed to $bin_dir/ush_lsp"
 fi
 
-if [ ! -f "$PACKAGE_DIR/ush" ]; then
-  echo "install.sh: release archive did not contain ush" >&2
-  exit 1
-fi
-
-mkdir -p "$BIN_DIR"
-install -m 755 "$PACKAGE_DIR/ush" "$BIN_DIR/ush"
-
-if [ -f "$PACKAGE_DIR/ush_lsp" ]; then
-  install -m 755 "$PACKAGE_DIR/ush_lsp" "$BIN_DIR/ush_lsp"
-fi
-
-PATH_STATUS="$(ensure_path "$BIN_DIR")"
-
-echo "ush installed to $BIN_DIR/ush"
-if [ -f "$PACKAGE_DIR/ush_lsp" ]; then
-  echo "ush_lsp installed to $BIN_DIR/ush_lsp"
-fi
-
-case "$PATH_STATUS" in
+case "$path_status" in
   ready)
     echo "ush is already on PATH. Try: ush --version"
     ;;
   manual)
     echo "add this to your shell config, then restart your shell:"
-    echo "export PATH=\"$BIN_DIR:\$PATH\""
+    echo "export PATH=\"$bin_dir:\$PATH\""
     ;;
   *)
-    echo "added $BIN_DIR to PATH in $PATH_STATUS"
-    echo "restart your shell or run: . \"$PATH_STATUS\""
+    echo "added $bin_dir to PATH in $path_status"
+    echo "restart your shell or run: . \"$path_status\""
     ;;
 esac
 
-if command -v "$BIN_DIR/ush" >/dev/null 2>&1; then
-  echo "quick check: $BIN_DIR/ush --version"
+if command -v "$bin_dir/ush" >/dev/null 2>&1; then
+  echo "quick check: $bin_dir/ush --version"
 fi

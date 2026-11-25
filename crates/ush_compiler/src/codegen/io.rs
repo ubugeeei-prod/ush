@@ -194,3 +194,21 @@ pub(super) fn push_failure_guard(out: &mut OutputBuffer, inside_function: bool) 
     out.push_str(if inside_function { "return" } else { "exit" });
     out.push_str(" \"$__ush_status\"; }\n");
 }
+
+pub(super) fn track_shell_body(
+    statement: &crate::ast::Statement,
+    state: &CodegenState,
+    out: &mut OutputBuffer,
+) {
+    if matches!(
+        &statement.kind,
+        crate::ast::StatementKind::Shell(crate::ast::Expr::String(_))
+            | crate::ast::StatementKind::TryShell(crate::ast::Expr::String(_))
+    ) && state
+        .source_lines
+        .get(statement.line.saturating_sub(1))
+        .is_some_and(|line| matches!(line.trim(), "shell \"\"\""))
+    {
+        out.set_origin(Some(statement.line + 1));
+    }
+}

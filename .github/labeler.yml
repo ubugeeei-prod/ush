@@ -43,14 +43,14 @@ installer:
   - changed-files:
       - any-glob-to-any-file:
           - "install.sh"
+          - "install.ush"
           - "scripts/test_install.sh"
 
 release:
   - changed-files:
       - any-glob-to-any-file:
           - ".github/workflows/release.yml"
-          - "Dockerfile"
-          - ".dockerignore"
+          - "flake.tynix"
 
 dependencies:
   - changed-files:

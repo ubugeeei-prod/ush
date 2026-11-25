@@ -54,7 +54,7 @@ pub(super) fn operator_end(line: &str, start: usize) -> usize {
     ) {
         return start + 2;
     }
-    start + 1
+    start + line[start..].chars().next().map_or(1, char::len_utf8)
 }
 
 pub(super) fn next_non_space(line: &str, start: usize) -> Option<char> {

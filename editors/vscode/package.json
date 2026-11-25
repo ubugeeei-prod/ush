@@ -1,0 +1,70 @@
+{
+  "name": "ush",
+  "displayName": "ush",
+  "description": "Shell-style ush language support",
+  "version": "0.12.0",
+  "publisher": "ubugeeei",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ubugeeei-prod/ush"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:ush"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "ush",
+        "aliases": [
+          "ush"
+        ],
+        "extensions": [
+          ".ush"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "ush",
+        "scopeName": "source.ush",
+        "path": "./syntaxes/ush.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "ush",
+      "properties": {
+        "ush.server.path": {
+          "type": "string",
+          "default": "ush_lsp",
+          "description": "Path to the ush_lsp executable."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.js --bundle --platform=node --format=cjs --external:vscode --outfile=dist/extension.js --minify --legal-comments=eof --supported:template-literal=false",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "9.0.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "vscode-textmate": "9.3.0",
+    "vscode-oniguruma": "2.0.1"
+  }
+}

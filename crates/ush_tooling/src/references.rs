@@ -1,139 +1,81 @@
-//! Shared engine for `textDocument/references`, `textDocument/definition`,
-//! and `textDocument/rename`.
-//!
-//! All three queries answer essentially the same question — "what
-//! other occurrences of this identifier are in the file" — and rely
-//! on the semantic-token tokenizer to decide what counts as an
-//! identifier. There is no scope analysis: a `let x` inside a
-//! function and a `let x` at top level look like the same name to
-//! these queries. That is in line with the
-//! [`document_highlights`](crate::document_highlights) provider,
-//! and matches the level of precision callers can expect from a
-//! pre-1.0 LSP.
-
-use crate::semantic::semantic_tokens;
-use crate::token::{SemanticToken, SemanticTokenKind};
-
-/// One occurrence in the source.
+//! Scoped navigation and conservative rename over the tolerant lexical index.
+use crate::scope::Index;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Reference {
     pub line: u32,
     pub start: u32,
     pub length: u32,
 }
-
-/// Returns every identifier occurrence (including the one at the
-/// cursor). When the cursor is not on an identifier, returns empty.
-pub fn references(source: &str, line: u32, character: u32) -> Vec<Reference> {
-    let tokens = semantic_tokens(source);
-    let cursor = match cursor_token(&tokens, line, character) {
-        Some(token) if is_identifier(token.kind) => token,
-        _ => return Vec::new(),
-    };
-    let lines: Vec<&str> = source.lines().collect();
-    let needle = token_text(&lines, cursor);
-    if needle.is_empty() {
-        return Vec::new();
+fn location(index: &Index<'_>, i: usize) -> Reference {
+    let t = index.tokens[i];
+    Reference {
+        line: t.line,
+        start: t.start,
+        length: t.length,
     }
-    tokens
+}
+pub fn references(source: &str, line: u32, character: u32) -> Vec<Reference> {
+    let index = Index::new(source);
+    let Some(decl) = index.at(line, character).and_then(|i| index.resolved[i]) else {
+        return Vec::new();
+    };
+    index
+        .resolved
         .iter()
-        .filter(|t| is_identifier(t.kind))
-        .filter(|t| token_text(&lines, **t) == needle)
-        .map(|t| Reference {
-            line: t.line,
-            start: t.start,
-            length: t.length,
-        })
+        .enumerate()
+        .filter(|(_, d)| **d == Some(decl))
+        .map(|(i, _)| location(&index, i))
         .collect()
 }
-
-/// Returns the first occurrence of the identifier under the cursor.
-/// Used for `textDocument/definition` — pre-1.0 the project does not
-/// track scoped declarations, so "definition" is "first sighting".
 pub fn definition(source: &str, line: u32, character: u32) -> Option<Reference> {
-    references(source, line, character).into_iter().next()
+    let index = Index::new(source);
+    index
+        .at(line, character)
+        .and_then(|i| index.resolved[i])
+        .map(|i| location(&index, i))
 }
-
-/// Returns the same set as [`references`] for use when renaming.
-/// The LSP layer is responsible for applying the new name to each
-/// returned range. Returns [`Err`] if the new name is not a valid
-/// `.ush` identifier; the LSP layer can surface that as a normal
-/// rename error.
+pub fn prepare_rename(source: &str, line: u32, character: u32) -> Option<Reference> {
+    let index = Index::new(source);
+    let i = index.at(line, character)?;
+    index.resolved[i]?;
+    Some(location(&index, i))
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RenameError {
+    InvalidName,
+    Conflict,
+}
 pub fn rename_locations(
     source: &str,
     line: u32,
     character: u32,
     new_name: &str,
 ) -> Result<Vec<Reference>, RenameError> {
-    if !is_valid_identifier(new_name) {
+    let mut chars = new_name.chars();
+    if !chars
+        .next()
+        .is_some_and(|c| c == '_' || c.is_ascii_alphabetic())
+        || !chars.all(|c| c == '_' || c.is_ascii_alphanumeric())
+        || crate::semantic::semantic_tokens(new_name)
+            .first()
+            .is_some_and(|t| t.kind == crate::SemanticTokenKind::Keyword)
+    {
         return Err(RenameError::InvalidName);
     }
+    let index = Index::new(source);
+    let Some(i) = index.at(line, character) else {
+        return Ok(Vec::new());
+    };
+    if new_name != index.names[i]
+        && index
+            .names
+            .iter()
+            .enumerate()
+            .any(|(i, n)| *n == new_name && index.resolved[i].is_some())
+    {
+        return Err(RenameError::Conflict);
+    }
     Ok(references(source, line, character))
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RenameError {
-    InvalidName,
-}
-
-/// Validate the cursor for a rename, before the user types a new
-/// name. Returns the range of the identifier under the cursor when
-/// a rename is possible, or `None` when the position is not on a
-/// renameable identifier (keyword / whitespace / string / comment).
-///
-/// LSP clients call this for `textDocument/prepareRename`; the
-/// editor uses the returned range to highlight what's about to be
-/// renamed and pre-fills the rename popup.
-pub fn prepare_rename(source: &str, line: u32, character: u32) -> Option<Reference> {
-    let tokens = semantic_tokens(source);
-    let cursor = cursor_token(&tokens, line, character)?;
-    if !is_identifier(cursor.kind) {
-        return None;
-    }
-    Some(Reference {
-        line: cursor.line,
-        start: cursor.start,
-        length: cursor.length,
-    })
-}
-
-fn is_identifier(kind: SemanticTokenKind) -> bool {
-    matches!(
-        kind,
-        SemanticTokenKind::Variable
-            | SemanticTokenKind::Function
-            | SemanticTokenKind::Type
-            | SemanticTokenKind::Property
-    )
-}
-
-fn is_valid_identifier(name: &str) -> bool {
-    let mut chars = name.chars();
-    match chars.next() {
-        Some(first) if first == '_' || first.is_ascii_alphabetic() => {}
-        _ => return false,
-    }
-    chars.all(|c| c == '_' || c.is_ascii_alphanumeric())
-}
-
-fn cursor_token(tokens: &[SemanticToken], line: u32, character: u32) -> Option<SemanticToken> {
-    tokens
-        .iter()
-        .find(|token| {
-            token.line == line && token.start <= character && character < token.start + token.length
-        })
-        .copied()
-}
-
-fn token_text(lines: &[&str], token: SemanticToken) -> String {
-    lines
-        .get(token.line as usize)
-        .and_then(|line| {
-            let start = token.start as usize;
-            let end = start + token.length as usize;
-            line.get(start..end).map(str::to_string)
-        })
-        .unwrap_or_default()
 }
 
 #[cfg(test)]

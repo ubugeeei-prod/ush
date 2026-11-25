@@ -12,6 +12,11 @@ project adheres to [Semantic Versioning][semver].
 
 ## [0.12.0] — 2026-11-25
 
+- Bundle an offline VS Code/Cursor/VSCodium extension with `ush editor install`; improve scoped navigation, shell-style signature help, Unicode positions and incremental LSP edits.
+- Link generated shell artifacts to their source, explain common runtime exit failures, and avoid Rust backtraces for ordinary CLI errors.
+- Author the installer and repository scripts in ush; replace Docker packaging with a typed `flake.tynix` source and generated Nix entrypoint.
+- Skip unused builtin signature construction during compilation.
+
 ### Added
 
 - Import module exports with `use module::*`, including `use $bin::*` and
