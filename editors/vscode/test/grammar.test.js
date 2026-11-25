@@ -32,3 +32,23 @@ test('new language syntax, Unicode and multiline strings', async () => {
   result = grammar.tokenizeLine('fn real<T>(x: T) -> T {', result.ruleStack);
   assert(result.tokens.some(t => t.scopes.includes('entity.name.function.ush')));
 });
+test('interpolating strings, templates and glob patterns', async () => {
+  const data = fs.readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
+  await onig.loadWASM(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)).catch(() => {});
+  const registry = new tm.Registry({onigLib: Promise.resolve({createOnigScanner: p => new onig.OnigScanner(p), createOnigString: s => new onig.OnigString(s)}), loadGrammar: async () => tm.parseRawGrammar(fs.readFileSync(path.join(__dirname, '../syntaxes/ush.tmLanguage.json'),'utf8'),'ush.json')});
+  const grammar = await registry.loadGrammar('source.ush');
+  const line = 'let s = $"a $name ${xs.join(", ")} \\${raw}" + "${plain}"';
+  const tokens = grammar.tokenizeLine(line, tm.INITIAL).tokens;
+  const scopeOf = text => tokens.find(t => line.slice(t.startIndex, t.endIndex) === text).scopes;
+  assert(scopeOf('$name').includes('variable.other.ush'));
+  assert(scopeOf('${').includes('punctuation.section.interpolation.begin.ush'));
+  assert(scopeOf('\\$').includes('constant.character.escape.ush'));
+  assert(!tokens.some(t => line.slice(t.startIndex, t.endIndex) === 'plain' && t.scopes.includes('meta.interpolation.ush')));
+  let result = grammar.tokenizeLine('let t = $"""', tm.INITIAL);
+  result = grammar.tokenizeLine('  ## ${title} $env::HOME', result.ruleStack);
+  assert(result.tokens.some(t => t.scopes.includes('meta.interpolation.ush')));
+  assert(result.tokens.some(t => t.scopes.includes('variable.other.ush')));
+  result = grammar.tokenizeLine('"""', result.ruleStack);
+  result = grammar.tokenizeLine('glob "*.ts" => print x', result.ruleStack);
+  assert(result.tokens[0].scopes.includes('keyword.control.ush'));
+});
