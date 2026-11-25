@@ -324,6 +324,10 @@ __ush_std_fs_path() {
   case $__ush_path in .|..|/*|./*|../*) ;; *) __ush_path=./$__ush_path ;; esac
 }
 
+ush_fn_std__path__is_absolute() {
+  case $1 in /*) printf true ;; *) printf false ;; esac
+}
+
 ush_fn_std__process__chdir() {
   __ush_std_fs_path "$1" || return "$?"
   CDPATH='' cd "$__ush_path" || return "$?"
@@ -333,19 +337,28 @@ ush_fn_std__process__chdir() {
 ush_fn_run_fixture() {
   __ush_fn_run_fixture_arg_0="${1}"
   # shellcheck disable=SC2034
-  target="${__ush_fn_run_fixture_arg_0}"
+  compiler="${__ush_fn_run_fixture_arg_0}"
   __ush_fn_run_fixture_arg_1="${2}"
   # shellcheck disable=SC2034
-  script="${__ush_fn_run_fixture_arg_1}"
+  target="${__ush_fn_run_fixture_arg_1}"
   __ush_fn_run_fixture_arg_2="${3}"
   # shellcheck disable=SC2034
-  directory="${__ush_fn_run_fixture_arg_2}"
-  __ush_at 11 'std::process::chdir directory'
-  ush_fn_std__process__chdir "${__ush_fn_run_fixture_arg_2}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
-  __ush_at 12 'output target [script]'
-  __ush_match_0__len='1'
+  source="${__ush_fn_run_fixture_arg_2}"
+  __ush_fn_run_fixture_arg_3="${4}"
   # shellcheck disable=SC2034
-  __ush_match_0__0="${__ush_fn_run_fixture_arg_1}"
+  directory="${__ush_fn_run_fixture_arg_3}"
+  __ush_at 11 'std::process::chdir directory'
+  ush_fn_std__process__chdir "${__ush_fn_run_fixture_arg_3}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
+  __ush_at 12 'output compiler ["--shell-target", target, "test", source]'
+  __ush_match_0__len='4'
+  # shellcheck disable=SC2034
+  __ush_match_0__0='--shell-target'
+  # shellcheck disable=SC2034
+  __ush_match_0__1="${__ush_fn_run_fixture_arg_1}"
+  # shellcheck disable=SC2034
+  __ush_match_0__2='test'
+  # shellcheck disable=SC2034
+  __ush_match_0__3="${__ush_fn_run_fixture_arg_2}"
   __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${__ush_fn_run_fixture_arg_0}" "$(ush_fn_std__pack __ush_match_0)")" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_value_2}" > "$__ush_return_path"
@@ -355,15 +368,26 @@ ush_fn_run_fixture() {
   return 0
 }
 
-__ush_at 15 'let compiler = get_or "USH_BIN" "target/debug/ush"'
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_BIN' 'target/debug/ush')" || exit "$?"
-compiler="${__ush_value_3}"
-__ush_at 16 'let work = temp_dir'
+__ush_at 15 'let root = pwd'
+__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' command pwd)" || exit "$?"
+root="${__ush_value_3}"
+__ush_at 16 'let compiler = get_or "USH_BIN" "target/debug/ush"'
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_BIN' 'target/debug/ush')" || exit "$?"
+compiler="${__ush_value_4}"
+__ush_at 17 'if std::path::is_absolute compiler == false {'
+if {
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__is_absolute "${compiler}")" || exit "$?"
+[ "$(if [ "${__ush_value_5}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}; then
+  __ush_at 18 'let compiler = root + "/" + compiler'
+  compiler="${root}"'/'"${compiler}"
+fi
+__ush_at 20 'let work = temp_dir'
 __ush_task_init
-__ush_at 16 'let work = temp_dir'
-__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
-work="${__ush_value_4}"
-__ush_at 17 'let targets = ["sh", "bash", "zsh"]'
+__ush_at 20 'let work = temp_dir'
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__temp_dir)" || exit "$?"
+work="${__ush_value_6}"
+__ush_at 21 'let targets = ["sh", "bash", "zsh"]'
 targets__len='3'
 # shellcheck disable=SC2034
 targets__0='sh'
@@ -371,25 +395,25 @@ targets__0='sh'
 targets__1='bash'
 # shellcheck disable=SC2034
 targets__2='zsh'
-__ush_at 18 'if exists "busybox" {'
+__ush_at 22 'if exists "busybox" {'
 if {
-__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'busybox')" || exit "$?"
-[ "${__ush_value_5}" = 'true' ]
+__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'busybox')" || exit "$?"
+[ "${__ush_value_7}" = 'true' ]
 }; then
-  __ush_at 19 'let busybox = output "command" ["-v", "busybox"]'
-  __ush_match_6__len='2'
+  __ush_at 23 'let busybox = output "command" ["-v", "busybox"]'
+  __ush_match_8__len='2'
   # shellcheck disable=SC2034
-  __ush_match_6__0='-v'
+  __ush_match_8__0='-v'
   # shellcheck disable=SC2034
-  __ush_match_6__1='busybox'
-  __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'command' "$(ush_fn_std__pack __ush_match_6)")" || exit "$?"
-  busybox="${__ush_value_8}"
-  __ush_at 20 'ln "-s" busybox (work + "/ash")'
+  __ush_match_8__1='busybox'
+  __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output 'command' "$(ush_fn_std__pack __ush_match_8)")" || exit "$?"
+  busybox="${__ush_value_10}"
+  __ush_at 24 'ln "-s" busybox (work + "/ash")'
   command ln '-s' "${busybox}" "${work}"'/ash'
-  __ush_at 21 'set "PATH" (work + ":" + get "PATH")'
-  __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')" || exit "$?"
-  ush_fn_std__env__set 'PATH' "${work}"':'"${__ush_value_9}"
-  __ush_at 22 'let targets = ["sh", "bash", "zsh", "ash"]'
+  __ush_at 25 'set "PATH" (work + ":" + get "PATH")'
+  __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'PATH')" || exit "$?"
+  ush_fn_std__env__set 'PATH' "${work}"':'"${__ush_value_11}"
+  __ush_at 26 'let targets = ["sh", "bash", "zsh", "ash"]'
   targets__len='4'
   # shellcheck disable=SC2034
   targets__0='sh'
@@ -400,235 +424,221 @@ __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__comma
   # shellcheck disable=SC2034
   targets__3='ash'
 else
-  __ush_at 24 'else if uname "-s" == "Linux" {'
+  __ush_at 28 'else if uname "-s" == "Linux" {'
   if {
-  __ush_value_10="$(__ush_return_path='' __ush_capture_return='1' command uname '-s')" || exit "$?"
-  [ "$(if [ "${__ush_value_10}" = 'Linux' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  __ush_value_12="$(__ush_return_path='' __ush_capture_return='1' command uname '-s')" || exit "$?"
+  [ "$(if [ "${__ush_value_12}" = 'Linux' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
-    __ush_at 25 'fail 1 "BusyBox is required to check the ash target on Linux"'
+    __ush_at 29 'fail 1 "BusyBox is required to check the ash target on Linux"'
     __ush_status=1
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
     __ush_report "$__ush_status" 'BusyBox is required to check the ash target on Linux'
     exit "$__ush_status"
   fi
 fi
-__ush_at 27 'for target in targets {'
-__ush_match_11__len="${targets__len}"
-__ush_copy_index_12=0
-while [ "$__ush_copy_index_12" -lt "${targets__len}" ]; do
-  eval "__ush_copy_value_13=\"\${targets__$__ush_copy_index_12}\""
-  eval "__ush_match_11__${__ush_copy_index_12}=\$__ush_copy_value_13"
-  __ush_copy_index_12=$((__ush_copy_index_12 + 1))
+__ush_at 31 'for target in targets {'
+__ush_match_13__len="${targets__len}"
+__ush_copy_index_14=0
+while [ "$__ush_copy_index_14" -lt "${targets__len}" ]; do
+  eval "__ush_copy_value_15=\"\${targets__$__ush_copy_index_14}\""
+  eval "__ush_match_13__${__ush_copy_index_14}=\$__ush_copy_value_15"
+  __ush_copy_index_14=$((__ush_copy_index_14 + 1))
 done
-__ush_for_list_index_14=0
-while [ "${__ush_for_list_index_14}" -lt "${__ush_match_11__len}" ]; do
-  __ush_for_value_15=''
-  eval "__ush_for_value_15=\"\${__ush_match_11__${__ush_for_list_index_14}}\""
-  target="${__ush_for_value_15}"
-  __ush_for_list_index_14=$((__ush_for_list_index_14 + 1))
-  __ush_at 28 'sh "scripts/test_task_await.sh" compiler target'
+__ush_for_list_index_16=0
+while [ "${__ush_for_list_index_16}" -lt "${__ush_match_13__len}" ]; do
+  __ush_for_value_17=''
+  eval "__ush_for_value_17=\"\${__ush_match_13__${__ush_for_list_index_16}}\""
+  target="${__ush_for_value_17}"
+  __ush_for_list_index_16=$((__ush_for_list_index_16 + 1))
+  __ush_at 32 'sh "scripts/test_task_await.sh" compiler target'
   command sh 'scripts/test_task_await.sh' "${compiler}" "${target}"
-  __ush_at 29 'for name in ["strings", "filesystem", "paths"] {'
-  __ush_match_16__len='3'
+  __ush_at 33 'for name in ["strings", "filesystem", "paths"] {'
+  __ush_match_18__len='3'
   # shellcheck disable=SC2034
-  __ush_match_16__0='strings'
+  __ush_match_18__0='strings'
   # shellcheck disable=SC2034
-  __ush_match_16__1='filesystem'
+  __ush_match_18__1='filesystem'
   # shellcheck disable=SC2034
-  __ush_match_16__2='paths'
-  __ush_for_list_index_17=0
-  while [ "${__ush_for_list_index_17}" -lt "${__ush_match_16__len}" ]; do
-    __ush_for_value_18=''
-    eval "__ush_for_value_18=\"\${__ush_match_16__${__ush_for_list_index_17}}\""
-    name="${__ush_for_value_18}"
-    __ush_for_list_index_17=$((__ush_for_list_index_17 + 1))
-    __ush_at 30 'let source = "crates/ush_compiler/tests/fixtures/portable/" + name + ".ush"'
-    source='crates/ush_compiler/tests/fixtures/portable/'"${name}"'.ush'
-    __ush_at 31 'exec compiler ["compile", source, "--target", target, "-o", work + "/portable"]'
-    __ush_match_19__len='6'
-    # shellcheck disable=SC2034
-    __ush_match_19__0='compile'
-    # shellcheck disable=SC2034
-    __ush_match_19__1="${source}"
-    # shellcheck disable=SC2034
-    __ush_match_19__2='--target'
-    # shellcheck disable=SC2034
-    __ush_match_19__3="${target}"
-    # shellcheck disable=SC2034
-    __ush_match_19__4='-o'
-    # shellcheck disable=SC2034
-    __ush_match_19__5="${work}"'/portable'
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_19)" )
-    __ush_at 32 'assert_eq (run_fixture target (work + "/portable") work) "passed"'
-    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run_fixture "${target}" "${work}"'/portable' "${work}" 4>&1 >&3)" || exit "$?"
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_21}" 'passed' )
+  __ush_match_18__2='paths'
+  __ush_for_list_index_19=0
+  while [ "${__ush_for_list_index_19}" -lt "${__ush_match_18__len}" ]; do
+    __ush_for_value_20=''
+    eval "__ush_for_value_20=\"\${__ush_match_18__${__ush_for_list_index_19}}\""
+    name="${__ush_for_value_20}"
+    __ush_for_list_index_19=$((__ush_for_list_index_19 + 1))
+    __ush_at 34 'let source = root + "/crates/ush_compiler/tests/fixtures/portable/" + name + ".ush"'
+    source="${root}"'/crates/ush_compiler/tests/fixtures/portable/'"${name}"'.ush'
+    __ush_at 35 'assert (contains (run_fixture compiler target source work) "1 passed; 0 failed")'
+    __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run_fixture "${compiler}" "${target}" "${source}" "${work}" 4>&1 >&3)" || exit "$?"
+    __ush_value_22="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_21}" '1 passed; 0 failed')" || exit "$?"
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_22}" )
   done
-  __ush_at 34 'for source in lines (find "examples" "-name" "*.ush" "-type" "f") {'
-  __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')" || exit "$?"
-  __ush_packed_24="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_23}")" || exit "$?"
-  __ush_match_22__len=0
-  ush_fn_std__unpack __ush_match_22 "${__ush_packed_24}"
-  __ush_for_list_index_25=0
-  while [ "${__ush_for_list_index_25}" -lt "${__ush_match_22__len}" ]; do
-    __ush_for_value_26=''
-    eval "__ush_for_value_26=\"\${__ush_match_22__${__ush_for_list_index_25}}\""
-    source="${__ush_for_value_26}"
-    __ush_for_list_index_25=$((__ush_for_list_index_25 + 1))
-    __ush_at 35 'exec compiler ["compile", source, "--target", target, "-o", work + "/script"]'
-    __ush_match_27__len='6'
+  __ush_at 37 'for source in lines (find "examples" "-name" "*.ush" "-type" "f") {'
+  __ush_value_24="$(__ush_return_path='' __ush_capture_return='1' command find 'examples' '-name' '*.ush' '-type' 'f')" || exit "$?"
+  __ush_packed_25="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_24}")" || exit "$?"
+  __ush_match_23__len=0
+  ush_fn_std__unpack __ush_match_23 "${__ush_packed_25}"
+  __ush_for_list_index_26=0
+  while [ "${__ush_for_list_index_26}" -lt "${__ush_match_23__len}" ]; do
+    __ush_for_value_27=''
+    eval "__ush_for_value_27=\"\${__ush_match_23__${__ush_for_list_index_26}}\""
+    source="${__ush_for_value_27}"
+    __ush_for_list_index_26=$((__ush_for_list_index_26 + 1))
+    __ush_at 38 'exec compiler ["compile", source, "--target", target, "-o", work + "/script"]'
+    __ush_match_28__len='6'
     # shellcheck disable=SC2034
-    __ush_match_27__0='compile'
+    __ush_match_28__0='compile'
     # shellcheck disable=SC2034
-    __ush_match_27__1="${source}"
+    __ush_match_28__1="${source}"
     # shellcheck disable=SC2034
-    __ush_match_27__2='--target'
+    __ush_match_28__2='--target'
     # shellcheck disable=SC2034
-    __ush_match_27__3="${target}"
+    __ush_match_28__3="${target}"
     # shellcheck disable=SC2034
-    __ush_match_27__4='-o'
+    __ush_match_28__4='-o'
     # shellcheck disable=SC2034
-    __ush_match_27__5="${work}"'/script'
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_27)" )
-    __ush_at 36 'exec target ["-n", work + "/script"]'
-    __ush_match_29__len='2'
+    __ush_match_28__5="${work}"'/script'
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_28)" )
+    __ush_at 39 'exec target ["-n", work + "/script"]'
+    __ush_match_30__len='2'
     # shellcheck disable=SC2034
-    __ush_match_29__0='-n'
+    __ush_match_30__0='-n'
     # shellcheck disable=SC2034
-    __ush_match_29__1="${work}"'/script'
-    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${target}" "$(ush_fn_std__pack __ush_match_29)" )
+    __ush_match_30__1="${work}"'/script'
+    ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${target}" "$(ush_fn_std__pack __ush_match_30)" )
   done
-  __ush_at 38 'exec compiler ["compile", "examples/contracts.ush", "--target", target, "-o", work + "/script"]'
-  __ush_match_31__len='6'
+  __ush_at 41 'exec compiler ["compile", "examples/contracts.ush", "--target", target, "-o", work + "/script"]'
+  __ush_match_32__len='6'
   # shellcheck disable=SC2034
-  __ush_match_31__0='compile'
+  __ush_match_32__0='compile'
   # shellcheck disable=SC2034
-  __ush_match_31__1='examples/contracts.ush'
+  __ush_match_32__1='examples/contracts.ush'
   # shellcheck disable=SC2034
-  __ush_match_31__2='--target'
+  __ush_match_32__2='--target'
   # shellcheck disable=SC2034
-  __ush_match_31__3="${target}"
+  __ush_match_32__3="${target}"
   # shellcheck disable=SC2034
-  __ush_match_31__4='-o'
+  __ush_match_32__4='-o'
   # shellcheck disable=SC2034
-  __ush_match_31__5="${work}"'/script'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_31)" )
-  __ush_at 39 'chmod "+x" (work + "/script")'
+  __ush_match_32__5="${work}"'/script'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_32)" )
+  __ush_at 42 'chmod "+x" (work + "/script")'
   command chmod '+x' "${work}"'/script'
-  __ush_at 40 'assert_eq (output target [work + "/script"]) "2\n20\nready\ndone"'
-  __ush_match_33__len='1'
+  __ush_at 43 'assert_eq (output target [work + "/script"]) "2\n20\nready\ndone"'
+  __ush_match_34__len='1'
   # shellcheck disable=SC2034
-  __ush_match_33__0="${work}"'/script'
-  __ush_value_35="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_33)")" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_35}" '2'"${__ush_lf}"'20'"${__ush_lf}"'ready'"${__ush_lf}"'done' )
-  __ush_at 41 'exec compiler ["compile", "examples/collections.ush", "--target", target, "-o", work + "/script"]'
-  __ush_match_36__len='6'
+  __ush_match_34__0="${work}"'/script'
+  __ush_value_36="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_34)")" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_36}" '2'"${__ush_lf}"'20'"${__ush_lf}"'ready'"${__ush_lf}"'done' )
+  __ush_at 44 'exec compiler ["compile", "examples/collections.ush", "--target", target, "-o", work + "/script"]'
+  __ush_match_37__len='6'
   # shellcheck disable=SC2034
-  __ush_match_36__0='compile'
+  __ush_match_37__0='compile'
   # shellcheck disable=SC2034
-  __ush_match_36__1='examples/collections.ush'
+  __ush_match_37__1='examples/collections.ush'
   # shellcheck disable=SC2034
-  __ush_match_36__2='--target'
+  __ush_match_37__2='--target'
   # shellcheck disable=SC2034
-  __ush_match_36__3="${target}"
+  __ush_match_37__3="${target}"
   # shellcheck disable=SC2034
-  __ush_match_36__4='-o'
+  __ush_match_37__4='-o'
   # shellcheck disable=SC2034
-  __ush_match_36__5="${work}"'/script'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_36)" )
-  __ush_at 42 'assert_eq (output target [work + "/script"]) "2\n3\n4\n3"'
-  __ush_match_38__len='1'
+  __ush_match_37__5="${work}"'/script'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_37)" )
+  __ush_at 45 'assert_eq (output target [work + "/script"]) "2\n3\n4\n3"'
+  __ush_match_39__len='1'
   # shellcheck disable=SC2034
-  __ush_match_38__0="${work}"'/script'
-  __ush_value_40="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_38)")" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_40}" '2'"${__ush_lf}"'3'"${__ush_lf}"'4'"${__ush_lf}"'3' )
-  __ush_at 43 'exec compiler ["compile", "examples/extern.ush", "--target", target, "-o", work + "/script"]'
-  __ush_match_41__len='6'
+  __ush_match_39__0="${work}"'/script'
+  __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_39)")" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_41}" '2'"${__ush_lf}"'3'"${__ush_lf}"'4'"${__ush_lf}"'3' )
+  __ush_at 46 'exec compiler ["compile", "examples/extern.ush", "--target", target, "-o", work + "/script"]'
+  __ush_match_42__len='6'
   # shellcheck disable=SC2034
-  __ush_match_41__0='compile'
+  __ush_match_42__0='compile'
   # shellcheck disable=SC2034
-  __ush_match_41__1='examples/extern.ush'
+  __ush_match_42__1='examples/extern.ush'
   # shellcheck disable=SC2034
-  __ush_match_41__2='--target'
+  __ush_match_42__2='--target'
   # shellcheck disable=SC2034
-  __ush_match_41__3="${target}"
+  __ush_match_42__3="${target}"
   # shellcheck disable=SC2034
-  __ush_match_41__4='-o'
+  __ush_match_42__4='-o'
   # shellcheck disable=SC2034
-  __ush_match_41__5="${work}"'/script'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_41)" )
-  __ush_at 44 'assert_eq (output target [work + "/script"]) "hello ush\n42"'
-  __ush_match_43__len='1'
+  __ush_match_42__5="${work}"'/script'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_42)" )
+  __ush_at 47 'assert_eq (output target [work + "/script"]) "hello ush\n42"'
+  __ush_match_44__len='1'
   # shellcheck disable=SC2034
-  __ush_match_43__0="${work}"'/script'
-  __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_43)")" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_45}" 'hello ush'"${__ush_lf}"'42' )
-  __ush_at 45 'exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush"]'
-  __ush_match_46__len='4'
+  __ush_match_44__0="${work}"'/script'
+  __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__output "${target}" "$(ush_fn_std__pack __ush_match_44)")" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_46}" 'hello ush'"${__ush_lf}"'42' )
+  __ush_at 48 'exec compiler ["--shell-target", target, "test", "examples/smoke_test.ush"]'
+  __ush_match_47__len='4'
   # shellcheck disable=SC2034
-  __ush_match_46__0='--shell-target'
+  __ush_match_47__0='--shell-target'
   # shellcheck disable=SC2034
-  __ush_match_46__1="${target}"
+  __ush_match_47__1="${target}"
   # shellcheck disable=SC2034
-  __ush_match_46__2='test'
+  __ush_match_47__2='test'
   # shellcheck disable=SC2034
-  __ush_match_46__3='examples/smoke_test.ush'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_46)" )
-  __ush_at 46 'exec compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]'
-  __ush_match_48__len='6'
+  __ush_match_47__3='examples/smoke_test.ush'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_47)" )
+  __ush_at 49 'exec compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]'
+  __ush_match_49__len='6'
   # shellcheck disable=SC2034
-  __ush_match_48__0='compile'
+  __ush_match_49__0='compile'
   # shellcheck disable=SC2034
-  __ush_match_48__1='examples/error_streams.ush'
+  __ush_match_49__1='examples/error_streams.ush'
   # shellcheck disable=SC2034
-  __ush_match_48__2='--target'
+  __ush_match_49__2='--target'
   # shellcheck disable=SC2034
-  __ush_match_48__3="${target}"
+  __ush_match_49__3="${target}"
   # shellcheck disable=SC2034
-  __ush_match_48__4='-o'
+  __ush_match_49__4='-o'
   # shellcheck disable=SC2034
-  __ush_match_48__5="${work}"'/script'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_48)" )
-  __ush_at 47 'assert_eq (redirect target [work + "/script"] (work + "/out") (work + "/err")) 1'
-  __ush_match_50__len='1'
+  __ush_match_49__5="${work}"'/script'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_49)" )
+  __ush_at 50 'assert_eq (redirect target [work + "/script"] (work + "/out") (work + "/err")) 1'
+  __ush_match_51__len='1'
   # shellcheck disable=SC2034
-  __ush_match_50__0="${work}"'/script'
-  __ush_value_52="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_50)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_52}" 1 )
-  __ush_at 48 'assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")'
-  __ush_value_53="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
-  __ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_53}" 'error_streams.ush:6: Problem::MissingConfig')" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_54}" )
+  __ush_match_51__0="${work}"'/script'
+  __ush_value_53="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_51)" "${work}"'/out' "${work}"'/err')" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_53}" 1 )
+  __ush_at 51 'assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")'
+  __ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
+  __ush_value_55="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_54}" 'error_streams.ush:6: Problem::MissingConfig')" || exit "$?"
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert "${__ush_value_55}" )
 done
-__ush_at 50 'exec compiler ["compile", "examples/contracts.ush", "-o", work + "/script"]'
-__ush_match_55__len='4'
+__ush_at 53 'exec compiler ["compile", "examples/contracts.ush", "-o", work + "/script"]'
+__ush_match_56__len='4'
 # shellcheck disable=SC2034
-__ush_match_55__0='compile'
+__ush_match_56__0='compile'
 # shellcheck disable=SC2034
-__ush_match_55__1='examples/contracts.ush'
+__ush_match_56__1='examples/contracts.ush'
 # shellcheck disable=SC2034
-__ush_match_55__2='-o'
+__ush_match_56__2='-o'
 # shellcheck disable=SC2034
-__ush_match_55__3="${work}"'/script'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_55)" )
-__ush_at 51 'if exists "dash" {'
+__ush_match_56__3="${work}"'/script'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${compiler}" "$(ush_fn_std__pack __ush_match_56)" )
+__ush_at 54 'if exists "dash" {'
 if {
-__ush_value_57="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'dash')" || exit "$?"
-[ "${__ush_value_57}" = 'true' ]
+__ush_value_58="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'dash')" || exit "$?"
+[ "${__ush_value_58}" = 'true' ]
 }; then
-  __ush_at 52 'exec "dash" [work + "/script"]'
-  __ush_match_58__len='1'
+  __ush_at 55 'exec "dash" [work + "/script"]'
+  __ush_match_59__len='1'
   # shellcheck disable=SC2034
-  __ush_match_58__0="${work}"'/script'
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'dash' "$(ush_fn_std__pack __ush_match_58)" )
+  __ush_match_59__0="${work}"'/script'
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'dash' "$(ush_fn_std__pack __ush_match_59)" )
 fi
-__ush_at 54 'exec "shellcheck" ["-s", "sh", "--severity=error", work + "/script"]'
-__ush_match_60__len='4'
+__ush_at 57 'exec "shellcheck" ["-s", "sh", "--severity=error", work + "/script"]'
+__ush_match_61__len='4'
 # shellcheck disable=SC2034
-__ush_match_60__0='-s'
+__ush_match_61__0='-s'
 # shellcheck disable=SC2034
-__ush_match_60__1='sh'
+__ush_match_61__1='sh'
 # shellcheck disable=SC2034
-__ush_match_60__2='--severity=error'
+__ush_match_61__2='--severity=error'
 # shellcheck disable=SC2034
-__ush_match_60__3="${work}"'/script'
-( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'shellcheck' "$(ush_fn_std__pack __ush_match_60)" )
+__ush_match_61__3="${work}"'/script'
+( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec 'shellcheck' "$(ush_fn_std__pack __ush_match_61)" )

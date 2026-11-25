@@ -49,6 +49,7 @@ pub(crate) use functions::FunctionRegistry;
 pub(crate) use primitive::{compile_primitive_expr, infer};
 pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runtime};
 pub(crate) use shared::binding_for_name;
+pub(crate) use stdlib::host_required;
 pub(crate) use stdlib::register_builtins;
 pub(crate) use task_block::infer_async_block_type;
 pub(crate) use tasks::bind_await;

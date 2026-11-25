@@ -1,7 +1,7 @@
 [package]
 name = "ush"
 description = "An experimental Rust shell with a .ush language that compiles to POSIX sh"
-# Shipped via GitHub Releases / Docker / install.sh, not via crates.io
+# Shipped via GitHub Releases, Nix, and install.sh, not via crates.io.
 # — there is no consumer-side reason to depend on this from `cargo
 # install ush`-style flows yet.
 publish = false
@@ -17,6 +17,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
+libc.workspace = true
 tempfile = { workspace = true }
 anyhow.workspace = true
 clap.workspace = true
@@ -27,9 +28,7 @@ ush_config = { path = "../../crates/ush_config" }
 ush_shell = { path = "../../crates/ush_shell" }
 ush_compiler = { path = "../../crates/ush_compiler" }
 ush_tooling = { path = "../../crates/ush_tooling" }
-
-[dev-dependencies]
-libc.workspace = true
+base64 = { version = "0.23.1", default-features = false, features = ["std"] }
 
 [lints]
 workspace = true

@@ -10,9 +10,18 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
-## [0.14.0] — 2026-11-25
+## [0.15.0] — 2026-11-25
 
 ### Added
+
+- 47 optional-runtime std APIs: Unicode text, byte codecs and binary files,
+  filesystem metadata and atomic writes, clocks, OS randomness, DNS, system
+  queries and checked integer arithmetic.
+- A versioned argv-only runtime protocol and actionable missing-runtime errors.
+  Portable programs still run with POSIX sh alone.
+- Cross-shell runtime tests covering binary NUL, Unicode, integer overflow,
+  invalid inputs, metadata, atomic replacement and UTC formatting across TZs.
+
 
 - 48 portable std APIs for text, lexical paths, filesystem operations, streams,
   process state, host information and integer helpers. Generated programs use
@@ -22,8 +31,7 @@ project adheres to [Semantic Versioning][semver].
 - A standard-library reference with API contracts, portability boundaries and
   a POSIX/libc coverage roadmap.
 
-
-## [0.13.0] — 2026-11-25
+### Native scripting and packaging
 
 - Rewrite the installer and all repository scripts as native ush, including argument parsing, checksum lookup, PATH configuration, tests and paired benchmark orchestration.
 - Add typed process argv, execution, capture, status and redirection APIs, managed temporary directories, stderr output and string splitting/lines/integer conversion.
@@ -474,7 +482,7 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.15.0...HEAD
 [0.11.1]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.1
 [0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
 [0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
