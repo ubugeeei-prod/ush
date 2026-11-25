@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795607193467,
+  "lastUpdate": 1795609706520,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -4373,6 +4373,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 149755,
             "range": "± 817",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9aa8bf53d28f23f1ff8e8cbd84b209231e51aa1c",
+          "message": "feat(lang): command status, stderr stages, background commands and defer (#180)\n\n* feat(lang): command status tests, stderr stages, background commands and defer\n\nA command, a pipeline or a function returning () used as an if/while\ncondition tests whether it succeeded, with !, && and || combining it with\nBooleans; its output streams and its failure never stops the script. A\npipeline condition fails like pipefail, leftmost stage first.\n`status_of command` evaluates to its exit status as an Int and\n`allow_fail command` carries on whatever it returns.\n\nstd::io gains discard_stderr, stderr_to and stderr_append_to, which\nredirect the stderr of the stage before them while its stdout keeps\nflowing, and to_stderr, a sink that sends stdout to stderr. All lower to\nredirections on the neighbouring process.\n\n`let job = spawn command` runs a command, pipeline or unit function in\nthe background as a Task<()>, streaming its output. Task handles gain\n`job.pid` and `job.kill(signal)`, which signals the whole process tree;\na killed task does not fail its scope when joined, and `.await` keeps the\nstatus a signal produced for every later await.\n\n`defer { … }` and `defer statement` run when the enclosing function\nreturns or the script exits, last registered first, including on\nfailure and on handled signals, before unfinished tasks are joined and\ntemporary directories removed. A function that defers runs in a process\nof its own; defer is rejected in loops, cd/export blocks, async blocks,\nmethods and other deferred blocks.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat(tooling): highlight, complete and describe defer, spawn, status_of and allow_fail\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* build: regenerate the checked-in scripts for the new task runtime\n\nThe task runtime now runs deferred blocks from its exit trap, keeps a\nsignal's status for every await and skips killed tasks when joining.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* docs: document command status, stderr stages, background commands and defer\n\nAdd the language guide sections on command status, background commands\nand deferred cleanup, the stderr stages in the pipeline guide and the\nstd::io table, their lowering and effects, the README feature line, the\nchangelog entries, and examples/process_control.ush, run on every target\nby scripts/test_targets.ush.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-25T21:23:00+09:00",
+          "tree_id": "3755086ff598a21ddc37ffb7d0e266a766b4043e",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/9aa8bf53d28f23f1ff8e8cbd84b209231e51aa1c"
+        },
+        "date": 1795609705249,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1374,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 230,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 532,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1234,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1151,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1131,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 189,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 120,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 218,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 107,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1251,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1134,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1063,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 785,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2322,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 16,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1888,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 8810,
+            "range": "± 34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 27520,
+            "range": "± 176",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 11415617,
+            "range": "± 474490",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 184102,
+            "range": "± 4451",
             "unit": "ns/iter"
           }
         ]
