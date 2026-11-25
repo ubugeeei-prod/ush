@@ -279,6 +279,9 @@ jobs:
       - name: Test installer flow
         run: sh scripts/test_install.sh
 
+      - name: Test the rustc wrapper
+        run: sh scripts/test_rustc_wrapper.sh
+
       - name: Check no_std compiler core
         run: cargo check --locked -p ush_compiler --no-default-features
 
