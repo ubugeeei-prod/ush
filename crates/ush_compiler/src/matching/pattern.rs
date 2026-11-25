@@ -72,6 +72,26 @@ pub(super) fn bind_pattern(
             ),
         ),
         (Pattern::Unit, Type::Unit, _) => add_cond(plan, ":".into()),
+        (Pattern::Glob(glob), Type::String, Storage::Primitive(var)) => add_cond(
+            plan,
+            format!(
+                "case \"${{{var}}}\" in {}) ;; *) false ;; esac",
+                crate::glob::lower(glob)?
+            ),
+        ),
+        (Pattern::Or(alternatives), _, _) => {
+            let mut conditions = crate::types::HeapVec::with_capacity(alternatives.len());
+            for alternative in alternatives {
+                let mut inner = PatternPlan {
+                    condition: ":".into(),
+                    prelude: Default::default(),
+                    env: plan.env.clone(),
+                };
+                bind_pattern(alternative, subject, enums, &mut inner)?;
+                conditions.push(inner.condition);
+            }
+            add_cond(plan, format!("{{ {}; }}", conditions.join("; } || { ")));
+        }
         (Pattern::Variant(variant), Type::Adt(enum_name), Storage::Adt(prefix)) => {
             bind_variant_pattern(prefix, enum_name, variant, enums, plan)?
         }

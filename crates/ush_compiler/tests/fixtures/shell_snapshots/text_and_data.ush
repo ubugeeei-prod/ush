@@ -1,0 +1,16 @@
+let side = "left"
+let files = ["a.ts", "b c.md"]
+let dir = $env::RUNNER_TEMP
+print $"$dir/ambient-$side.jsonl"
+print files[1]
+print files.len()
+for (i, file) in files.enumerate() {
+  match file {
+    glob "*.ts" | glob "*.mts" => print $"$i: typescript"
+    _ => print $"$i: other"
+  }
+}
+print $"""
+  ## $side
+  ${files.join(", ")}
+"""

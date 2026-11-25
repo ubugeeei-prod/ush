@@ -42,8 +42,14 @@ pub(super) fn hoist_expr(
             );
             Expr::Var(temp)
         }
-        Expr::Add(parts) => Expr::Add(
-            parts
+        Expr::Env(_) | Expr::Index { .. } | Expr::MethodCall(_)
+            if super::list::hoists(expr, env, functions, impls, enums) =>
+        {
+            let low = super::list::Lowering::new(functions, impls, enums, inside_function);
+            super::list::hoist(expr, env, &low, state, out)?
+        }
+        Expr::Add(parts) | Expr::Template(parts) => {
+            let hoisted = parts
                 .iter()
                 .map(|part| {
                     hoist_expr(
@@ -58,8 +64,13 @@ pub(super) fn hoist_expr(
                         out,
                     )
                 })
-                .collect::<Result<_>>()?,
-        ),
+                .collect::<Result<_>>()?;
+            if matches!(expr, Expr::Add(_)) {
+                Expr::Add(hoisted)
+            } else {
+                Expr::Template(hoisted)
+            }
+        }
         Expr::Compare { lhs, op, rhs } => Expr::Compare {
             lhs: Box::new(hoist_expr(
                 lhs,

@@ -52,6 +52,15 @@ pub(crate) fn split_top_level(source: &str, separator: char) -> Vec<&str> {
     result
 }
 
+/// A `$` that starts an atom rather than the legacy `$ expr` prefix:
+/// `$(…)`, `$bin::`, `$env::`, `$"…"` and `$name`.
+pub(crate) fn dollar_atom(source: &str) -> bool {
+    let Some(rest) = source.strip_prefix('$') else {
+        return false;
+    };
+    rest.starts_with(['(', '"', '_']) || rest.starts_with(|ch: char| ch.is_ascii_alphabetic())
+}
+
 pub(crate) fn split_top_level_whitespace(source: &str) -> Vec<&str> {
     let mut result = Vec::new();
     let mut start = None;

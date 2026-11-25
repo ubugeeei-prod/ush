@@ -31,9 +31,16 @@ pub(super) fn parse_member_chain(source: &str) -> Result<Option<Expr>> {
             });
             continue;
         }
+        let name = part.trim();
+        // `pair.0`: tuple elements are numbered from zero.
+        let name = if !name.is_empty() && name.bytes().all(|byte| byte.is_ascii_digit()) {
+            name.into()
+        } else {
+            parse_identifier(name)?
+        };
         expr = Expr::Field {
             base: Box::new(expr),
-            name: parse_identifier(part.trim())?,
+            name,
         };
     }
     Ok(Some(expr))

@@ -237,13 +237,16 @@ greeting="${__ush_binding_18_greeting}"
 __ush_at 19 '$ printf '"'"'%s\n'"'"' "$greeting"'
 printf '%s\n' "$greeting"
 __ush_at 21 'match greeting {'
-if [ "${__ush_binding_18_greeting}" = 'hello' ]; then
-  __ush_at 22 '"hello" => $ printf '"'"'%s\n'"'"' matched'
+case "${__ush_binding_18_greeting}" in
+  'hello')
+    __ush_at 22 '"hello" => $ printf '"'"'%s\n'"'"' matched'
 printf '%s\n' matched
-elif :; then
-  __ush_at 23 '_ => print "fallback"'
-  printf '%s\n' 'fallback'
-fi
+    ;;
+  *)
+    __ush_at 23 '_ => print "fallback"'
+    printf '%s\n' 'fallback'
+    ;;
+esac
 __ush_at 26 'print page'
 printf '%s\n' "${__ush_binding_7_page}"
 __ush_at 27 'print $ page.starts_with("<div>")'

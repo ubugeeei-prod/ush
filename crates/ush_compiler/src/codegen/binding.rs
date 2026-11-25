@@ -61,6 +61,14 @@ pub(super) fn compile(
     };
     let target = target(s, name, &ty, env)?;
     match &s.kind {
+        S::Let { expr, .. } if s.binding == BindingMode::Assign && appends(name, expr, &ty) => {
+            let crate::ast::Expr::Add(parts) = expr else {
+                unreachable!("checked by `appends`")
+            };
+            let low = super::list::Lowering::new(functions, impls, enums, inside_function);
+            super::list::append_in_place(&target, &parts[1..], &ty, env, &low, state, out)?;
+            env.insert(target.clone(), binding_for_name(&target, ty.clone()));
+        }
         S::Let { expr, .. } => {
             let destination = if s.binding == BindingMode::Assign && ty.is_structured() {
                 state.temp_var("assignment")
@@ -133,4 +141,11 @@ pub(super) fn store_task(target: &str, binding: &Binding, out: &mut OutputBuffer
     for field in ["pid", "result", "awaited"] {
         out.push_str(&format!("{target}__{field}=\"${{{source}__{field}}}\"\n"));
     }
+}
+
+/// `xs = xs + …` on a list appends in place.
+fn appends(name: &str, expr: &crate::ast::Expr, ty: &Type) -> bool {
+    matches!(ty, Type::List(_))
+        && matches!(expr, crate::ast::Expr::Add(parts)
+            if matches!(parts.first(), Some(crate::ast::Expr::Var(first)) if first == name))
 }

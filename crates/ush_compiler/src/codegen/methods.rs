@@ -10,7 +10,6 @@ use super::{
     builtin_methods::{capture_builtin_method, infer_builtin_method},
     calls::ensure_value_type,
     compile_runtime_primitive_expr, infer,
-    method_fields::struct_field,
     methods_support::{bind_method_args, compile_method_body, resolve_method_args},
     runtime_support::{FailureMode, hoist_expr},
 };
@@ -35,8 +34,7 @@ pub(crate) fn infer_field_expr(
     if let Some(ty) = super::task_methods::infer_field(&base_ty, name) {
         return Ok(ty);
     }
-    let field = struct_field(&base_ty, name, enums)?;
-    Ok(field.ty.clone())
+    super::method_fields::field_type(&base_ty, name, enums)
 }
 
 pub(crate) fn infer_method_call(

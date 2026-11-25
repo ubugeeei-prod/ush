@@ -146,7 +146,7 @@ pub(super) fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
             }
             effects
         }
-        Expr::Add(parts) | Expr::Tuple(parts) | Expr::List(parts) => {
+        Expr::Add(parts) | Expr::Tuple(parts) | Expr::List(parts) | Expr::Template(parts) => {
             let mut effects = EffectSet::empty();
             for part in parts {
                 effects.merge(&expr_effects(part, ctx));
@@ -154,7 +154,12 @@ pub(super) fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
             effects
         }
         Expr::Compare { lhs, rhs, .. } => expr_effects(lhs, ctx).union(&expr_effects(rhs, ctx)),
-        Expr::Range { start, end } => expr_effects(start, ctx).union(&expr_effects(end, ctx)),
+        Expr::Range { start, end }
+        | Expr::Index {
+            base: start,
+            index: end,
+        } => expr_effects(start, ctx).union(&expr_effects(end, ctx)),
+        Expr::Env(_) => EffectSet::of(Effect::Env),
         Expr::Field { base, name } if name == "await" => {
             EffectSet::of(Effect::Task).union(&expr_effects(base, ctx))
         }

@@ -456,51 +456,61 @@ ush_fn_target() {
   # shellcheck disable=SC2034
   arch="${__ush_binding_36_arch}"
   __ush_at 37 'match os {'
-  if [ "${__ush_binding_35_os}" = 'Linux' ]; then
-    __ush_at 38 '"Linux" => os = "unknown-linux-gnu"'
-    __ush_binding_35_os='unknown-linux-gnu'
-    # shellcheck disable=SC2034
-    os="${__ush_binding_35_os}"
-  elif [ "${__ush_binding_35_os}" = 'Darwin' ]; then
-    __ush_at 39 '"Darwin" => os = "apple-darwin"'
-    __ush_binding_35_os='apple-darwin'
-    # shellcheck disable=SC2034
-    os="${__ush_binding_35_os}"
-  elif :; then
-    __ush_at 40 '_ => fail 1 ("install.sh: unsupported operating system: " + os)'
-    __ush_status=1
-    if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-    __ush_report "$__ush_status" 'install.sh: unsupported operating system: '"${__ush_binding_35_os}"
-    return "$__ush_status"
-  fi
+  case "${__ush_binding_35_os}" in
+    'Linux')
+      __ush_at 38 '"Linux" => os = "unknown-linux-gnu"'
+      __ush_binding_35_os='unknown-linux-gnu'
+      # shellcheck disable=SC2034
+      os="${__ush_binding_35_os}"
+      ;;
+    'Darwin')
+      __ush_at 39 '"Darwin" => os = "apple-darwin"'
+      __ush_binding_35_os='apple-darwin'
+      # shellcheck disable=SC2034
+      os="${__ush_binding_35_os}"
+      ;;
+    *)
+      __ush_at 40 '_ => fail 1 ("install.sh: unsupported operating system: " + os)'
+      __ush_status=1
+      if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
+      __ush_report "$__ush_status" 'install.sh: unsupported operating system: '"${__ush_binding_35_os}"
+      return "$__ush_status"
+      ;;
+  esac
   __ush_at 42 'match arch {'
-  if [ "${__ush_binding_36_arch}" = 'x86_64' ]; then
-    __ush_at 43 '"x86_64" => arch = "x86_64"'
-    __ush_binding_36_arch='x86_64'
-    # shellcheck disable=SC2034
-    arch="${__ush_binding_36_arch}"
-  elif [ "${__ush_binding_36_arch}" = 'amd64' ]; then
-    __ush_at 44 '"amd64" => arch = "x86_64"'
-    __ush_binding_36_arch='x86_64'
-    # shellcheck disable=SC2034
-    arch="${__ush_binding_36_arch}"
-  elif [ "${__ush_binding_36_arch}" = 'arm64' ]; then
-    __ush_at 45 '"arm64" => arch = "aarch64"'
-    __ush_binding_36_arch='aarch64'
-    # shellcheck disable=SC2034
-    arch="${__ush_binding_36_arch}"
-  elif [ "${__ush_binding_36_arch}" = 'aarch64' ]; then
-    __ush_at 46 '"aarch64" => arch = "aarch64"'
-    __ush_binding_36_arch='aarch64'
-    # shellcheck disable=SC2034
-    arch="${__ush_binding_36_arch}"
-  elif :; then
-    __ush_at 47 '_ => fail 1 ("install.sh: unsupported architecture: " + arch)'
-    __ush_status=1
-    if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-    __ush_report "$__ush_status" 'install.sh: unsupported architecture: '"${__ush_binding_36_arch}"
-    return "$__ush_status"
-  fi
+  case "${__ush_binding_36_arch}" in
+    'x86_64')
+      __ush_at 43 '"x86_64" => arch = "x86_64"'
+      __ush_binding_36_arch='x86_64'
+      # shellcheck disable=SC2034
+      arch="${__ush_binding_36_arch}"
+      ;;
+    'amd64')
+      __ush_at 44 '"amd64" => arch = "x86_64"'
+      __ush_binding_36_arch='x86_64'
+      # shellcheck disable=SC2034
+      arch="${__ush_binding_36_arch}"
+      ;;
+    'arm64')
+      __ush_at 45 '"arm64" => arch = "aarch64"'
+      __ush_binding_36_arch='aarch64'
+      # shellcheck disable=SC2034
+      arch="${__ush_binding_36_arch}"
+      ;;
+    'aarch64')
+      __ush_at 46 '"aarch64" => arch = "aarch64"'
+      __ush_binding_36_arch='aarch64'
+      # shellcheck disable=SC2034
+      arch="${__ush_binding_36_arch}"
+      ;;
+    *)
+      __ush_at 47 '_ => fail 1 ("install.sh: unsupported architecture: " + arch)'
+      __ush_status=1
+      if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
+      __ush_report "$__ush_status" 'install.sh: unsupported architecture: '"${__ush_binding_36_arch}"
+      return "$__ush_status"
+      ;;
+  esac
   __ush_at 49 'arch + "-" + os'
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_binding_36_arch}"'-'"${__ush_binding_35_os}" > "$__ush_return_path"
@@ -1142,38 +1152,45 @@ while [ "${__ush_for_list_index_74}" -lt "${__ush_match_72__len}" ]; do
   [ "$(if [ "${__ush_binding_198_pending}" != '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 201 'match pending {'
-    if [ "${__ush_binding_198_pending}" = '--version' ]; then
-      __ush_at 202 '"--version" => version = value'
-      __ush_binding_192_version="${value}"
-      # shellcheck disable=SC2034
-      version="${__ush_binding_192_version}"
-    elif [ "${__ush_binding_198_pending}" = '--prefix' ]; then
-      __ush_at 203 '"--prefix" => prefix = value'
-      __ush_binding_193_prefix="${value}"
-      # shellcheck disable=SC2034
-      prefix="${__ush_binding_193_prefix}"
-    elif [ "${__ush_binding_198_pending}" = '--bin-dir' ]; then
-      __ush_at 204 '"--bin-dir" => directory = value'
-      __ush_binding_194_directory="${value}"
-      # shellcheck disable=SC2034
-      directory="${__ush_binding_194_directory}"
-    elif [ "${__ush_binding_198_pending}" = '--download-url' ]; then
-      __ush_at 205 '"--download-url" => download_url = value'
-      __ush_binding_195_download_url="${value}"
-      # shellcheck disable=SC2034
-      download_url="${__ush_binding_195_download_url}"
-    elif [ "${__ush_binding_198_pending}" = '--checksum-url' ]; then
-      __ush_at 206 '"--checksum-url" => checksum_url = value'
-      __ush_binding_196_checksum_url="${value}"
-      # shellcheck disable=SC2034
-      checksum_url="${__ush_binding_196_checksum_url}"
-    elif :; then
-      __ush_at 207 '_ => fail 1 "install.sh: invalid option state"'
-      __ush_status=1
-      if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
-      __ush_report "$__ush_status" 'install.sh: invalid option state'
-      exit "$__ush_status"
-    fi
+    case "${__ush_binding_198_pending}" in
+      '--version')
+        __ush_at 202 '"--version" => version = value'
+        __ush_binding_192_version="${value}"
+        # shellcheck disable=SC2034
+        version="${__ush_binding_192_version}"
+        ;;
+      '--prefix')
+        __ush_at 203 '"--prefix" => prefix = value'
+        __ush_binding_193_prefix="${value}"
+        # shellcheck disable=SC2034
+        prefix="${__ush_binding_193_prefix}"
+        ;;
+      '--bin-dir')
+        __ush_at 204 '"--bin-dir" => directory = value'
+        __ush_binding_194_directory="${value}"
+        # shellcheck disable=SC2034
+        directory="${__ush_binding_194_directory}"
+        ;;
+      '--download-url')
+        __ush_at 205 '"--download-url" => download_url = value'
+        __ush_binding_195_download_url="${value}"
+        # shellcheck disable=SC2034
+        download_url="${__ush_binding_195_download_url}"
+        ;;
+      '--checksum-url')
+        __ush_at 206 '"--checksum-url" => checksum_url = value'
+        __ush_binding_196_checksum_url="${value}"
+        # shellcheck disable=SC2034
+        checksum_url="${__ush_binding_196_checksum_url}"
+        ;;
+      *)
+        __ush_at 207 '_ => fail 1 "install.sh: invalid option state"'
+        __ush_status=1
+        if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
+        __ush_report "$__ush_status" 'install.sh: invalid option state'
+        exit "$__ush_status"
+        ;;
+    esac
     __ush_at 209 'pending = ""'
     __ush_binding_198_pending=''
     # shellcheck disable=SC2034

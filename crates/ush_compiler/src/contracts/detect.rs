@@ -61,9 +61,15 @@ fn expr(e: &Expr) -> bool {
         | Expr::Range {
             start: lhs,
             end: rhs,
+        }
+        | Expr::Index {
+            base: lhs,
+            index: rhs,
         } => expr(lhs) || expr(rhs),
         Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => expr(e),
-        Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(expr),
+        Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) | Expr::Template(es) => {
+            es.iter().any(expr)
+        }
         Expr::AsyncBlock(body) => references(body),
         Expr::Pipeline(pipeline) => pipeline.exprs().any(expr),
         Expr::Variant(v) => match &v.fields {

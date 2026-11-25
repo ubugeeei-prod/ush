@@ -214,10 +214,10 @@ fn parse_statement(
             StatementKind::Call(signature::parse_call(trimmed, false)?),
         ));
     }
-    if let Ok(expr) = parse_expr(trimmed) {
-        return Ok(Statement::new(line_no, StatementKind::Expr(expr)));
+    match parse_expr(trimmed) {
+        Ok(expr) => Ok(Statement::new(line_no, StatementKind::Expr(expr))),
+        Err(error) => Err(super::atoms::unsupported(trimmed, &error)),
     }
-    bail!("unsupported syntax: {trimmed}")
 }
 
 fn is_block_statement(statement: &Statement) -> bool {

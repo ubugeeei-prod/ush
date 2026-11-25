@@ -7,7 +7,7 @@ use super::{
     expr::parse_expr,
     signature,
 };
-use crate::types::{AstString as String, HeapVec as Vec};
+use crate::types::HeapVec as Vec;
 
 pub(super) fn parse_if(
     _line_no: usize,
@@ -111,10 +111,12 @@ pub(super) fn parse_for(
     let (name, expr) = source
         .split_once(" in ")
         .ok_or_else(|| anyhow!("expected `for name in expr {{`"))?;
-    let name = parse_name(name)?;
+    let line_no = lines[*cursor].0;
+    let (name, unpack) = super::patterns::parse_for_binding(name.trim(), line_no)?;
     *cursor += 1;
-    let body = super::statement::parse_block(lines, cursor, None, false)?;
+    let mut body = super::statement::parse_block(lines, cursor, None, false)?;
     let _ = finish_block(lines, cursor, "for body")?;
+    body.splice(0..0, unpack);
     Ok(StatementKind::For {
         name,
         iterable: parse_expr(expr)?,
@@ -182,13 +184,4 @@ fn parse_header<'a>(trimmed: &'a str, keyword: &str) -> Result<&'a str> {
         .and_then(|rest| rest.strip_suffix('{'))
         .map(str::trim)
         .ok_or_else(|| anyhow!("expected `{keyword}... {{`"))
-}
-
-fn parse_name(source: &str) -> Result<String> {
-    let name = source.trim();
-    if super::super::util::is_identifier(name) {
-        Ok(name.into())
-    } else {
-        bail!("invalid identifier: {name}")
-    }
 }

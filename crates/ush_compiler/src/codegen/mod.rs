@@ -17,6 +17,7 @@ mod effects_lowering;
 mod enum_registry;
 mod functions;
 mod io;
+pub(crate) mod list;
 mod method_fields;
 mod methods;
 mod methods_support;
@@ -38,6 +39,7 @@ mod task_block;
 mod task_init;
 mod task_methods;
 mod tasks;
+mod text;
 mod uses_std;
 pub(crate) mod wire;
 
@@ -54,6 +56,7 @@ pub(crate) use source_context::SourceContext;
 
 pub(crate) use effects_lowering::effect_dispatcher;
 pub(crate) use functions::FunctionRegistry;
+pub(crate) use list::list_method_fails;
 pub(crate) use primitive::{compile_primitive_expr, infer};
 use registries::Registries;
 pub(crate) use registries::error_rows;

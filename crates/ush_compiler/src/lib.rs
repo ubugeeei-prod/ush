@@ -40,6 +40,7 @@ mod env;
 mod errors;
 #[cfg(feature = "std")]
 mod file;
+mod glob;
 mod imports;
 mod matching;
 mod modules;

@@ -57,7 +57,9 @@ pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
         "\n",
         include_str!("portable_runtime.sh"),
         "\n",
-        include_str!("host_runtime.sh")
+        include_str!("host_runtime.sh"),
+        "\n",
+        include_str!("../list/runtime.sh")
     );
     let definitions: crate::types::Map<_, _> = runtime
         .split_terminator("\n}\n")

@@ -51,6 +51,10 @@ for target in targets {
   exec $compiler ["compile", "examples/process_control.ush", "--target", target, "-o", work + "/script"]
   let controlled = "ready\nmissing, quietly\nchecking\nstatus 3\nfrom the background\nserver running\ncleaned up"
   assert_eq (output $target [work + "/script"]) $controlled
+  exec $compiler ["compile", "examples/text_and_data.ush", "--target", target, "-o", work + "/script"]
+  let listed = "staging/local: 4 files\n1. src/app.ts (typescript)\n2. src/App.vue (vue)\n3. docs/read me.md (other)\n4. Makefile (make)"
+  let summary = "first: src/app.ts, last: Makefile, second: src/App.vue\n## Summary for staging\nsrc/app.ts, src/App.vue, docs/read me.md, Makefile"
+  assert_eq (output $target [work + "/script"]) (listed + "\n" + summary)
   exec $compiler ["--shell-target", target, "test", "examples/smoke_test.ush", "examples/mutable_bindings.ush"]
   exec $compiler ["compile", "examples/error_streams.ush", "--target", target, "-o", work + "/script"]
   assert_eq (redirect $target [work + "/script"] (work + "/out") (work + "/err")) 1

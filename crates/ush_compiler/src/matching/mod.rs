@@ -1,3 +1,4 @@
+mod case;
 mod emit;
 mod exhaustiveness;
 mod pattern;
@@ -6,6 +7,7 @@ pub(crate) use read::read_expr;
 mod comprehension;
 mod sequence;
 
+pub(crate) use case::case_word;
 pub(crate) use exhaustiveness::check_exhaustive;
 
 use anyhow::{Result, bail};
@@ -116,6 +118,12 @@ pub(crate) fn emit_value_to_target(
     out: &mut OutputBuffer,
 ) -> Result<()> {
     if expected.is_structured() {
+        let low = crate::codegen::list::Lowering::new(functions, impls, enums, inside_function);
+        if crate::codegen::list::handles(expr, env, &low) {
+            return crate::codegen::list::emit_to_target(
+                target, expr, expected, env, &low, state, out,
+            );
+        }
         if let Expr::Try(inner) = expr {
             return emit_value_to_target(
                 target,
