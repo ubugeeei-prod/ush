@@ -11,7 +11,7 @@ case $__ush_entrypoint in
   */*) ;;
   *) __ush_entrypoint=$(command -v "$__ush_entrypoint") ;;
 esac
-__ush_source_dir=$(CDPATH= cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
+__ush_source_dir=$(CDPATH='' cd -P "$(dirname "$__ush_entrypoint")" && pwd -P)
 __ush_source_path=$__ush_source_dir/'preflight.ush'
 __ush_origin='preflight.ush'
 
