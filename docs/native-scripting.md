@@ -52,10 +52,14 @@ after deferred blocks run and outstanding tasks finish, including on failure
 and handled signals.
 As with ordinary process cleanup, SIGKILL cannot run cleanup handlers.
 
-Double-quoted strings decode `\n`, `\r`, `\t`, `\"` and `\\` starting in 0.13.
-Single-quoted and triple-quoted strings remain raw. Use raw strings for regular
-expressions or command formats that need literal backslashes. Concatenation
-preserves trailing newlines; command captures strip them.
+Double-quoted strings decode `\n`, `\r`, `\t`, `\"` and `\\` starting in 0.13,
+and keep `$name` and `${…}` as text. Single-quoted and triple-quoted strings
+remain raw. Use raw strings for regular expressions or command formats that
+need literal backslashes. `$"…"` and `$"""…"""` interpolate with the same
+`$name` / `${…}` rules as words; see
+[strings and interpolation](shell-language.md#strings-and-interpolation).
+Interpolation and concatenation preserve trailing newlines; command captures
+strip them.
 
 The benchmark and dependency checks require `jq` for JSON and floating-point
 calculations. Their orchestration, iteration and pass/fail policy stay in ush.

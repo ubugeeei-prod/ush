@@ -127,9 +127,15 @@ impl Walker<'_> {
             | Expr::Range {
                 start: lhs,
                 end: rhs,
+            }
+            | Expr::Index {
+                base: lhs,
+                index: rhs,
             } => self.expr(lhs) || self.expr(rhs),
             Expr::Try(e) | Expr::Field { base: e, .. } | Expr::StatusOf(e) => self.expr(e),
-            Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) => es.iter().any(|e| self.expr(e)),
+            Expr::Add(es) | Expr::List(es) | Expr::Tuple(es) | Expr::Template(es) => {
+                es.iter().any(|e| self.expr(e))
+            }
             Expr::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
             Expr::Variant(v) => match &v.fields {
                 crate::ast::ExprFields::Tuple(es) => es.iter().any(|e| self.expr(e)),

@@ -126,13 +126,23 @@ pub(crate) fn compile_match(
         inside_function,
         out,
     )?;
+    let words = case_words(arms, &subject, out)?;
     for (index, (pattern, arm)) in arms.iter().enumerate() {
         let plan = compile_pattern(pattern, &subject, env, enums)?;
-        out.push_str(if index == 0 { "if " } else { "elif " });
-        out.push_str(&plan.condition);
-        out.push_str("; then\n");
+        let indent = match &words {
+            Some(words) => {
+                push_line(out, &format!("{})", words[index]), 2);
+                4
+            }
+            None => {
+                out.push_str(if index == 0 { "if " } else { "elif " });
+                out.push_str(&plan.condition);
+                out.push_str("; then\n");
+                2
+            }
+        };
         for line in &plan.prelude {
-            push_line(out, line, 2);
+            push_line(out, line, indent);
         }
         let mut arm_env = plan.env;
         let body = compile_one(
@@ -148,10 +158,35 @@ pub(crate) fn compile_match(
             return_type,
             inside_function,
         )?;
-        push_output(out, &body, 2);
+        push_output(out, &body, indent);
+        if words.is_some() {
+            push_line(out, ";;", indent);
+        }
     }
-    out.push_str("fi\n");
+    out.push_str(if words.is_some() { "esac\n" } else { "fi\n" });
     Ok(())
+}
+
+/// The `case` patterns of a String `match` whose every arm has one, after
+/// opening the `case` statement; `None` keeps the `if` chain.
+fn case_words(
+    arms: &[(super::super::ast::Pattern, Box<Statement>)],
+    subject: &crate::env::Binding,
+    out: &mut OutputBuffer,
+) -> Result<Option<crate::types::HeapVec<crate::types::OutputString>>> {
+    let (Type::String, crate::env::Storage::Primitive(var)) = (&subject.ty, &subject.storage)
+    else {
+        return Ok(None);
+    };
+    let mut words = crate::types::HeapVec::with_capacity(arms.len());
+    for (pattern, _) in arms {
+        match crate::matching::case_word(pattern) {
+            Some(word) => words.push(word?),
+            None => return Ok(None),
+        }
+    }
+    out.push_str(&format!("case \"${{{var}}}\" in\n"));
+    Ok(Some(words))
 }
 
 #[allow(clippy::too_many_arguments)]

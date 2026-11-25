@@ -78,6 +78,11 @@ pub(crate) fn infer(
             }
             Ok(Type::Int)
         }
+        Expr::Template(parts) => super::text::infer_template(parts, env, functions, impls, enums),
+        Expr::Env(name) => super::text::infer_env(name, env),
+        Expr::Index { base, index } => {
+            super::list::infer_index(base, index, env, functions, impls, enums)
+        }
     }
 }
 
@@ -106,6 +111,9 @@ fn infer_add(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<Type> {
+    if let Some(ty) = super::list::infer_concat(parts, env, functions, impls, enums)? {
+        return Ok(ty);
+    }
     let mut saw_string = false;
     let mut saw_non_int = false;
     for part in parts {

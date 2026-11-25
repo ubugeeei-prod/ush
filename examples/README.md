@@ -34,6 +34,7 @@ and adding `;` keeps that expression as a statement instead.
 - `modules.ush`: a local module in `lib/report.ush`, imported with `mod` and `use`
 - `contracts.ush` exercises higher-kinded parameters, indexed sequences, quantities, shell captures and tasks.
 - `inferred_rows.ush`: signatures without `/ row`; errors and effects are inferred, written rows are checked
+- `text_and_data.ush`: `"${…}"` interpolation and `$"""…"""` templates, `$NAME` environment reads, the List API (`len`, indexing, `+`, `enumerate`, `join`, …) and `glob "…"` match patterns
 - `effects.ush`: Effekt-style effect rows (`-> T / …`), `effect` declarations, `do`, and `try … with` handlers
 
 ## ADT and Pattern Matching

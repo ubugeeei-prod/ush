@@ -82,9 +82,8 @@ pub(super) fn parse_match(
             *cursor += 1;
             continue;
         }
-        let (pattern, statement) = trimmed
-            .split_once("=>")
-            .ok_or_else(|| anyhow!("invalid match arm"))?;
+        let (pattern, statement) =
+            super::patterns::split_arm(trimmed).ok_or_else(|| anyhow!("invalid match arm"))?;
         arms.push((
             parse_pattern(pattern.trim())?,
             Box::new(

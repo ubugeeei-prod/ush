@@ -11,7 +11,7 @@
       "patterns": [
         {
           "name": "meta.command.ush",
-          "begin": "(?:^\\s*|(?<=[=|(])\\s*)(?!(?:alias|allow_fail|as|async|await|break|const|continue|defer|do|effect|else|enum|export|extern|fail|fn|for|if|impl|in|let|loop|match|mod|mut|print|pub|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b)(\\$bin::[A-Za-z_][A-Za-z0-9_:]*|[A-Za-z_][A-Za-z0-9_:]*)(?=\\s+[^\\s=+<>{|])",
+          "begin": "(?:^\\s*|(?<=[=|(])\\s*)(?!(?:alias|allow_fail|as|async|await|break|const|continue|defer|do|effect|else|enum|export|extern|fail|fn|for|glob|if|impl|in|let|loop|match|mod|mut|print|pub|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b)(\\$bin::[A-Za-z_][A-Za-z0-9_:]*|[A-Za-z_][A-Za-z0-9_:]*)(?=\\s+[^\\s=+<>{|])",
           "beginCaptures": {
             "1": {
               "name": "entity.name.function.ush"
@@ -19,6 +19,9 @@
           },
           "end": "(?=$|[|)])",
           "patterns": [
+            {
+              "include": "#interpolated-string"
+            },
             {
               "name": "string.quoted.triple.ush",
               "begin": "\"\"\"",
@@ -56,7 +59,7 @@
             },
             {
               "name": "variable.other.ush",
-              "match": "\\$(?:\\{[A-Za-z_][A-Za-z0-9_]*\\}|[A-Za-z_][A-Za-z0-9_]*)"
+              "match": "\\$(?:\\{(?:env::)?[A-Za-z_][A-Za-z0-9_]*\\}|(?:env::)?[A-Za-z_][A-Za-z0-9_]*)"
             },
             {
               "name": "constant.numeric.ush",
@@ -77,7 +80,7 @@
               "patterns": [
                 {
                   "name": "variable.other.ush",
-                  "match": "\\$(?:\\{[A-Za-z_][A-Za-z0-9_]*\\}|[A-Za-z_][A-Za-z0-9_]*)"
+                  "match": "\\$(?:\\{(?:env::)?[A-Za-z_][A-Za-z0-9_]*\\}|(?:env::)?[A-Za-z_][A-Za-z0-9_]*)"
                 }
               ]
             }
@@ -97,6 +100,9 @@
         {
           "name": "comment.line.number-sign.ush",
           "match": "#.*$"
+        },
+        {
+          "include": "#interpolated-string"
         },
         {
           "name": "string.quoted.triple.ush",
@@ -132,7 +138,7 @@
         },
         {
           "name": "keyword.control.ush",
-          "match": "\\b(alias|allow_fail|as|async|await|break|const|continue|defer|do|echo|effect|else|enum|export|extern|fail|fn|for|if|impl|in|let|loop|match|mod|mut|pub|print|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b"
+          "match": "\\b(alias|allow_fail|as|async|await|break|const|continue|defer|do|echo|effect|else|enum|export|extern|fail|fn|for|glob|if|impl|in|let|loop|match|mod|mut|pub|print|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b"
         },
         {
           "name": "constant.language.ush",
@@ -148,7 +154,7 @@
         },
         {
           "name": "variable.other.ush",
-          "match": "\\$(?:\\{[A-Za-z_][A-Za-z0-9_]*\\}|[A-Za-z_][A-Za-z0-9_]*)"
+          "match": "\\$(?:\\{(?:env::)?[A-Za-z_][A-Za-z0-9_]*\\}|(?:env::)?[A-Za-z_][A-Za-z0-9_]*)"
         },
         {
           "name": "entity.name.function.ush",
@@ -161,6 +167,82 @@
         {
           "name": "keyword.operator.ush",
           "match": "::|->|=>|\\.\\.|[+*/=<>&|!$:-]"
+        }
+      ]
+    },
+    "interpolated-string": {
+      "patterns": [
+        {
+          "name": "string.quoted.template.ush",
+          "begin": "\\$\"\"\"",
+          "end": "\"\"\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.ush",
+              "match": "\\\\."
+            },
+            {
+              "name": "meta.interpolation.ush",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.begin.ush"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.end.ush"
+                }
+              },
+              "contentName": "source.ush",
+              "patterns": [
+                {
+                  "include": "#expression"
+                }
+              ]
+            },
+            {
+              "name": "variable.other.ush",
+              "match": "\\$(?:env::)?[A-Za-z_][A-Za-z0-9_]*"
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.interpolated.ush",
+          "begin": "\\$\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.ush",
+              "match": "\\\\."
+            },
+            {
+              "name": "meta.interpolation.ush",
+              "begin": "\\$\\{",
+              "end": "\\}",
+              "beginCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.begin.ush"
+                }
+              },
+              "endCaptures": {
+                "0": {
+                  "name": "punctuation.section.interpolation.end.ush"
+                }
+              },
+              "contentName": "source.ush",
+              "patterns": [
+                {
+                  "include": "#expression"
+                }
+              ]
+            },
+            {
+              "name": "variable.other.ush",
+              "match": "\\$(?:env::)?[A-Za-z_][A-Za-z0-9_]*"
+            }
+          ]
         }
       ]
     }

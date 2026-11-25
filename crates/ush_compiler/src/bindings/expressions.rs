@@ -32,7 +32,7 @@ pub(super) fn expr(e: &Expr, scope: &Scope, globals: &Scope) -> Result<()> {
                 expr(&arg.expr, scope, globals)?;
             }
         }
-        Expr::Add(es) | Expr::Tuple(es) | Expr::List(es) => {
+        Expr::Add(es) | Expr::Tuple(es) | Expr::List(es) | Expr::Template(es) => {
             for e in es {
                 expr(e, scope, globals)?;
             }
@@ -41,6 +41,10 @@ pub(super) fn expr(e: &Expr, scope: &Scope, globals: &Scope) -> Result<()> {
         | Expr::Range {
             start: lhs,
             end: rhs,
+        }
+        | Expr::Index {
+            base: lhs,
+            index: rhs,
         } => {
             expr(lhs, scope, globals)?;
             expr(rhs, scope, globals)?;

@@ -56,6 +56,9 @@ pub(super) fn expr_errors(
             )?);
         }
         Expr::MethodCall(call) => {
+            if crate::codegen::list_method_fails(call, env, functions, impls, enums) {
+                errors.insert(ErrorType::Unknown);
+            }
             errors.extend(&expr_errors(
                 &call.receiver,
                 env,
@@ -75,10 +78,23 @@ pub(super) fn expr_errors(
                 )?);
             }
         }
-        Expr::Tuple(items) | Expr::List(items) => {
+        Expr::Tuple(items) | Expr::List(items) | Expr::Template(items) => {
             for item in items {
                 errors.extend(&expr_errors(
                     item,
+                    env,
+                    functions,
+                    impls,
+                    enums,
+                    function_errors,
+                )?);
+            }
+        }
+        Expr::Index { base, index } => {
+            errors.insert(ErrorType::Unknown);
+            for part in [base, index] {
+                errors.extend(&expr_errors(
+                    part,
                     env,
                     functions,
                     impls,
@@ -104,24 +120,18 @@ pub(super) fn expr_errors(
             start: lhs,
             end: rhs,
         } => {
-            errors.extend(&expr_errors(
-                lhs,
-                env,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
-            errors.extend(&expr_errors(
-                rhs,
-                env,
-                functions,
-                impls,
-                enums,
-                function_errors,
-            )?);
+            for part in [lhs, rhs] {
+                errors.extend(&expr_errors(
+                    part,
+                    env,
+                    functions,
+                    impls,
+                    enums,
+                    function_errors,
+                )?);
+            }
         }
-        Expr::ShellCapture(_) => errors.insert(ErrorType::Unknown),
+        Expr::ShellCapture(_) | Expr::Env(_) => errors.insert(ErrorType::Unknown),
         Expr::StatusOf(command) => errors.extend(&super::status::errors(
             command,
             env,

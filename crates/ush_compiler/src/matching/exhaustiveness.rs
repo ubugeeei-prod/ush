@@ -9,20 +9,23 @@ pub(crate) fn check_exhaustive(
     arms: &[(Pattern, alloc::boxed::Box<crate::ast::Statement>)],
     enums: &EnumRegistry,
 ) -> Result<()> {
-    if arms
-        .iter()
-        .any(|(pattern, _)| matches!(pattern, Pattern::Wildcard | Pattern::Binding(_)))
-    {
+    let mut patterns = Vec::new();
+    for (pattern, _) in arms {
+        flatten(pattern, &mut patterns);
+    }
+    if patterns.iter().any(|pattern| match pattern {
+        Pattern::Wildcard | Pattern::Binding(_) => true,
+        Pattern::Glob(glob) => glob == "*",
+        _ => false,
+    }) {
         return Ok(());
     }
+    let arms = patterns.as_slice();
 
     match subject_ty {
         Type::Adt(enum_name) => check_adt(enum_name, arms, enums),
         Type::Unit => {
-            if arms
-                .iter()
-                .any(|(pattern, _)| matches!(pattern, Pattern::Unit))
-            {
+            if arms.iter().any(|pattern| matches!(pattern, Pattern::Unit)) {
                 Ok(())
             } else {
                 bail!("non-exhaustive `match` on Unit: add `()` or a wildcard arm",);
@@ -42,17 +45,21 @@ pub(crate) fn check_exhaustive(
     }
 }
 
-fn check_adt(
-    enum_name: &str,
-    arms: &[(Pattern, alloc::boxed::Box<crate::ast::Statement>)],
-    enums: &EnumRegistry,
-) -> Result<()> {
+/// Alternatives of a `|` pattern count as arms of their own.
+fn flatten<'a>(pattern: &'a Pattern, out: &mut Vec<&'a Pattern>) {
+    match pattern {
+        Pattern::Or(alternatives) => alternatives.iter().for_each(|alt| flatten(alt, out)),
+        other => out.push(other),
+    }
+}
+
+fn check_adt(enum_name: &str, arms: &[&Pattern], enums: &EnumRegistry) -> Result<()> {
     let def = enums
         .get(enum_name)
         .ok_or_else(|| anyhow::anyhow!("unknown enum: {enum_name}"))?;
 
     let mut covered: Vec<Name> = Vec::new();
-    for (pattern, _) in arms {
+    for pattern in arms {
         if let Pattern::Variant(variant) = pattern {
             if variant.enum_name != enum_name {
                 bail!(
@@ -85,10 +92,10 @@ fn check_adt(
     Ok(())
 }
 
-fn check_bool(arms: &[(Pattern, alloc::boxed::Box<crate::ast::Statement>)]) -> Result<()> {
+fn check_bool(arms: &[&Pattern]) -> Result<()> {
     let mut has_true = false;
     let mut has_false = false;
-    for (pattern, _) in arms {
+    for pattern in arms {
         if let Pattern::Bool(value) = pattern {
             if *value {
                 has_true = true;

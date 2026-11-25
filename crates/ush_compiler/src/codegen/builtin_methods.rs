@@ -20,6 +20,9 @@ pub(super) fn infer_builtin_method(
     impls: &TraitImplRegistry,
     enums: &EnumRegistry,
 ) -> Result<Option<Type>> {
+    if let Some(ty) = super::list::infer_method(call, env, functions, impls, enums)? {
+        return Ok(Some(ty));
+    }
     let receiver_ty = infer(&call.receiver, env, functions, impls, enums)?;
     let Some(lowered) =
         lower_builtin_method_call(&call.receiver, &call.method, &call.args, &receiver_ty)

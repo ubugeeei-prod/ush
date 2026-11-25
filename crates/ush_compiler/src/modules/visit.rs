@@ -177,13 +177,17 @@ pub(crate) fn walk_expr<V: VisitMut + ?Sized>(v: &mut V, expr: &mut Expr) {
                 v.expr(&mut arg.expr);
             }
         }
-        Expr::Add(items) | Expr::Tuple(items) | Expr::List(items) => {
+        Expr::Add(items) | Expr::Tuple(items) | Expr::List(items) | Expr::Template(items) => {
             items.iter_mut().for_each(|item| v.expr(item));
         }
         Expr::Compare { lhs, rhs, .. }
         | Expr::Range {
             start: lhs,
             end: rhs,
+        }
+        | Expr::Index {
+            base: lhs,
+            index: rhs,
         } => {
             v.expr(lhs);
             v.expr(rhs);
@@ -203,11 +207,17 @@ pub(crate) fn walk_expr<V: VisitMut + ?Sized>(v: &mut V, expr: &mut Expr) {
         | Expr::Int(_)
         | Expr::Bool(_)
         | Expr::Unit
-        | Expr::Var(_) => {}
+        | Expr::Var(_)
+        | Expr::Env(_) => {}
     }
 }
 
 pub(crate) fn walk_pattern<V: VisitMut + ?Sized>(v: &mut V, pattern: &mut Pattern) {
+    if let Pattern::Or(alternatives) = pattern {
+        alternatives
+            .iter_mut()
+            .for_each(|alternative| v.pattern(alternative));
+    }
     if let Pattern::Variant(variant) = pattern {
         match &mut variant.fields {
             PatternFields::Unit => {}

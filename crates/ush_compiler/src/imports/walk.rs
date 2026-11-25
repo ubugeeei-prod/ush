@@ -145,7 +145,7 @@ impl Resolver<'_> {
                     self.expr(&mut arg.expr, scope);
                 }
             }
-            Expr::Add(es) | Expr::Tuple(es) | Expr::List(es) => {
+            Expr::Add(es) | Expr::Tuple(es) | Expr::List(es) | Expr::Template(es) => {
                 for e in es {
                     self.expr(e, scope);
                 }
@@ -154,6 +154,10 @@ impl Resolver<'_> {
             | Expr::Range {
                 start: lhs,
                 end: rhs,
+            }
+            | Expr::Index {
+                base: lhs,
+                index: rhs,
             } => {
                 self.expr(lhs, scope);
                 self.expr(rhs, scope);

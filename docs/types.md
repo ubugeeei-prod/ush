@@ -39,6 +39,8 @@ Units are nominal. Declare each suffix once. Addition and comparison require com
 
 A length can be a nonnegative integer, a const parameter, or the name of an integer argument. Reusing an index requires the same length. Integer refinements support `<`, `<=`, `>`, `>=` and `==` against integer literals joined by `&&`. The checker uses constants, addition, and comparisons in true branches to prove bounds. An argument whose bounds cannot be proved produces a diagnostic. The supported dependent-type fragment covers indexed sequences and integer refinements.
 
+Indexing uses the same facts. When the checker runs and knows a list's length and an index's bounds, `xs[i]` with an index that is negative or not below the length is a compile error, and `xs + ys` has the sum of the known lengths. Every other index is checked when the program runs. See [lists](shell-language.md#lists).
+
 ## Calling installed commands
 
 ```ush

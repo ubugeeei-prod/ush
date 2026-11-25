@@ -34,12 +34,12 @@ pub(super) fn parse_alias(source: &str) -> Result<StatementKind> {
     let (name, value) = split_assignment(source).ok_or_else(|| anyhow!("invalid alias binding"))?;
     Ok(StatementKind::Alias {
         name: name.into(),
-        value: parse_expr(value)?,
+        value: shell_code(parse_expr(value)?, "alias")?,
     })
 }
 
 pub(super) fn parse_statement_expr(source: &str) -> Result<Expr> {
-    if source.trim_start().starts_with("$(") || source.trim_start().starts_with("$bin::") {
+    if crate::util::dollar_atom(source.trim_start()) {
         return parse_expr(source.trim());
     }
     parse_expr(source.trim().strip_prefix('$').unwrap_or(source).trim())
@@ -47,9 +47,26 @@ pub(super) fn parse_statement_expr(source: &str) -> Result<Expr> {
 
 pub(super) fn parse_shell_statement(source: &str) -> Result<StatementKind> {
     if let Some(inner) = strip_top_level_suffix(source, '?') {
-        return Ok(StatementKind::TryShell(parse_statement_expr(inner)?));
+        return Ok(StatementKind::TryShell(shell_code(
+            parse_statement_expr(inner)?,
+            "shell",
+        )?));
     }
-    Ok(StatementKind::Shell(parse_statement_expr(source)?))
+    Ok(StatementKind::Shell(shell_code(
+        parse_statement_expr(source)?,
+        "shell",
+    )?))
+}
+
+/// Shell source must not interpolate: a value spliced into code would run
+/// as code. Values reach shell code as arguments or environment variables.
+fn shell_code(expr: Expr, keyword: &str) -> Result<Expr> {
+    if matches!(expr, Expr::Template(_)) {
+        bail!(
+            "`{keyword}` takes shell source, which cannot interpolate `${{…}}`: a value would run as code. Write `\\${{` for a shell expansion, or pass values as command arguments"
+        );
+    }
+    Ok(expr)
 }
 
 pub(super) fn parse_shell_escape(source: &str) -> Result<Option<StatementKind>> {

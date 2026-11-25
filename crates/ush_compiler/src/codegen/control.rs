@@ -105,6 +105,12 @@ pub(crate) fn compile_for(
     if let Expr::Range { start, end } = iterable {
         return compile_range_for(name, start, end, env, body, ctx, out);
     }
+    if let Expr::MethodCall(call) = iterable
+        && call.method == "enumerate"
+        && super::list::is_list_method(call, env, ctx.functions, ctx.impls, ctx.enums)
+    {
+        return super::list::compile_enumerate_for(name, &call.receiver, env, body, ctx, out);
+    }
     let binding = materialize_expr(
         iterable,
         env,

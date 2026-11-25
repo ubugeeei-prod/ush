@@ -57,6 +57,10 @@ Implemented today:
 - Invoke installed tools with `$bin::git "status"` or `use $bin::*` and `git "status"`. Capture shell pipelines with `let text = $( … )?` and launch ordinary functions with `let job = async build path`.
 - Native pipelines: `git "log" | head "-n1"` streams or captures, fails like `pipefail` on every target with the failing stage named, and does not fail when a reader such as `head` stops early. `|&` merges stderr; `from_file`, `to_file` and `append_to` redirect without an extra process; a String first stage feeds stdin byte for byte
 - Process control: a command or pipeline as an `if`/`while` condition tests its success while its output streams (`if ! git "diff" "--quiet" { … }`); `status_of cmd` gives the exit status as an `Int` and `allow_fail cmd` tolerates failure; `discard_stderr`, `stderr_to` and `to_stderr` redirect stderr alone; `let job = spawn cmd` runs a background command with `job.pid`, `job.kill()` (the whole process tree) and `job.await`; `defer { … }` runs cleanup when a function returns or the script exits, including on failure and handled signals
+- Interpolating strings: `$"$side/out-${n + 1}.json"` reads `$name` and `${…}` like CLI-style words, takes any expression in `${…}`, and lowers to plain parameter expansion without `eval`; `$"""…"""` is the dedented multi-line form, for Markdown summaries and generated files. `"…"` stays literal
+- Required environment reads: `$env::RUNNER_TEMP` is a String that stops the program with the variable's name and source line when it is unset or empty; `std::env::get_or` supplies defaults
+- A typed List API: `len`, `is_empty`, `contains`, `first`, `last`, `join`, `enumerate`, bounds-checked `xs[i]`, `xs + ys`, and `for (i, x) in xs.enumerate()`
+- `glob "*.ts" | glob "*.mts"` match patterns, distinct from literal strings, lowering to one POSIX `case`
 - Scoped working directory and environment: `cd dir { … }` and `export NAME = value, … { … }` restore the previous state afterwards, and `export NAME = value` sets a variable for the rest of the script
 - Rust-like tail expressions in value-returning functions, where the final expression returns and `;` keeps it as a statement
 - Rust-like `std::module::function` paths plus `use` imports for selected std helpers, including `std::env`, `std::path`, `std::fs`, `std::command`, `std::string`, `std::http`, and `std::regex` with capture support
@@ -406,7 +410,9 @@ Whitespace calls accept CLI-style arguments: `echo Hello $name`, `mkdir -p ./dis
 Current highlights:
 
 - `let`, `echo`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
-- `""" ... """` multiline strings with common-indent dedent
+- `let`, `print`, `match`, typed `fn`, `enum`, `type`, marker `trait`, and Rust-like tail expressions
+- `$"…"` interpolation, `$"""…"""` templates and raw `""" ... """` multiline strings with common-indent dedent
+- `$env::NAME` environment reads, list methods and indexing, and `glob "…"` / `a | b` match patterns
 - `mod "lib/x.ush"` local modules with `pub` items, inlined at compile time
 - `std::env`, `std::path`, `std::fs`, `std::command`, and `std::string` helpers via fully-qualified calls or top-level `use`, plus method-style path/string flows like `path.resolve()`, `path.exists()`, `path.read_text()`, and `name.trim_suffix(".ush")`
 - `fail` plus typed error signatures like `String / Problem`, with Rust-like `?` propagation

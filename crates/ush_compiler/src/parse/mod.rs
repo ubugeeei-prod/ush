@@ -1,4 +1,5 @@
 mod argument;
+mod atoms;
 mod attr;
 mod compare;
 mod comprehension;
@@ -17,6 +18,7 @@ mod items;
 mod module_decl;
 mod params;
 mod path;
+mod patterns;
 mod pipeline;
 mod process;
 mod record;

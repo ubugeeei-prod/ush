@@ -72,8 +72,20 @@ pub(super) fn parse_pattern(source: &str) -> Result<Pattern> {
     if trimmed == "_" {
         return Ok(Pattern::Wildcard);
     }
+    let alternatives = split_top_level(trimmed, '|');
+    if alternatives.len() > 1 {
+        return super::patterns::parse_alternatives(&alternatives);
+    }
+    if let Some(rest) = trimmed.strip_prefix("glob ") {
+        return super::patterns::parse_glob(rest);
+    }
     if let Some(string) = parse_string_literal(trimmed) {
         return Ok(Pattern::String(string));
+    }
+    if trimmed.starts_with("$\"") {
+        bail!(
+            "match patterns are literal: write `\"…\"` or `glob \"…\"`, not an interpolating `$\"…\"`"
+        );
     }
     if trimmed == "true" {
         return Ok(Pattern::Bool(true));
@@ -125,6 +137,12 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     }
     if trimmed.is_empty() {
         bail!("empty expression");
+    }
+    if let Some(expr) = super::atoms::parse_env(trimmed)
+        .or_else(|| super::atoms::parse_string(trimmed))
+        .or_else(|| super::atoms::parse_index(trimmed))
+    {
+        return expr;
     }
     if trimmed.starts_with('$') && !trimmed.starts_with("$bin::") {
         return super::argument::parse(trimmed);

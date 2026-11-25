@@ -21,7 +21,7 @@ pub(super) fn parse(source: &str) -> Result<Expr> {
     {
         return parse_expr(text);
     }
-    if text.starts_with("$(") {
+    if text.starts_with("$(") || text.starts_with("$\"") {
         return parse_expr(text);
     }
     if text.contains('$') {
@@ -44,11 +44,18 @@ fn interpolate(text: &str) -> Result<Expr> {
             })?;
             (&braced[..close], &braced[close + 1..])
         } else {
-            let end = rest
+            // `$env::NAME` reads the environment; the prefix joins the name.
+            let skip = if rest.starts_with("env::") { 5 } else { 0 };
+            let end = rest[skip..]
                 .find(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
-                .unwrap_or(rest.len());
+                .map_or(rest.len(), |end| skip + end);
             (&rest[..end], &rest[end..])
         };
+        if let Some(variable) = name.strip_prefix("env::") {
+            parts.push(super::atoms::env_read(variable)?);
+            rest = tail;
+            continue;
+        }
         if !is_identifier(name) {
             bail!(
                 "invalid variable reference; use $name or ${{name}}, and (expression) for computed arguments"

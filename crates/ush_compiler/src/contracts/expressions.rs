@@ -31,7 +31,9 @@ impl Checker {
                 *expr = Expr::Int(*n);
                 ty
             }
-            Expr::String(_) | Expr::ShellCapture(_) => Ty::named("String"),
+            Expr::String(_) | Expr::ShellCapture(_) | Expr::Env(_) => Ty::named("String"),
+            Expr::Template(parts) => self.template(parts, locals)?,
+            Expr::Index { base, index } => self.index(base, index, locals)?,
             Expr::Bool(_) => Ty::named("Bool"),
             Expr::Unit => Ty::named("()"),
             Expr::Var(n) => locals
@@ -47,6 +49,8 @@ impl Checker {
                     .collect::<Result<_>>()?;
                 if types.iter().any(|t| t.name == "String") {
                     Ty::named("String")
+                } else if types.iter().any(|t| t.name == "List") {
+                    Self::concat(&types)?
                 } else {
                     let first = types
                         .iter()
@@ -159,6 +163,13 @@ impl Checker {
                 let ty = self.expr(base, locals)?;
                 if name == "await" && ty.name == "Task" {
                     return Ok(ty.args[0].clone());
+                }
+                if ty.name == "Tuple" {
+                    return name
+                        .parse::<usize>()
+                        .ok()
+                        .and_then(|index| ty.args.get(index).cloned())
+                        .ok_or_else(|| anyhow!("no element `.{name}` in {}", ty.describe()));
                 }
                 let item = self
                     .enums

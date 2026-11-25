@@ -87,6 +87,110 @@ wildcard never imports names outside the catalog, so a misspelled function is
 still a compile error, and the compiled script does not depend on the PATH of
 the machine that compiled it.
 
+## Strings and interpolation
+
+```ush
+let side = "left"
+let files = ["a.ts", "b.ts"]
+let path = $"$env::RUNNER_TEMP/ambient-$side.jsonl"
+echo $"${files.len()} files: ${files.join(", ")}"
+echo "a literal $side and ${side}"
+let summary = $"""
+  ## Results for $side
+
+  | file |
+  | --- |
+  ${files.join("\n")}
+"""
+```
+
+A `$` before the opening quote makes a string interpolate. Inside `$"…"`
+and `$"""…"""`, variables read exactly as they do in
+[CLI-style words](native-scripting.md#cli-style-arguments): `$name` and
+`${name}` read a binding, and an unknown name is a compile error.
+`$env::NAME` reads the environment (see below). `${expression}` also takes
+any expression: a field, a call with its own quoted arguments, a method
+call or arithmetic, as in `${config.owner}`, `${greet "lin"}` or
+`${n + 1}`. A value must be a `String`, `Int` or `Bool`; a list or record
+is a compile error, so join a list first. Holes are evaluated left to
+right, each once.
+
+| Form | Escapes | Interpolates | Lines |
+| --- | --- | --- | --- |
+| `'…'` | none | no | one |
+| `"…"` | `\n`, `\r`, `\t`, `\"`, `\\` | no | one |
+| `$"…"` | as `"…"`, plus `\$` | `$name`, `${…}`, `$env::NAME` | one |
+| `"""…"""` | none | no | several, dedented |
+| `$"""…"""` | as `$"…"` | as `$"…"` | several, dedented |
+
+`"…"` stays literal, as CLI-style words specify: `"$name"` is five
+characters. Shell code and jq programs pass through such strings, and
+their `$name` must stay text. Inside an interpolating string, `\$` writes
+a dollar sign, and a `$` that starts none of the three forms is a compile
+error, so `$"cost: \$5"` needs its backslash.
+
+`$"""…"""` is the multi-line form, for Markdown summaries and generated
+files. It drops the line break after `$"""`, the last blank line and the
+indentation its lines share, as `"""…"""` does, then decodes escapes and
+fills holes. It ends at the first `"""`, and a hole stays on one line. An
+interpolated value is inserted unchanged, and its own line breaks are not
+indented.
+
+**Values stay data.** A string lowers to shell concatenation. Literal text
+becomes quoted words, and each hole becomes a quoted parameter expansion
+of a variable that already holds the value, as in
+`'ambient-'"${side}"'.jsonl'`. There is no `eval`, so `$`, backticks,
+quotes, newlines and `*` in a value reach the program unchanged. For the
+same reason `shell` and `alias`, which take shell source, reject an
+interpolating string, because the value would run as code. Pass values to
+commands as arguments instead. Match patterns, `extern` paths and test
+names are literals and cannot interpolate.
+
+## Environment variables
+
+```ush
+use $bin::*
+use std::env::get_or
+
+let temp = $env::RUNNER_TEMP
+echo $"summary goes to $env::GITHUB_STEP_SUMMARY"
+mkdir -p $env::RUNNER_TEMP/cache
+let jobs = get_or JOBS 4
+if $env::CI == "true" {
+  echo running in CI
+}
+```
+
+`$env::NAME` reads an environment variable as a `String`. `$env::` names
+the process environment the way `$bin::` names installed commands, so it
+cannot be mistaken for `$name`, which always reads a ush binding. It works
+as an expression, inside a CLI-style word (`--dir=$env::RUNNER_TEMP`), and
+in an interpolating string as `$env::NAME` or `${env::NAME}`. As with
+`$name`, text written right after the name joins it in a word:
+`$env::HOME.txt` is the value followed by `.txt`. Bind the value first to
+call a method on it.
+
+The variable is required: when it is unset or empty, the program stops
+with its name and source line, as `fail` does.
+
+```text
+deploy.ush:3: environment variable RUNNER_TEMP is not set or is empty (exit 1)
+  let temp = $env::RUNNER_TEMP
+```
+
+An empty value fails too, because CI systems pass a missing secret or
+input as an empty string, and an empty directory would turn
+`$"$env::RUNNER_TEMP/out"` into `/out`. For an optional variable use
+`std::env::get_or NAME default`, which returns the default only when the
+variable is unset, or `std::env::get`, which returns an empty string for
+it. `std::env::contains` tests whether it is set.
+
+The value is read once, when the expression is evaluated. A read infers
+the `env` effect and `unknown` errors, so a function with a declared row
+needs `/ unknown, env`. `NAME` cannot be a ush binding in scope, because a
+binding is also written to the shell variable of its own name for raw
+shell code, and it cannot start with `__ush`.
+
 ## Pipelines and redirection
 
 ```ush
@@ -505,6 +609,109 @@ ranges or filters that reject everything produce a typed empty list.
 Bindings are local to the comprehension, and the source list is evaluated
 once per enclosing iteration. Strings keep their whitespace and shell
 metacharacters as data.
+
+## Lists
+
+```ush
+use std::fs::read_lines
+
+let mut files = read_lines changed.txt
+if files.is_empty() {
+  echo nothing changed
+}
+echo $"${files.len()} files, first ${files.first()}, last ${files.last()}"
+files = files + ["Makefile"]
+if files.contains("Makefile") {
+  echo (files[files.len() + -1])
+}
+for (i, file) in files.enumerate() {
+  echo $"$i: $file"
+}
+echo (files.join(", "))
+```
+
+| Operation | Type | Notes |
+| --- | --- | --- |
+| `xs.len()` | `Int` | |
+| `xs.is_empty()` | `Bool` | |
+| `xs[i]` | the item type | `i` is an `Int`, counted from 0 |
+| `xs.first()`, `xs.last()` | the item type | |
+| `xs.contains(x)` | `Bool` | items and `x` are `String`, `Int` or `Bool` |
+| `xs.join(separator)` | `String` | items are `String`, `Int` or `Bool` |
+| `xs + ys` | `List<T>` | both sides are `List<T>`; a new list |
+| `xs.enumerate()` | `List<(Int, T)>` | each item with its index |
+
+An index outside the list, a negative index, and `first` or `last` on an
+empty list stop the program with the source line, as `fail` does:
+`index 3 is out of range for a list of length 3`. They infer `unknown`
+errors. When the checker knows both the length and the index, as for a
+list literal and a literal index, an index out of range is a compile
+error instead; see [indexed sequences](types.md#quantities-and-value-dependent-types).
+
+`for (i, file) in xs.enumerate()` binds both halves of each pair; `_`
+skips one. Any list of tuples can be taken apart this way, and `pair.0`
+and `pair.1` read the elements of a tuple. Iterating over `enumerate()`
+directly does not build the list of pairs.
+
+Methods and indexes are expressions. In a CLI-style argument, `$files[1]`
+is the word `$files` followed by `[1]`, so write `(files[1])` or
+`(files.len())`, as for any computed argument.
+
+Lists are values: `+` builds a new list and leaves its operands
+unchanged. To grow a list, declare it `let mut` and assign:
+`files = files + [item]` appends in place, without copying the items
+already there. Strings, including empty ones and ones with newlines,
+spaces, `$` or `*`, are stored and returned unchanged. `std::string::split`, `lines`, `words` and
+`std::fs::read_lines` produce lists, and `std::string::join` is the
+function form of `join` for `List<String>`.
+
+## Matching strings with globs
+
+```ush
+fn kind(file: String) -> String {
+  match file {
+    "*.ts" => "a file named *.ts"
+    glob "*.ts" | glob "*.mts" | glob "*.cts" => "typescript"
+    glob "docs/*" => "documentation"
+    "Makefile" | "GNUmakefile" => "make"
+    _ => "other"
+  }
+}
+```
+
+`glob "…"` is a pattern form of its own, so a quoted string in a pattern
+is always a literal and a glob is always marked. In bash, `"*.ts")` and
+`*.ts)` differ only by quotes; here the difference is a word. The pattern
+follows POSIX `case`:
+
+| In the pattern | Matches |
+| --- | --- |
+| `*` | any string, including `/` and the empty string |
+| `?` | any one character |
+| `[abc]`, `[a-z]` | one character from the set or ASCII range |
+| `[!abc]`, `[^abc]` | one character not in the set |
+| `[[:space:]]` | one character from a POSIX class |
+| `\*`, `\?`, `\[` | the character itself |
+| anything else | itself, including spaces, quotes and `$` |
+
+A range lists its characters when compiled, so `[a-z]` is the 26
+lowercase ASCII letters under every shell and locale; shells disagree on
+ranges outside the C locale, and macOS `/bin/sh` matches `R` with
+`[a-z]`. A `\` in a `"…"` pattern is itself an escape, so `"\\*"` and `'\*'` both
+match a literal `*`. A malformed pattern, such as an unclosed `[`, is a
+compile error. The pattern is a literal: it cannot interpolate.
+
+`a | b` matches when any alternative does, and works for literals, globs,
+`true`/`false`, integers and enum variants, as in
+`Event::Push(_) | Event::Tag(_)`. An alternative cannot bind a name.
+Arms are tried in order, so put literals before the globs they would
+also match.
+
+A `match` on a String whose arms are literals, globs, alternatives of
+those, `_` or a binding lowers to one `case` statement; other patterns
+lower to an `if` chain whose glob tests are `case` commands. A
+`glob "*"` arm covers every String for exhaustiveness checking; any other
+String `match` still needs `_`.
 
 ## Scoped cwd and environment
 

@@ -6,6 +6,13 @@ use super::super::{
 };
 
 pub(super) fn field_binding(base: &Binding, name: &str, enums: &EnumRegistry) -> Result<Binding> {
+    if let (Type::Tuple(items), Storage::Aggregate(prefix)) = (&base.ty, &base.storage) {
+        return Ok(binding_for_field(
+            prefix,
+            tuple_item(items, name)?.clone(),
+            name,
+        ));
+    }
     let Storage::Adt(prefix) = &base.storage else {
         bail!("field access requires a struct-like value");
     };
@@ -38,6 +45,27 @@ pub(super) fn struct_field<'a>(
         .iter()
         .find(|field| field.name == name)
         .ok_or_else(|| anyhow!("unknown field `{name}` on `{enum_name}`"))
+}
+
+/// The type of field `name` of a record, or of element `name` of a tuple.
+pub(super) fn field_type(base: &Type, name: &str, enums: &EnumRegistry) -> Result<Type> {
+    match base {
+        Type::Tuple(items) => tuple_item(items, name).cloned(),
+        _ => Ok(struct_field(base, name, enums)?.ty.clone()),
+    }
+}
+
+/// The type of element `name` (`0`, `1`, …) of a tuple.
+pub(super) fn tuple_item<'a>(items: &'a [Type], name: &str) -> Result<&'a Type> {
+    let index = name
+        .parse::<usize>()
+        .map_err(|_| anyhow!("tuples have numbered elements, as in `pair.0`; found `.{name}`"))?;
+    items.get(index).ok_or_else(|| {
+        anyhow!(
+            "`.{index}` is out of range for a tuple of {} elements",
+            items.len()
+        )
+    })
 }
 
 fn binding_for_field(prefix: &str, ty: Type, name: &str) -> Binding {

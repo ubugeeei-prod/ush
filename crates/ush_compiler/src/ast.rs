@@ -168,6 +168,16 @@ pub(crate) enum Expr {
     /// `status_of command`: run it, streaming, and evaluate to its exit
     /// status as an `Int` instead of failing.
     StatusOf(Box<Expr>),
+    /// `"text ${expr} text"`: literal pieces are `Expr::String`, the
+    /// others are interpolated expressions, joined left to right.
+    Template(Vec<Expr>),
+    /// `$NAME`: a required, non-empty environment variable.
+    Env(String),
+    /// `list[index]`
+    Index {
+        base: Box<Expr>,
+        index: Box<Expr>,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -179,6 +189,10 @@ pub(crate) enum Pattern {
     Bool(bool),
     Unit,
     Variant(VariantPattern),
+    /// `glob "*.ts"`: a POSIX `case` pattern over a String.
+    Glob(String),
+    /// `a | b`: matches when any alternative matches; binds nothing.
+    Or(Vec<Pattern>),
 }
 
 pub(crate) type MatchArm = (Pattern, Box<Statement>);

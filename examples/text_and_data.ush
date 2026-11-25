@@ -1,0 +1,30 @@
+# Interpolating strings, environment reads, lists and glob patterns.
+use std::env::get_or
+use std::string::split
+
+fn language(file: String) -> String {
+  match file {
+    glob "*.ts" | glob "*.mts" | glob "*.cts" => "typescript"
+    glob "*.vue" => "vue"
+    "Makefile" | glob "*.mk" => "make"
+    _ => "other"
+  }
+}
+
+export DEPLOY_ENV = "staging"
+let target = $env::DEPLOY_ENV
+let region = get_or DEPLOY_REGION local
+let changed = split "src/app.ts,src/App.vue,docs/read me.md" ","
+let all = changed + ["Makefile"]
+let mut report = [$"$target/$region: ${all.len()} files"]
+for (i, file) in all.enumerate() {
+  report = report + [$"${i + 1}. $file (${language $file})"]
+}
+print report.join("\n")
+if all.contains("Makefile") {
+  print $"first: ${all.first()}, last: ${all.last()}, second: ${all[1]}"
+}
+print $"""
+  ## Summary for $target
+  ${all.join(", ")}
+"""

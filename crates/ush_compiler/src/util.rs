@@ -52,6 +52,15 @@ pub(crate) fn split_top_level(source: &str, separator: char) -> Vec<&str> {
     result
 }
 
+/// A `$` that starts an atom rather than the legacy `$ expr` prefix:
+/// `$(…)`, `$bin::`, `$env::`, `$"…"` and `$name`.
+pub(crate) fn dollar_atom(source: &str) -> bool {
+    let Some(rest) = source.strip_prefix('$') else {
+        return false;
+    };
+    rest.starts_with(['(', '"', '_']) || rest.starts_with(|ch: char| ch.is_ascii_alphabetic())
+}
+
 pub(crate) fn split_top_level_whitespace(source: &str) -> Vec<&str> {
     let mut result = Vec::new();
     let mut start = None;
@@ -144,7 +153,9 @@ pub(crate) fn path_tail(source: &str) -> Option<&str> {
 pub(crate) fn parse_paren_body(source: &str) -> Option<(&str, &str)> {
     let open = memchr(b'(', source.as_bytes())?;
     let close = memrchr(b')', source.as_bytes())?;
-    (close > open).then_some((source[..open].trim(), source[open + 1..close].trim()))
+    // `then_some` would slice eagerly, and a `)` before the first `(`
+    // makes that range backwards.
+    (close > open).then(|| (source[..open].trim(), source[open + 1..close].trim()))
 }
 
 pub(crate) fn parse_brace_body(source: &str) -> Option<(&str, &str)> {

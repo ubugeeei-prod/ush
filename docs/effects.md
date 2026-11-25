@@ -79,7 +79,7 @@ so no handler can take them back — nothing un-writes a file:
 | `stderr` | `fail(code, message)` and external command diagnostics |
 | `io` | Shorthand in a declaration for all three streams |
 | `fs` | `std::fs::*`, the `std::path` helpers that look at disk, `path.read_text()` and friends |
-| `env` | `std::env::*`, `std::path::cwd` / `home` / `from_source` / `prepend_env` |
+| `env` | `$env::NAME`, `std::env::*`, `std::path::cwd` / `home` / `from_source` / `prepend_env` |
 | `net` | `std::http::*` |
 | `exec` | `$ command`, `shell`, `std::command::*` |
 | `task` | `async`, `spawn`, `.await`, `async` blocks |
