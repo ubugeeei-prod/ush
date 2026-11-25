@@ -20,6 +20,7 @@ mod methods;
 mod methods_support;
 mod pipeline;
 mod primitive;
+mod registries;
 mod render;
 mod runtime_expr;
 mod runtime_member;
@@ -41,16 +42,17 @@ use anyhow::Result;
 use super::{
     ast::{Statement, StatementKind},
     effects,
-    env::{CodegenState, EnumRegistry, Env},
+    env::{CodegenState, Env},
 };
 use crate::ScriptDocs;
 use crate::sourcemap::{OutputBuffer, SourceMapSection};
-use crate::traits::{TraitImplRegistry, TraitRegistry, register_trait, register_trait_impl};
 pub(crate) use source_context::SourceContext;
 
 pub(crate) use effects_lowering::effect_dispatcher;
 pub(crate) use functions::FunctionRegistry;
 pub(crate) use primitive::{compile_primitive_expr, infer};
+use registries::Registries;
+pub(crate) use registries::error_rows;
 pub(crate) use runtime_expr::{compile_runtime_primitive_expr, rendered_call_runtime};
 pub(crate) use shared::{binding_for_name, shell_function_name};
 pub(crate) use stdlib::host_required;
@@ -69,34 +71,13 @@ pub(crate) fn compile_program(
     mapped: bool,
 ) -> Result<OutputBuffer> {
     let mut env = Env::default();
-    let mut functions = functions::FunctionRegistry::default();
-    let mut enums = EnumRegistry::default();
-    let mut traits = TraitRegistry::default();
-    let mut trait_impls = TraitImplRegistry::default();
+    let Registries {
+        functions,
+        enums,
+        trait_impls,
+    } = Registries::build(program)?;
     let mut state = CodegenState::new(space, mapped);
     let mut out = OutputBuffer::for_program(SourceMapSection::RuntimeSupport, mapped);
-
-    if uses_std::references(program) {
-        stdlib::register_builtins(&mut functions)?;
-    }
-
-    for statement in program {
-        match &statement.kind {
-            StatementKind::Use(_) => {}
-            StatementKind::Enum(def) => enum_registry::register_enum(def, &mut enums)?,
-            StatementKind::Trait(def) => register_trait(def, &mut traits)?,
-            StatementKind::Impl(item) => register_trait_impl(item, &traits, &mut trait_impls)?,
-            StatementKind::Function(def) => functions::register_function(def, &mut functions)?,
-            // An effect operation is a call target like any other:
-            // the declaration generates the dispatcher function that
-            // `do name(…)` resolves to.
-            StatementKind::Effect(def) => functions::register_function(
-                &effects_lowering::effect_dispatcher(def),
-                &mut functions,
-            )?,
-            _ => {}
-        }
-    }
 
     let bin_entry = script_name
         .filter(|name| *name == "bin.ush")

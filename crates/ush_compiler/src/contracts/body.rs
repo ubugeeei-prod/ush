@@ -154,10 +154,12 @@ impl Checker {
         Ok(())
     }
     fn check_declared_failure(&self, error: crate::errors::ErrorType) -> Result<()> {
+        // A function without a written row raises whatever it raises;
+        // the effects pass infers that row.
         anyhow::ensure!(
             self.declared_failures
                 .as_ref()
-                .is_some_and(|row| row.iter().any(|e| e == &error)),
+                .is_none_or(|row| row.iter().any(|e| e == &error)),
             "failure {error:?} is missing from the function's error row"
         );
         Ok(())

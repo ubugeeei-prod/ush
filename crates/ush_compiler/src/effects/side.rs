@@ -41,6 +41,7 @@ use declarations::{
     collect_declarations, function_defs, function_key, resolve_row, validate_declaration,
 };
 mod kinds;
+mod report;
 mod shell;
 mod table;
 
@@ -68,6 +69,10 @@ pub struct FunctionEffects {
     pub name: crate::types::OutputString,
     pub inferred: EffectSet,
     pub declared: Option<EffectSet>,
+    /// The error types the function can raise, `unknown` included.
+    pub raises: Vec<crate::types::OutputString>,
+    /// The error types its written row names; `None` without a row.
+    pub declared_raises: Option<Vec<crate::types::OutputString>>,
 }
 
 /// Everything the effect pass knows about a program.
@@ -89,7 +94,7 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
         registry.insert(function_key(def), EffectSet::empty());
     }
 
-    for _ in 0..=registry.len() {
+    loop {
         let mut changed = false;
         for def in function_defs(program) {
             let inferred = block_effects(
@@ -106,8 +111,10 @@ pub(crate) fn analyze_function_effects(program: &[Statement]) -> Result<ProgramE
                     .merge(&inferred);
             }
             let key = function_key(def);
-            if registry.get(&key) != Some(&inferred) {
-                registry.insert(key, inferred);
+            let mut row = registry.get(&key).cloned().unwrap_or_default();
+            row.merge(&inferred);
+            if registry.get(&key) != Some(&row) {
+                registry.insert(key, row);
                 changed = true;
             }
         }
@@ -163,6 +170,13 @@ pub(crate) fn describe_function_effects(program: &[Statement]) -> Result<Vec<Fun
                 .cloned()
                 .unwrap_or_default(),
             declared: resolve_row(def, &analysis.declarations)?,
+            raises: Vec::new(),
+            declared_raises: def.declared_errors.as_ref().map(|errors| {
+                errors
+                    .iter()
+                    .map(|error| error.render().as_str().into())
+                    .collect()
+            }),
         });
     }
     reports.sort_by(|left, right| left.name.cmp(&right.name));

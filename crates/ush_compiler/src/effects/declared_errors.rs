@@ -6,6 +6,8 @@ use crate::{
     errors::{ErrorSet, ErrorType},
 };
 
+/// The errors callers see: the written row, or the inferred one when
+/// the signature has no row.
 pub(super) fn exposed_errors(def: &FunctionDef, inferred: &ErrorSet) -> ErrorSet {
     def.declared_errors
         .clone()
@@ -24,22 +26,29 @@ pub(super) fn validate_function_errors(
         Some(declared) => {
             validate_declared_error_types(def, declared, enums)?;
             if !inferred.is_subset_of(declared) {
+                // `-> String / ()` declares no errors at all.
+                let row = match declared.is_empty() {
+                    true => format!(
+                        "{} / ()",
+                        def.return_type
+                            .as_ref()
+                            .map_or("()".into(), |ty| ty.render())
+                    ),
+                    false => declared
+                        .render_union(def.return_type.as_ref())
+                        .as_str()
+                        .into(),
+                };
                 bail!(
-                    "function `{}` declares `{}` but can raise `{}`",
+                    "function `{}` declares `{row}` but can raise `{}`; widen the row or drop it to infer one",
                     def.name,
-                    declared.render_union(def.return_type.as_ref()),
                     inferred.render()
                 );
             }
             Ok(())
         }
-        None if inferred.is_empty() => Ok(()),
-        None => bail!(
-            "function `{}` can raise `{}` but its signature does not declare an error set; write `-> {}`",
-            def.name,
-            inferred.render(),
-            inferred.render_union(def.return_type.as_ref())
-        ),
+        // No row written: the inferred row is the function's row.
+        None => Ok(()),
     }
 }
 

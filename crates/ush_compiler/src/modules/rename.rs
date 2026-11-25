@@ -133,9 +133,8 @@ impl VisitMut for Renamer<'_> {
                 }
             });
         }
-        if let Some(errors) = &mut def.declared_errors {
-            errors.rename(|name| self.name(name));
-        }
+        // Rows are split into errors and effects after linking, so the
+        // written names are renamed here, before either is known.
         if let Some(effects) = &mut def.declared_effects {
             effects.iter_mut().for_each(|name| self.name(name));
         }
