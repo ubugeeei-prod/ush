@@ -10,6 +10,11 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** whitespace call arguments now use CLI-style bare words for strings and `$name` / `${name}` for variable references. Bare words support interpolation such as `--output=$path`; values are never split, globbed, or evaluated as shell source. Use `(expression)` for computed arguments and nested calls. Existing expression contexts and parenthesized calls retain their semantics.
+- Update native scripts, examples, fixtures, diagnostics, formatter, syntax highlighting, and LSP navigation/completion for the new argument rules.
+
 ### Added
 
 - Native `echo` writes any number of Display values separated by spaces and a final newline, without imports. It works in pipelines and captures; generated `printf` keeps `-n`, backslashes, percent signs, and empty arguments literal across shells. `print` remains available for compatibility.

@@ -1,15 +1,4 @@
-//! LSP `textDocument/completion` provider.
-//!
-//! Returns a context-light, keyword-and-identifier completion list.
-//! The provider does not look at type information — `ush_compiler`'s
-//! AST is private and a full HM-style completion is a large
-//! feature. What this gives editors today:
-//!
-//! - every `.ush` keyword is offered as a completion item.
-//! - every identifier the semantic tokenizer has classified as a
-//!   variable / function / type in the open document is offered
-//!   too, so users get completion for things they themselves have
-//!   written.
+//! Keyword and identifier completions, with explicit variable argument support.
 
 use crate::semantic::semantic_tokens;
 use crate::token::{SemanticToken, SemanticTokenKind};
@@ -165,9 +154,42 @@ fn identifier_text(lines: &[&str], token: SemanticToken) -> String {
         .and_then(|line| {
             let start = token.start as usize;
             let end = start + token.length as usize;
-            line.get(start..end).map(str::to_string)
+            line.get(start..end).map(|text| {
+                text.strip_prefix("${")
+                    .and_then(|s| s.strip_suffix('}'))
+                    .or_else(|| text.strip_prefix('$'))
+                    .unwrap_or(text)
+                    .to_string()
+            })
         })
         .unwrap_or_default()
+}
+
+/// Variable sigils request variable names; the editor keeps the written sigil.
+pub fn completions_at(source: &str, line: u32, byte: u32) -> Vec<CompletionItem> {
+    let prefix = source
+        .lines()
+        .nth(line as usize)
+        .and_then(|line| line.get(..byte as usize))
+        .unwrap_or("");
+    let variable = prefix
+        .rsplit_once('$')
+        .map(|(_, tail)| tail.trim_start_matches('{'))
+        .filter(|tail| tail.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
+    let mut items = completions(source);
+    if let Some(prefix) = variable {
+        let index = crate::scope::Index::new(source);
+        items.retain(|item| {
+            item.kind == CompletionKind::Variable
+                && item.label.starts_with(prefix)
+                && index.tokens.iter().enumerate().any(|(i, token)| {
+                    index.resolved[i] == Some(i)
+                        && index.names[i] == item.label
+                        && (token.line, token.start) < (line, byte)
+                })
+        });
+    }
+    items
 }
 
 #[cfg(test)]

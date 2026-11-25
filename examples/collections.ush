@@ -1,5 +1,5 @@
 fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in items]
+  [f $x for x in items]
 }
 
 fn increment(value: Int) -> Int {
@@ -7,9 +7,9 @@ fn increment(value: Int) -> Int {
 }
 
 for n in map [1, 2, 3] &increment {
-  echo n
+  echo $n
 }
 
 for n in [x + y for x in 0..3 if x > 0 for y in 1..3 if y > x] {
-  echo n
+  echo $n
 }

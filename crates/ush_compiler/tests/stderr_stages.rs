@@ -33,7 +33,7 @@ fn stdout_and_stderr_go_to_separate_files_with_spaces_in_their_names() {
     each_run(
         &format!(
             r#"let dir = "log dir"
-mkdir dir
+mkdir $dir
 {BOTH} | stderr_to (dir + "/err file.log") | to_file (dir + "/out file.log")
 {BOTH} | stderr_append_to (dir + "/err file.log") | append_to (dir + "/out file.log")
 let captured = {BOTH} | stderr_to (dir + "/captured err.log")

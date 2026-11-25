@@ -3,5 +3,5 @@ mod "local_modules/report.ush"
 mod "local_modules/text.ush"
 use report::{Status, line}
 
-print line Status::Passed "build"
+print line (Status::Passed) "build"
 print text::label

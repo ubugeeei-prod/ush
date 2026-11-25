@@ -93,7 +93,7 @@ fn ush_script_supports_functional_calls() {
         fn label() -> String {
           "ush"
         }
-        print $ wrap $ greet (label ())
+        print wrap (greet (label ()))
         "#,
     )
     .expect("write script");

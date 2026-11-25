@@ -13,11 +13,11 @@ if compiler == "" {
 }
 let work = temp_dir
 for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {
-  let name = basename source
-  let artifact = trim_suffix source ".ush" + ".sh"
-  let generated = work + "/" + trim_suffix name ".ush" + ".sh"
-  cp source (work + "/" + name)
-  exec compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]
+  let name = basename $source
+  let artifact = trim_suffix $source ".ush" + ".sh"
+  let generated = work + "/" + trim_suffix $name ".ush" + ".sh"
+  cp $source (work + "/" + name)
+  exec $compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]
   if status "cmp" ["-s", artifact, generated] != 0 {
     fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)
   }

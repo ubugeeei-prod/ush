@@ -179,12 +179,12 @@ ush_fn_run() {
 }
 ```
 
-## Functional `$` Application
+## Grouped calls
 
 Source:
 
 ```text
-let value = $ label greet wrap
+let value = wrap (greet (label))
 ```
 
 Compiled `sh`:
@@ -196,8 +196,8 @@ __ush_value_2="$(__ush_capture_return='1' ush_fn_wrap "${__ush_value_1}")"
 value="${__ush_value_2}"
 ```
 
-When `$` is used as function application, the compiler threads intermediate values
-through generated temporaries.
+Nested calls pass intermediate values through generated temporaries. Bare
+arguments are strings; explicit `$name` references expand as one quoted argument.
 
 ## ADTs, Records, and `match`
 

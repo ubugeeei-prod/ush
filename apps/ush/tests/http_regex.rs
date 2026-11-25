@@ -23,8 +23,8 @@ fn ush_scripts_support_std_http_helpers() {
         let payload = source_root.join("payload.txt").resolve()
         let url = "file://" + payload
         let copy = tmpfile()
-        print $ get url
-        download url copy
+        print $ get $url
+        download $url $copy
         print $ copy.read_text()
         copy.remove()
         "#,

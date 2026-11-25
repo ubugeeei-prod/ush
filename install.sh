@@ -373,7 +373,7 @@ ush_fn_option() {
   __ush_fn_option_arg_2="${3}"
   # shellcheck disable=SC2034
   fallback="${__ush_fn_option_arg_2}"
-  __ush_at 11 'let mut value = get name'
+  __ush_at 11 'let mut value = get $name'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get "${__ush_fn_option_arg_0}")" || return "$?"
   __ush_binding_11_value="${__ush_value_0}"
   # shellcheck disable=SC2034
@@ -390,7 +390,7 @@ ush_fn_option() {
     fi
     return 0
   fi
-  __ush_at 15 'value = get legacy'
+  __ush_at 15 'value = get $legacy'
   __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get "${__ush_fn_option_arg_1}")" || return "$?"
   __ush_binding_11_value="${__ush_value_1}"
   # shellcheck disable=SC2034
@@ -430,7 +430,7 @@ ush_fn_need() {
   __ush_fn_need_arg_0="${1}"
   # shellcheck disable=SC2034
   command="${__ush_fn_need_arg_0}"
-  __ush_at 29 'if exists command == false {'
+  __ush_at 29 'if exists $command == false {'
   if {
   __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists "${__ush_fn_need_arg_0}")" || return "$?"
   [ "$(if [ "${__ush_value_2}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -574,7 +574,7 @@ ush_fn_bin_directory() {
     eval "__ush_for_value_10=\"\${__ush_match_8__${__ush_for_list_index_9}}\""
     candidate="${__ush_for_value_10}"
     __ush_for_list_index_9=$((__ush_for_list_index_9 + 1))
-    __ush_at 65 'if path_contains candidate {'
+    __ush_at 65 'if path_contains $candidate {'
     if {
     __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_contains "${candidate}" 4>&1 >&3)" || return "$?"
     [ "${__ush_value_11}" = 'true' ]
@@ -599,7 +599,7 @@ ush_fn_bin_directory() {
     eval "__ush_for_value_16=\"\${__ush_match_12__${__ush_for_list_index_15}}\""
     candidate="${__ush_for_value_16}"
     __ush_for_list_index_15=$((__ush_for_list_index_15 + 1))
-    __ush_at 70 'if starts_with candidate (home + "/") && test "-d" candidate && test "-w" candidate {'
+    __ush_at 70 'if starts_with $candidate (home + "/") && test "-d" $candidate && test "-w" $candidate {'
     if {
     {
     __ush_value_17="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${candidate}" "${__ush_binding_63_home}"'/')" || return "$?"
@@ -721,22 +721,22 @@ ush_fn_escaped() {
   __ush_fn_escaped_arg_0="${1}"
   # shellcheck disable=SC2034
   value="${__ush_fn_escaped_arg_0}"
-  __ush_at 100 'let mut value = replace value "\\" "\\\\"'
+  __ush_at 100 'let mut value = replace $value "\\" "\\\\"'
   __ush_value_25="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${__ush_fn_escaped_arg_0}" '\' '\\')" || return "$?"
   __ush_binding_100_value="${__ush_value_25}"
   # shellcheck disable=SC2034
   value="${__ush_binding_100_value}"
-  __ush_at 101 'value = replace value "\"" "\\\""'
+  __ush_at 101 'value = replace $value "\"" "\\\""'
   __ush_value_26="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${__ush_binding_100_value}" '"' '\"')" || return "$?"
   __ush_binding_100_value="${__ush_value_26}"
   # shellcheck disable=SC2034
   value="${__ush_binding_100_value}"
-  __ush_at 102 'value = replace value "$" "\\$"'
+  __ush_at 102 'value = replace $value "$" "\\$"'
   __ush_value_27="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${__ush_binding_100_value}" '$' '\$')" || return "$?"
   __ush_binding_100_value="${__ush_value_27}"
   # shellcheck disable=SC2034
   value="${__ush_binding_100_value}"
-  __ush_at 103 'replace value "`" "\\`"'
+  __ush_at 103 'replace $value "`" "\\`"'
   __ush_value_28="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${__ush_binding_100_value}" '`' '\`')" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_value_28}" > "$__ush_return_path"
@@ -755,12 +755,12 @@ ush_fn_path_line() {
   __ush_binding_107_home="${__ush_value_29}"
   # shellcheck disable=SC2034
   home="${__ush_binding_107_home}"
-  __ush_at 108 'if starts_with directory (home + "/") {'
+  __ush_at 108 'if starts_with $directory (home + "/") {'
   if {
   __ush_value_30="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_fn_path_line_arg_0}" "${__ush_binding_107_home}"'/')" || return "$?"
   [ "${__ush_value_30}" = 'true' ]
   }; then
-    __ush_at 109 'return "export PATH=\"$HOME/" + escaped (trim_prefix directory (home + "/")) + ":$PATH\""'
+    __ush_at 109 'return "export PATH=\"$HOME/" + escaped (trim_prefix $directory (home + "/")) + ":$PATH\""'
     __ush_value_31="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_fn_path_line_arg_0}" "${__ush_binding_107_home}"'/')" || return "$?"
     __ush_value_32="$(__ush_return_path='' __ush_capture_return='1' ush_fn_escaped "${__ush_value_31}" 4>&1 >&3)" || return "$?"
     if [ -n "${__ush_return_path:-}" ]; then
@@ -770,7 +770,7 @@ ush_fn_path_line() {
     fi
     return 0
   fi
-  __ush_at 111 '"export PATH=\"" + escaped directory + ":$PATH\""'
+  __ush_at 111 '"export PATH=\"" + escaped $directory + ":$PATH\""'
   __ush_value_33="$(__ush_return_path='' __ush_capture_return='1' ush_fn_escaped "${__ush_fn_path_line_arg_0}" 4>&1 >&3)" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' 'export PATH="'"${__ush_value_33}"':$PATH"' > "$__ush_return_path"
@@ -788,7 +788,7 @@ ush_fn_ensure_path() {
   __ush_fn_ensure_path_arg_1="${2}"
   # shellcheck disable=SC2034
   automatic="${__ush_fn_ensure_path_arg_1}"
-  __ush_at 115 'if path_contains directory {'
+  __ush_at 115 'if path_contains $directory {'
   if {
   __ush_value_34="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_contains "${__ush_fn_ensure_path_arg_0}" 4>&1 >&3)" || return "$?"
   [ "${__ush_value_34}" = 'true' ]
@@ -830,7 +830,7 @@ ush_fn_ensure_path() {
     fi
     return 0
   fi
-  __ush_at 125 'if is_dir file {'
+  __ush_at 125 'if is_dir $file {'
   if {
   __ush_value_36="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_dir "${__ush_binding_121_file}")" || return "$?"
   [ "${__ush_value_36}" = 'true' ]
@@ -841,12 +841,12 @@ ush_fn_ensure_path() {
     __ush_report "$__ush_status" 'install.sh: shell profile is a directory: '"${__ush_binding_121_file}"
     return "$__ush_status"
   fi
-  __ush_at 128 'let line = path_line directory'
+  __ush_at 128 'let line = path_line $directory'
   __ush_value_37="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_line "${__ush_fn_ensure_path_arg_0}" 4>&1 >&3)" || return "$?"
   __ush_binding_128_line="${__ush_value_37}"
   # shellcheck disable=SC2034
   line="${__ush_binding_128_line}"
-  __ush_at 129 'if is_file file && contains (read_text file) line {'
+  __ush_at 129 'if is_file $file && contains (read_text $file) $line {'
   if {
   {
   __ush_value_38="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__is_file "${__ush_binding_121_file}")" || return "$?"
@@ -865,7 +865,7 @@ ush_fn_ensure_path() {
     fi
     return 0
   fi
-  __ush_at 132 'append_text file ("\n# Added by ush install.sh\n" + line + "\n")?'
+  __ush_at 132 'append_text $file ("\n# Added by ush install.sh\n" + line + "\n")?'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__append_text "${__ush_binding_121_file}" ''"${__ush_lf}"'# Added by ush install.sh'"${__ush_lf}"''"${__ush_binding_128_line}"''"${__ush_lf}"'' ) || return "$?"
   __ush_at 133 'file'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -884,7 +884,7 @@ ush_fn_fetch() {
   __ush_fn_fetch_arg_1="${2}"
   # shellcheck disable=SC2034
   output="${__ush_fn_fetch_arg_1}"
-  __ush_at 137 'if starts_with url "file://" {'
+  __ush_at 137 'if starts_with $url "file://" {'
   if {
   __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_fn_fetch_arg_0}" 'file://')" || return "$?"
   [ "${__ush_value_41}" = 'true' ]
@@ -894,26 +894,26 @@ ush_fn_fetch() {
     __ush_value_42="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'curl')" || return "$?"
     [ "${__ush_value_42}" = 'true' ]
     }; then
-      __ush_at 139 'curl "-fsSL" "--proto" "=file" url "-o" output'
+      __ush_at 139 'curl "-fsSL" "--proto" "=file" $url "-o" $output'
       command curl '-fsSL' '--proto' '=file' "${__ush_fn_fetch_arg_0}" '-o' "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     else
-      __ush_at 142 'let mut local_path = trim_prefix url "file://"'
+      __ush_at 142 'let mut local_path = trim_prefix $url "file://"'
       __ush_value_43="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_fn_fetch_arg_0}" 'file://')" || return "$?"
       __ush_binding_142_local_path="${__ush_value_43}"
       # shellcheck disable=SC2034
       local_path="${__ush_binding_142_local_path}"
-      __ush_at 143 'if starts_with local_path "localhost/" {'
+      __ush_at 143 'if starts_with $local_path "localhost/" {'
       if {
       __ush_value_44="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_142_local_path}" 'localhost/')" || return "$?"
       [ "${__ush_value_44}" = 'true' ]
       }; then
-        __ush_at 144 'local_path = trim_prefix local_path "localhost"'
+        __ush_at 144 'local_path = trim_prefix $local_path "localhost"'
         __ush_value_45="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_142_local_path}" 'localhost')" || return "$?"
         __ush_binding_142_local_path="${__ush_value_45}"
         # shellcheck disable=SC2034
         local_path="${__ush_binding_142_local_path}"
       fi
-      __ush_at 146 'if starts_with local_path "/" == false || contains local_path "%" {'
+      __ush_at 146 'if starts_with $local_path "/" == false || contains $local_path "%" {'
       if {
       {
       __ush_value_46="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_142_local_path}" '/')" || return "$?"
@@ -929,7 +929,7 @@ ush_fn_fetch() {
         __ush_report "$__ush_status" 'install.sh: encoded or nonlocal file URLs require curl'
         return "$__ush_status"
       fi
-      __ush_at 149 'cp local_path output'
+      __ush_at 149 'cp $local_path $output'
       command cp "${__ush_binding_142_local_path}" "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     fi
   else
@@ -938,7 +938,7 @@ ush_fn_fetch() {
     __ush_value_48="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'curl')" || return "$?"
     [ "${__ush_value_48}" = 'true' ]
     }; then
-      __ush_at 153 'curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" url "-o" output'
+      __ush_at 153 'curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" $url "-o" $output'
       command curl '-fsSL' '--proto' '=https' '--tlsv1.2' '--retry' '3' '--retry-delay' '2' "${__ush_fn_fetch_arg_0}" '-o' "${__ush_fn_fetch_arg_1}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     else
       __ush_at 155 'else if exists "wget" {'
@@ -946,7 +946,7 @@ ush_fn_fetch() {
       __ush_value_49="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__exists 'wget')" || return "$?"
       [ "${__ush_value_49}" = 'true' ]
       }; then
-        __ush_at 156 'wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" output url'
+        __ush_at 156 'wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" $output $url'
         command wget '-q' '--https-only' '--secure-protocol=TLSv1_2' '--tries=3' '-O' "${__ush_fn_fetch_arg_1}" "${__ush_fn_fetch_arg_0}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
       else
         __ush_at 159 'fail 1 "install.sh: curl or wget is required"'
@@ -1005,7 +1005,7 @@ ush_fn_expected_checksum() {
   __ush_fn_expected_checksum_arg_1="${2}"
   # shellcheck disable=SC2034
   asset="${__ush_fn_expected_checksum_arg_1}"
-  __ush_at 172 'for line in lines (read_text file) {'
+  __ush_at 172 'for line in lines (read_text $file) {'
   __ush_value_51="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_fn_expected_checksum_arg_0}")" || return "$?"
   __ush_packed_52="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_51}")" || return "$?"
   __ush_match_50__len=0
@@ -1024,7 +1024,7 @@ ush_fn_expected_checksum() {
     __ush_binding_174_digest=''
     # shellcheck disable=SC2034
     digest="${__ush_binding_174_digest}"
-    __ush_at 175 'for word in split (replace line "\t" " ") " " {'
+    __ush_at 175 'for word in split (replace $line "\t" " ") " " {'
     __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace "${line}" '	' ' ')" || return "$?"
     __ush_packed_57="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_value_56}" ' ')" || return "$?"
     __ush_match_55__len=0
@@ -1048,7 +1048,7 @@ ush_fn_expected_checksum() {
           # shellcheck disable=SC2034
           digest="${__ush_binding_174_digest}"
         else
-          __ush_at 180 'else if field == 1 && trim_prefix word "*" == asset {'
+          __ush_at 180 'else if field == 1 && trim_prefix $word "*" == asset {'
           if {
           {
           [ "$(if [ "${__ush_binding_173_field}" -eq 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -1085,7 +1085,7 @@ __ush_value_61="$(__ush_return_path='' __ush_capture_return='1' ush_fn_option 'U
 __ush_binding_190_repo="${__ush_value_61}"
 # shellcheck disable=SC2034
 repo="${__ush_binding_190_repo}"
-__ush_at 191 'repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"'
+__ush_at 191 'repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix $repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"'
 __ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_binding_190_repo}" 'https://github.com/')" || exit "$?"
 __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_62}" 'http://github.com/')" || exit "$?"
 __ush_value_64="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_63}" 'git@github.com:')" || exit "$?"
@@ -1265,12 +1265,12 @@ __ush_value_78="$(__ush_return_path='' __ush_capture_return='1' ush_fn_target 4>
 __ush_binding_235_target="${__ush_value_78}"
 # shellcheck disable=SC2034
 target="${__ush_binding_235_target}"
-__ush_at 236 'directory = bin_directory directory prefix'
+__ush_at 236 'directory = bin_directory $directory $prefix'
 __ush_value_79="$(__ush_return_path='' __ush_capture_return='1' ush_fn_bin_directory "${__ush_binding_194_directory}" "${__ush_binding_193_prefix}" 4>&1 >&3)" || exit "$?"
 __ush_binding_194_directory="${__ush_value_79}"
 # shellcheck disable=SC2034
 directory="${__ush_binding_194_directory}"
-__ush_at 237 'if starts_with directory "/" == false {'
+__ush_at 237 'if starts_with $directory "/" == false {'
 if {
 __ush_value_80="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${__ush_binding_194_directory}" '/')" || exit "$?"
 [ "$(if [ "${__ush_value_80}" = 'false' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -1289,7 +1289,7 @@ __ush_at 241 'if download_url == "" {'
 if {
 [ "$(if [ "${__ush_binding_195_download_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 242 'download_url = release_url repo version asset'
+  __ush_at 242 'download_url = release_url $repo $version $asset'
   __ush_value_82="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_190_repo}" "${__ush_binding_192_version}" "${__ush_binding_240_asset}" 4>&1 >&3)" || exit "$?"
   __ush_binding_195_download_url="${__ush_value_82}"
   # shellcheck disable=SC2034
@@ -1299,7 +1299,7 @@ __ush_at 244 'if checksum_url == "" {'
 if {
 [ "$(if [ "${__ush_binding_196_checksum_url}" = '' ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
-  __ush_at 245 'checksum_url = release_url repo version "sha256sums.txt"'
+  __ush_at 245 'checksum_url = release_url $repo $version "sha256sums.txt"'
   __ush_value_83="$(__ush_return_path='' __ush_capture_return='1' ush_fn_release_url "${__ush_binding_190_repo}" "${__ush_binding_192_version}" 'sha256sums.txt' 4>&1 >&3)" || exit "$?"
   __ush_binding_196_checksum_url="${__ush_value_83}"
   # shellcheck disable=SC2034
@@ -1322,18 +1322,18 @@ __ush_binding_249_sums="${__ush_binding_247_work}"'/sha256sums.txt'
 sums="${__ush_binding_249_sums}"
 __ush_at 250 'eprint ("install.sh: downloading " + download_url)'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_195_download_url}" )
-__ush_at 251 'fetch download_url archive'
+__ush_at 251 'fetch $download_url $archive'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_195_download_url}" "${__ush_binding_248_archive}" )
 __ush_at 252 'eprint ("install.sh: downloading " + checksum_url)'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint 'install.sh: downloading '"${__ush_binding_196_checksum_url}" )
-__ush_at 253 'fetch checksum_url sums'
+__ush_at 253 'fetch $checksum_url $sums'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_fetch "${__ush_binding_196_checksum_url}" "${__ush_binding_249_sums}" )
-__ush_at 254 'let expected = expected_checksum sums asset'
+__ush_at 254 'let expected = expected_checksum $sums $asset'
 __ush_value_85="$(__ush_return_path='' __ush_capture_return='1' ush_fn_expected_checksum "${__ush_binding_249_sums}" "${__ush_binding_240_asset}" 4>&1 >&3)" || exit "$?"
 __ush_binding_254_expected="${__ush_value_85}"
 # shellcheck disable=SC2034
 expected="${__ush_binding_254_expected}"
-__ush_at 255 'let actual = sha256 archive?'
+__ush_at 255 'let actual = sha256 $archive?'
 __ush_value_86="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__sha256 "${__ush_binding_248_archive}")" || exit "$?"
 __ush_binding_255_actual="${__ush_value_86}"
 # shellcheck disable=SC2034
@@ -1354,9 +1354,9 @@ __ush_at 260 'let unpack = work + "/unpack"'
 __ush_binding_260_unpack="${__ush_binding_247_work}"'/unpack'
 # shellcheck disable=SC2034
 unpack="${__ush_binding_260_unpack}"
-__ush_at 261 'mkdir_p unpack'
+__ush_at 261 'mkdir_p $unpack'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_260_unpack}" )
-__ush_at 262 'tar "-xzf" archive "-C" unpack'
+__ush_at 262 'tar "-xzf" $archive "-C" $unpack'
 command tar '-xzf' "${__ush_binding_248_archive}" '-C' "${__ush_binding_260_unpack}"
 __ush_at 263 'let mut package = unpack + "/ush-" + target'
 __ush_binding_263_package="${__ush_binding_260_unpack}"'/ush-'"${__ush_binding_235_target}"
@@ -1388,7 +1388,7 @@ __ush_value_89="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__
   __ush_report "$__ush_status" 'install.sh: release archive did not contain ush'
   exit "$__ush_status"
 fi
-__ush_at 270 'mkdir_p directory'
+__ush_at 270 'mkdir_p $directory'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__fs__mkdir_p "${__ush_binding_194_directory}" )
 __ush_at 271 'install "-m" "755" (package + "/ush") (directory + "/ush")'
 command install '-m' '755' "${__ush_binding_263_package}"'/ush' "${__ush_binding_194_directory}"'/ush'
@@ -1402,7 +1402,7 @@ __ush_value_90="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__
   __ush_at 274 'echo ("ush_lsp installed to " + directory + "/ush_lsp")'
   printf '%s\n' 'ush_lsp installed to '"${__ush_binding_194_directory}"'/ush_lsp'
 fi
-__ush_at 276 'let path_status = ensure_path directory (automatic != "0")?'
+__ush_at 276 'let path_status = ensure_path $directory (automatic != "0")?'
 __ush_value_91="$(__ush_return_path='' __ush_capture_return='1' ush_fn_ensure_path "${__ush_binding_194_directory}" "$(if [ "${__ush_binding_197_automatic}" != '0' ]; then printf '%s' true; else printf '%s' false; fi)" 4>&1 >&3)" || exit "$?"
 __ush_binding_276_path_status="${__ush_value_91}"
 # shellcheck disable=SC2034
@@ -1422,7 +1422,7 @@ else
   }; then
     __ush_at 282 'echo "add this to your shell config, then restart your shell:"'
     printf '%s\n' 'add this to your shell config, then restart your shell:'
-    __ush_at 283 'echo (path_line directory)'
+    __ush_at 283 'echo (path_line $directory)'
     __ush_value_92="$(__ush_return_path='' __ush_capture_return='1' ush_fn_path_line "${__ush_binding_194_directory}" 4>&1 >&3)" || exit "$?"
     printf '%s\n' "${__ush_value_92}"
   else

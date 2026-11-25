@@ -8,11 +8,11 @@ pub enum Status {
 
 pub fn line(status: Status, name: String) -> String {
   match status {
-    Status::Passed => "ok   " + clean name,
-    Status::Failed => "FAIL " + clean name,
+    Status::Passed => "ok   " + clean $name,
+    Status::Failed => "FAIL " + clean $name,
   }
 }
 
 fn clean(name: String) -> String {
-  trim name
+  trim $name
 }

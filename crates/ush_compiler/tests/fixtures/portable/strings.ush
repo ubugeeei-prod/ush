@@ -22,8 +22,8 @@ test "portable strings and full-width integers" {
   assert_eq (count "*a**" "*") 3
   assert_eq (count "abc" "z") 0
   for value in ["", "a b", "a'b'c", "$HOME; * \n日本語", "-n"] {
-    let command = "printf '%s' " + shell_quote value
-    assert_eq (std::process::output "sh" ["-c", command]) value
+    let command = "printf '%s' " + shell_quote $value
+    assert_eq (std::process::output "sh" ["-c", command]) $value
   }
   assert_eq (min -8 2) -8
   assert_eq (max -8 2) 2
@@ -36,8 +36,8 @@ test "portable strings and full-width integers" {
   assert_eq (clamp 8 0 10) 8
   assert_eq (clamp 18 0 10) 10
   let minimum = -9223372036854775808
-  assert_eq (min minimum 0) minimum
-  assert_eq (max minimum 9223372036854775807) 9223372036854775807
+  assert_eq (min $minimum 0) $minimum
+  assert_eq (max $minimum 9223372036854775807) 9223372036854775807
   assert_eq [minimum, 9223372036854775807] [-9223372036854775808, 9223372036854775807]
   std::io::print "pass"
   std::io::println "ed"

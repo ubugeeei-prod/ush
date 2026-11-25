@@ -7,7 +7,7 @@ pub enum Status {
 
 pub fn line(status: Status, name: String) -> String {
   match status {
-    Status::Passed => label + ": " + text::shout name,
+    Status::Passed => label + ": " + text::shout $name,
     Status::Failed => label + ": " + name,
   }
 }

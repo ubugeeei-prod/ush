@@ -31,7 +31,7 @@ const CONFIG: &str = "enum ConfigError {\n  Missing,\n}\n";
 #[test]
 fn commands_and_typed_failures_are_inferred() {
     let source = format!(
-        "use $bin::*\n{CONFIG}fn head_sha() -> String {{\n  git \"rev-parse\" \"HEAD\"\n}}\nfn load(path: String) -> String {{\n  if path == \"\" {{\n    fail ConfigError::Missing\n  }}\n  path\n}}\nfn both(path: String) -> String {{\n  let found = load path?\n  found + head_sha\n}}\nfn summary(text: String) -> () {{\n  print text\n}}\n"
+        "use $bin::*\n{CONFIG}fn head_sha() -> String {{\n  git \"rev-parse\" \"HEAD\"\n}}\nfn load(path: String) -> String {{\n  if path == \"\" {{\n    fail (ConfigError::Missing)\n  }}\n  path\n}}\nfn both(path: String) -> String {{\n  let found = load $path?\n  found + head_sha\n}}\nfn summary(text: String) -> () {{\n  print text\n}}\n"
     );
     let report = report(&source);
     assert_eq!(
@@ -50,7 +50,7 @@ fn commands_and_typed_failures_are_inferred() {
 #[test]
 fn mutually_recursive_functions_share_the_least_row() {
     let report = report(&format!(
-        "{CONFIG}fn ping(s: String) -> String {{\n  if s == \"stop\" {{\n    return \"done\"\n  }}\n  pong \"stop\"\n}}\nfn pong(s: String) -> String {{\n  if s == \"\" {{\n    fail ConfigError::Missing\n  }}\n  ping s\n}}\nfn quiet(s: String) -> String {{\n  quiet s\n}}\n"
+        "{CONFIG}fn ping(s: String) -> String {{\n  if s == \"stop\" {{\n    return \"done\"\n  }}\n  pong \"stop\"\n}}\nfn pong(s: String) -> String {{\n  if s == \"\" {{\n    fail (ConfigError::Missing)\n  }}\n  ping $s\n}}\nfn quiet(s: String) -> String {{\n  quiet $s\n}}\n"
     ));
     assert_eq!(row(&report, "ping"), "ConfigError");
     assert_eq!(row(&report, "pong"), "ConfigError");
@@ -60,7 +60,7 @@ fn mutually_recursive_functions_share_the_least_row() {
 #[test]
 fn callbacks_bring_their_rows_to_the_caller() {
     let source = format!(
-        "{CONFIG}fn check(name: String) -> String {{\n  if name == \"\" {{\n    fail ConfigError::Missing\n  }}\n  name\n}}\nfn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {{\n  [f x for x in items]\n}}\nfn all() -> List<String> {{\n  map [\"a\"] &check\n}}\nfn loud(name: String) -> String {{\n  print name\n  name\n}}\nfn sealed() -> List<String> / () {{\n  map [\"a\"] &loud\n}}\n"
+        "{CONFIG}fn check(name: String) -> String {{\n  if name == \"\" {{\n    fail (ConfigError::Missing)\n  }}\n  name\n}}\nfn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {{\n  [f $x for x in items]\n}}\nfn all() -> List<String> {{\n  map [\"a\"] &check\n}}\nfn loud(name: String) -> String {{\n  print name\n  name\n}}\nfn sealed() -> List<String> / () {{\n  map [\"a\"] &loud\n}}\n"
     );
     let error = compile_error(&source);
     assert!(error.contains("`sealed` needs `stdout`"), "{error}");
@@ -78,7 +78,7 @@ fn written_rows_stay_checked_contracts() {
         "{error}"
     );
     let error = compile_error(&format!(
-        "{CONFIG}fn load() -> String / stdout {{\n  fail ConfigError::Missing\n}}\n"
+        "{CONFIG}fn load() -> String / stdout {{\n  fail (ConfigError::Missing)\n}}\n"
     ));
     assert!(error.contains("but can raise `ConfigError`"), "{error}");
     let report = report("fn wide() -> () / unknown, stdout {\n  print \"x\"\n}\n");
@@ -90,7 +90,7 @@ fn written_rows_stay_checked_contracts() {
 #[test]
 fn inferred_failures_propagate_with_question_marks() {
     let (status, stdout, stderr) = support::try_run(&format!(
-        "{CONFIG}fn load(path: String) -> String {{\n  if path == \"\" {{\n    fail ConfigError::Missing\n  }}\n  path\n}}\nfn twice(path: String) -> String {{\n  let first = load path?\n  first + first\n}}\nprint twice \"ab\"\nprint twice \"\"?\nprint \"unreachable\"\n"
+        "{CONFIG}fn load(path: String) -> String {{\n  if path == \"\" {{\n    fail (ConfigError::Missing)\n  }}\n  path\n}}\nfn twice(path: String) -> String {{\n  let first = load $path?\n  first + first\n}}\nprint twice \"ab\"\nprint twice \"\"?\nprint \"unreachable\"\n"
     ));
     assert_eq!(status, 1);
     assert_eq!(stdout, "abab\n");
@@ -122,11 +122,11 @@ fn written_rows_may_name_imported_error_types() {
     let project = Project::new(&[
         (
             "cfg.ush",
-            "pub enum ConfigError {\n  Missing,\n}\npub fn load(path: String) -> String / ConfigError {\n  if path == \"\" {\n    fail ConfigError::Missing\n  }\n  path\n}\n",
+            "pub enum ConfigError {\n  Missing,\n}\npub fn load(path: String) -> String / ConfigError {\n  if path == \"\" {\n    fail (ConfigError::Missing)\n  }\n  path\n}\n",
         ),
         (
             "main.ush",
-            "mod \"cfg.ush\"\nuse cfg::{ConfigError}\nfn wrap(path: String) -> String / ConfigError {\n  let value = cfg::load path?\n  value\n}\nprint wrap \"ok\"\n",
+            "mod \"cfg.ush\"\nuse cfg::{ConfigError}\nfn wrap(path: String) -> String / ConfigError {\n  let value = cfg::load $path?\n  value\n}\nprint wrap \"ok\"\n",
         ),
     ]);
     assert_eq!(project.run_everywhere("main.ush"), "ok\n");
@@ -139,7 +139,7 @@ fn written_rows_may_name_imported_error_types() {
 #[test]
 fn assignments_contribute_to_the_inferred_row() {
     let source = format!(
-        "use $bin::*\n{CONFIG}fn load(path: String) -> String {{\n  if path == \"\" {{\n    fail ConfigError::Missing\n  }}\n  path\n}}\nfn collect(paths: List<String>) -> String {{\n  let mut joined = \"\"\n  for path in paths {{\n    joined = joined + load path?\n  }}\n  joined\n}}\nfn stamp() -> String {{\n  let mut value = \"none\"\n  value = uname \"-s\"\n  value\n}}\n"
+        "use $bin::*\n{CONFIG}fn load(path: String) -> String {{\n  if path == \"\" {{\n    fail (ConfigError::Missing)\n  }}\n  path\n}}\nfn collect(paths: List<String>) -> String {{\n  let mut joined = \"\"\n  for path in paths {{\n    joined = joined + load $path?\n  }}\n  joined\n}}\nfn stamp() -> String {{\n  let mut value = \"none\"\n  value = uname \"-s\"\n  value\n}}\n"
     );
     let report = report(&source);
     assert_eq!(row(&report, "collect"), "ConfigError");

@@ -6,9 +6,9 @@ let root = from_source "."
 let sample = root.join("sample.json").resolve()
 let url = "file://" + sample
 let copy = tmpfile()
-let text = get url
+let text = get $url
 
-download url copy
+download $url $copy
 
 echo (text.starts_with("{"))
 echo ("module-ready".is_match("^module"))

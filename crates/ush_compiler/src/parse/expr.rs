@@ -36,6 +36,12 @@ pub(super) fn parse_expr(source: &str) -> Result<Expr> {
             false,
         )?));
     }
+    if super::argument::starts_call(source) {
+        if let Some(base) = super::argument::propagation(source) {
+            return Ok(Expr::Try(Box::new(parse_expr(base)?)));
+        }
+        return Ok(Expr::Call(signature::parse_call(source, false)?));
+    }
     if let Some((start, end)) = split_range(source) {
         return Ok(Expr::Range {
             start: Box::new(parse_atom(start)?),
@@ -48,10 +54,6 @@ pub(super) fn parse_expr(source: &str) -> Result<Expr> {
             op,
             rhs: Box::new(parse_expr(rhs)?),
         });
-    }
-    let applications = split_top_level(source, '$');
-    if applications.len() > 1 {
-        return parse_dollar_chain(&applications);
     }
     let pieces = split_top_level(source, '+');
     if pieces.len() > 1 {
@@ -124,6 +126,9 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     if trimmed.is_empty() {
         bail!("empty expression");
     }
+    if trimmed.starts_with('$') && !trimmed.starts_with("$bin::") {
+        return super::argument::parse(trimmed);
+    }
     if let Some(inner) = strip_top_level_suffix(trimmed, '?') {
         if inner.is_empty() {
             bail!("try operator requires an expression");
@@ -193,17 +198,6 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
         return Ok(Expr::Var(trimmed.into()));
     }
     bail!("unsupported expression: {trimmed}")
-}
-
-fn parse_dollar_chain(parts: &[&str]) -> Result<Expr> {
-    let Some(last) = parts.last() else {
-        bail!("empty application");
-    };
-    let mut expr = parse_expr(last)?;
-    for part in parts[..parts.len() - 1].iter().rev() {
-        expr = Expr::Call(signature::parse_dollar_call(part, expr)?);
-    }
-    Ok(expr)
 }
 
 pub(super) fn parse_type_list(source: &str) -> Result<Vec<Type>> {

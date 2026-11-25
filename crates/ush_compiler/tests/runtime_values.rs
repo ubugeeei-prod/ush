@@ -143,7 +143,7 @@ fn a_raised_error_propagates_through_the_question_mark() {
           MissingConfig,
         }
         fn load() -> String / Problem, stderr {
-          fail Problem::MissingConfig
+          fail (Problem::MissingConfig)
         }
         fn run() -> String / Problem, stderr {
           let value = load()?

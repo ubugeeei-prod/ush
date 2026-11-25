@@ -12,11 +12,11 @@ use $bin::*
 
 let work = temp_dir
 for argument in args {
-  echo argument
+  echo $argument
 }
 let files = output "git" ["ls-files", "--", "*.ush"]
-for file in lines files {
-  echo file
+for file in lines $files {
+  echo $file
 }
 write_text (work + "/message") "hello\n"
 if status "test" ["-s", work + "/message"] != 0 {
@@ -142,7 +142,7 @@ work alongside strings.
 echo "hello" "world" 42
 echo
 let text = echo "captured" "output"
-echo text
+echo $text
 ```
 
 The generated shell uses a fixed `printf` format. `-n`, `-e`, backslashes and
@@ -153,3 +153,38 @@ removes trailing newlines, like other command captures.
 
 `print expr` remains supported for existing scripts. POSIX specifies `echo`
 and `printf`, but does not specify a `print` utility.
+
+## CLI-style arguments
+
+Whitespace calls use bare words for literal arguments and `$name` for variables:
+
+```ush
+use $bin::*
+
+let name = "ush"
+let mut count = 1
+echo Hello $name
+mkdir -p ./dist
+cp ./README.md ./dist/
+echo --output=./dist/${name}.txt
+echo "count:" (count + 1)
+```
+
+This rule applies to ush functions and imported commands alike. An unquoted
+word never changes meaning when a variable with that name is introduced.
+`echo name` prints `name`; `echo $name` reads the binding, and an unknown binding
+is a compile error. `$name` and `${name}` always stay one argument, even when
+the value is empty or contains spaces, wildcards, quotes, or shell syntax.
+Unquoted words do not perform pathname expansion or shell evaluation.
+
+Use quotes for a literal argument containing spaces. Quoted strings retain
+their literal meaning: `"$name"` prints those characters. Bare words can embed
+variables, as in `--output=$path` or `./${name}.txt`. Use `(expression)` for
+computed values and nested calls, for example `echo (greet $name)`. Integer and
+boolean literals, lists, unit values, quantities, and function references keep
+their types. `label: value` remains named-argument syntax.
+
+Bindings, conditions, collection elements, and legacy parenthesized calls
+remain expression contexts: `let next = count + 1`, `if count > 0`, and
+`greet(name)` still refer to variables without a sigil. The old `$` application
+operator is replaced by grouped expressions: `wrap (greet ush)`.

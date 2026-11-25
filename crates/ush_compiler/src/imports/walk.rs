@@ -99,6 +99,13 @@ impl Resolver<'_> {
     pub(super) fn expr(&self, expr: &mut Expr, scope: &Set<Name>) {
         self.qualified_call(expr);
         match expr {
+            Expr::Var(name) if name.starts_with('$') => {
+                let variable: Name = name[1..].into();
+                if !scope.contains(&variable) {
+                    self.fail(anyhow::anyhow!("unknown variable: {variable}"));
+                }
+                *name = variable;
+            }
             Expr::Var(name) if !scope.contains(name) => {
                 let mut target = name.clone();
                 self.name(&mut target);

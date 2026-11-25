@@ -9,6 +9,6 @@ let copy = tmpfile()
 
 print payload
 print $ cwd_file.resolve()
-print $ get url
-download url copy
+print $ get $url
+download $url $copy
 copy.remove()

@@ -110,11 +110,11 @@ fn types_enums_and_effects_cross_module_boundaries() {
     let project = Project::new(&[
         (
             "lib/model.ush",
-            "pub enum Level {\n  Info,\n  Warn,\n}\npub type Entry {\n  text: String,\n}\npub effect log(message: String) -> ()\npub fn render(level: Level, entry: Entry) -> String {\n  match level {\n    Level::Info => \"info: \" + entry.text,\n    Level::Warn => \"warn: \" + entry.text,\n  }\n}\npub fn note(text: String) -> () / log {\n  do log text\n}\n",
+            "pub enum Level {\n  Info,\n  Warn,\n}\npub type Entry {\n  text: String,\n}\npub effect log(message: String) -> ()\npub fn render(level: Level, entry: Entry) -> String {\n  match level {\n    Level::Info => \"info: \" + entry.text,\n    Level::Warn => \"warn: \" + entry.text,\n  }\n}\npub fn note(text: String) -> () / log {\n  do log $text\n}\n",
         ),
         (
             "main.ush",
-            "mod \"lib/model.ush\"\nuse model::{Level, log, note}\nenum Mode {\n  Local,\n}\nlet first = model::Entry { text: \"disk\" }\nprint model::render Level::Warn first\ntry {\n  note \"hello\"\n} with log(message) {\n  print \"logged \" + message\n}\n",
+            "mod \"lib/model.ush\"\nuse model::{Level, log, note}\nenum Mode {\n  Local,\n}\nlet first = model::Entry { text: \"disk\" }\nprint model::render (Level::Warn) $first\ntry {\n  note \"hello\"\n} with log(message) {\n  print \"logged \" + message\n}\n",
         ),
         (
             "clash.ush",
@@ -174,7 +174,7 @@ fn module_functions_work_as_pipeline_stages() {
     let project = Project::new(&[
         (
             "lib/github.ush",
-            "use std::io::{read_lines}\nuse std::string::{to_upper_ascii}\n\npub fn summary_stage() -> () / unknown, io {\n  for line in read_lines {\n    print \"- \" + line\n  }\n}\n\nfn shout() -> () / unknown, io {\n  for line in read_lines {\n    print to_upper_ascii line\n  }\n}\n\npub fn loud(text: String) -> () / unknown, io {\n  text | shout\n}\n",
+            "use std::io::{read_lines}\nuse std::string::{to_upper_ascii}\n\npub fn summary_stage() -> () / unknown, io {\n  for line in read_lines {\n    print \"- \" + line\n  }\n}\n\nfn shout() -> () / unknown, io {\n  for line in read_lines {\n    print to_upper_ascii $line\n  }\n}\n\npub fn loud(text: String) -> () / unknown, io {\n  text | shout\n}\n",
         ),
         (
             "main.ush",

@@ -76,7 +76,7 @@ fn triple_quote_toggles(line: &str) -> usize {
 }
 
 fn normalize_line(line: &str) -> String {
-    if let Some((left, right)) = line.split_once("=>") {
+    if let Some((left, right)) = crate::call_words::separator(line, "=>") {
         let right = right.trim();
         if right.is_empty() {
             // A handler arm opens its body on the next line, so the
@@ -88,7 +88,7 @@ fn normalize_line(line: &str) -> String {
     if let Some((left, right)) = assignment_parts(line) {
         return format!("{left} = {right}");
     }
-    if let Some((left, right)) = line.split_once("->") {
+    if let Some((left, right)) = crate::call_words::separator(line, "->") {
         return format!("{} -> {}", left.trim_end(), right.trim_start());
     }
     line.to_string()

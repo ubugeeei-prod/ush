@@ -13,6 +13,18 @@ test('new language syntax, Unicode and multiline strings', async () => {
     const result = grammar.tokenizeLine(`${keyword} x`, tm.INITIAL);
     assert(result.tokens[0].scopes.includes('keyword.control.ush'), keyword);
   }
+  for (const [source, word, scope] of [
+    ['echo Hello $name --output=${name}/file', 'Hello', 'string.unquoted.ush'],
+    ['echo Hello $name --output=${name}/file', '$name', 'variable.other.ush'],
+    ['echo Hello $name --output=${name}/file', '${name}', 'variable.other.ush'],
+    ['let output = greet bare', 'bare', 'string.unquoted.ush'],
+    ['echo hello | tr a-z A-Z', 'a-z', 'string.unquoted.ush'],
+    ['echo (greet $name)', '$name', 'variable.other.ush'],
+  ]) {
+    const at = source.indexOf(word);
+    const tokens = grammar.tokenizeLine(source, tm.INITIAL).tokens;
+    assert(tokens.some(t => t.startIndex <= at && t.endIndex > at && t.scopes.includes(scope)), source);
+  }
   let result = grammar.tokenizeLine('let page = """', tm.INITIAL);
   result = grammar.tokenizeLine('😀 fn fake() {', result.ruleStack);
   assert(result.tokens.every(t => t.scopes.includes('string.quoted.triple.ush')));

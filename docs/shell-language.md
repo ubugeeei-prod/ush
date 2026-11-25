@@ -13,7 +13,7 @@ let mut count = 0
 while count < 3 {
   count = count + 1
 }
-assert_eq count 3
+assert_eq $count 3
 ```
 
 `greeting = "goodbye"` is a compile error that suggests `let mut greeting`.
@@ -43,23 +43,25 @@ fn label() -> String {
   "ush"
 }
 
-echo (greet "hello" label)
+echo (greet hello (label))
 let branch = git "branch" "--show-current"?
-echo (trim_suffix branch "\n")
+echo (trim_suffix $branch "\n")
 echo (greet (trim_prefix "@Ada" "@") "Lovelace")
 ```
 
-Arguments are separated by whitespace and each argument is one typed value.
-Quote string literals; identifiers name variables or zero-argument functions.
-Use parentheses to group a nested call or an operator expression into one
-argument. Calls bind more tightly than `+` and comparisons: `f x + 1` adds one
-to `f x`; write `f (x + 1)` to add inside its argument. Named arguments work as
-`greet last: "Lovelace" first: "Ada"`.
+Arguments are separated by whitespace. Bare words are literal strings, and
+`$name` / `${name}` read variables: `echo Hello $name`. Quotes are only needed
+for literal arguments containing whitespace. Variable values always stay one
+argument, including empty strings, spaces and wildcards. Use `(expression)`
+for computed arguments and nested calls, such as `echo (greet hello (label))`.
+Typed numbers, booleans, lists, quantities and function references retain their
+types. Named arguments work as `greet last: Lovelace first: Ada`.
 
-A variable shadows a same-named zero-argument function in value position.
-Function declarations still use `fn name(parameters)`. Existing parenthesized
-calls and `$` application remain accepted for older scripts; new code does
-not need them. `$ command` and `$(command)` retain their shell meanings.
+Bindings, conditions and parenthesized calls remain expression contexts, where
+identifiers name variables or zero-argument functions. Function declarations
+still use `fn name(parameters)`. Grouped calls replace the old `$` application
+operator; `$name` now means an explicit variable. `$ command` and `$(command)`
+retain their explicit shell escape meanings. See [CLI-style argument rules](native-scripting.md#cli-style-arguments).
 
 `use module::*` imports a module's functions. Explicit imports and local
 functions take precedence over a wildcard. Conflicting names from two
@@ -320,7 +322,7 @@ deferred `job.kill()` stops the task the binding holds when the block runs.
 use $bin::*
 
 fn with_server(port: String) -> () / unknown, io, exec, fs, env, net, task {
-  let server = spawn python3 "-m" "http.server" port
+  let server = spawn python3 "-m" "http.server" $port
   defer server.kill()
   curl "-sf" ("http://127.0.0.1:" + port)
 }
@@ -380,13 +382,13 @@ pub enum Level {
 
 pub fn annotate(level: Level, message: String) {
   match level {
-    Level::Notice => echo ("::notice::" + clean message),
-    Level::Warning => echo ("::warning::" + clean message),
+    Level::Notice => echo ("::notice::" + clean $message),
+    Level::Warning => echo ("::warning::" + clean $message),
   }
 }
 
 fn clean(message: String) -> String {
-  trim message
+  trim $message
 }
 ```
 
@@ -395,8 +397,8 @@ fn clean(message: String) -> String {
 mod "../lib/github.ush" as gh
 use gh::{Level, annotate}
 
-annotate Level::Notice "starting"
-gh::annotate Level::Warning "  disk is nearly full  "
+annotate (Level::Notice) "starting"
+gh::annotate (Level::Warning) "  disk is nearly full  "
 ```
 
 - `mod "path.ush" as name` imports the file at `path`, relative to the
@@ -459,7 +461,7 @@ fn keep<F<_>, T>(value: F<T>) -> F<T> {
   value
 }
 fn map<A, B>(items: List<A>, f: Fn<A, B>) -> List<B> {
-  [f x for x in items]
+  [f $x for x in items]
 }
 fn greet(name: String) -> String {
   "hello " + name
@@ -587,7 +589,7 @@ extern "helpers.sh" as helpers {
 use helpers::*
 
 echo (greet "ush")
-echo answer
+echo (answer)
 ```
 
 The optional module name provides qualified calls such as `helpers::greet`;

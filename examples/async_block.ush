@@ -5,4 +5,4 @@ let task = async {
 }
 echo "after"
 let result = task.await
-echo result
+echo $result

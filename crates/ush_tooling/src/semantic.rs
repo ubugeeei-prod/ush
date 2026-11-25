@@ -73,6 +73,7 @@ pub fn semantic_tokens(source: &str) -> Vec<SemanticToken> {
     for (line_no, line) in source.lines().enumerate() {
         in_multiline = tokenize_line(line_no as u32, line, &mut out, in_multiline);
     }
+    crate::call_words::classify(source, &mut out);
     let lines: Vec<_> = source.lines().collect();
     let functions: std::collections::HashSet<_> = out
         .windows(2)

@@ -48,15 +48,6 @@ pub(super) fn parse_expr_call(source: &str) -> Result<Option<Call>> {
     }))
 }
 
-pub(super) fn parse_dollar_call(source: &str, arg: super::super::ast::Expr) -> Result<Call> {
-    let mut call = parse_call_inner(source, false, true)?;
-    call.args.push(CallArg {
-        label: None,
-        expr: arg,
-    });
-    Ok(call)
-}
-
 pub(super) fn parse_call_args(source: &str) -> Result<Vec<CallArg>> {
     parse_args(source)
 }
@@ -75,10 +66,11 @@ fn looks_like_call_inner(source: &str, allow_bare_name: bool) -> bool {
     paren_call_form(source)
         .map(|(_, _, tail)| tail.is_empty())
         .unwrap_or_else(|| {
-            parse_call_parts(source, allow_bare_name)
-                .ok()
-                .flatten()
-                .is_some()
+            let parts = split_top_level_whitespace(source);
+            parts
+                .first()
+                .is_some_and(|head| looks_like_call_target(head))
+                && (allow_bare_name || parts.len() > 1)
         })
 }
 
@@ -104,6 +96,10 @@ fn parse_call_parts(source: &str, allow_bare_name: bool) -> Result<Option<(Strin
         parse_call_tokens(&parts[1..])?
     };
     Ok(Some((parse_call_target(parts[0])?, args)))
+}
+
+pub(super) fn is_paren_call(source: &str) -> bool {
+    paren_call_form(source).is_some()
 }
 
 fn paren_call_form(source: &str) -> Option<(&str, &str, &str)> {
@@ -183,7 +179,7 @@ fn parse_call_tokens(parts: &[&str]) -> Result<Vec<CallArg>> {
         {
             args.push(CallArg {
                 label: Some(parse_identifier(label)?),
-                expr: parse_expr(
+                expr: super::argument::parse(
                     parts
                         .get(index + 1)
                         .ok_or_else(|| anyhow!("missing value for `{label}`"))?,
@@ -192,7 +188,10 @@ fn parse_call_tokens(parts: &[&str]) -> Result<Vec<CallArg>> {
             index += 2;
             continue;
         }
-        args.push(parse_call_arg(current)?);
+        args.push(CallArg {
+            label: None,
+            expr: super::argument::parse(current)?,
+        });
         index += 1;
     }
     Ok(args)

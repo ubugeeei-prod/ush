@@ -11,7 +11,7 @@ let nested = join "/tmp" "ush"
 let example_root = from_source "."
 let example_config = example_root.join("config.pkl")
 let resolved_config = example_config.resolve()
-write_text file "from-fs"
+write_text $file "from-fs"
 
 echo (get_or "USH_EXAMPLE" "fallback")
 echo (nested.dirname())

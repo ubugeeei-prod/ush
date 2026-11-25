@@ -2,7 +2,7 @@ use $bin::*
 use std::io::to_file
 
 fn serve(port: String) -> () / unknown, stdin, stdout, stderr, fs, env, net, exec, task {
-  let server = spawn python3 "-m" "http.server" port
+  let server = spawn python3 "-m" "http.server" $port
   defer server.kill()
   curl "-sf" ("http://127.0.0.1:" + port)
 }

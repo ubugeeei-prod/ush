@@ -333,24 +333,24 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   source="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
-  __ush_at 16 'let name = basename source'
+  __ush_at 16 'let name = basename $source'
   __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__basename "${source}")" || exit "$?"
   __ush_binding_16_name="${__ush_value_7}"
   # shellcheck disable=SC2034
   name="${__ush_binding_16_name}"
-  __ush_at 17 'let artifact = trim_suffix source ".ush" + ".sh"'
+  __ush_at 17 'let artifact = trim_suffix $source ".ush" + ".sh"'
   __ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${source}" '.ush')" || exit "$?"
   __ush_binding_17_artifact="${__ush_value_8}"'.sh'
   # shellcheck disable=SC2034
   artifact="${__ush_binding_17_artifact}"
-  __ush_at 18 'let generated = work + "/" + trim_suffix name ".ush" + ".sh"'
+  __ush_at 18 'let generated = work + "/" + trim_suffix $name ".ush" + ".sh"'
   __ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_binding_16_name}" '.ush')" || exit "$?"
   __ush_binding_18_generated="${__ush_binding_14_work}"'/'"${__ush_value_9}"'.sh'
   # shellcheck disable=SC2034
   generated="${__ush_binding_18_generated}"
-  __ush_at 19 'cp source (work + "/" + name)'
+  __ush_at 19 'cp $source (work + "/" + name)'
   command cp "${source}" "${__ush_binding_14_work}"'/'"${__ush_binding_16_name}"
-  __ush_at 20 'exec compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]'
+  __ush_at 20 'exec $compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]'
   __ush_match_10__len='5'
   # shellcheck disable=SC2034
   __ush_match_10__0='compile'

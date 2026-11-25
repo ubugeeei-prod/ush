@@ -26,8 +26,8 @@ fn default_value(#[default(std::terminal::is_tty(1))] value: Bool) -> Bool / unk
   value
 }
 assert (is_tty 1)
-assert nested
-assert default_value
+assert (nested)
+assert (default_value)
 assert_eq (is_tty 0) false
 assert_eq (is_tty 2) false
 print "passed"

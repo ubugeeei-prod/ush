@@ -29,12 +29,12 @@ fn cd_blocks_restore_the_directory_and_keep_outer_assignments() {
         r#"let start = pwd
 let mut inside = ""
 cd "a b" {
-  inside = basename pwd
+  inside = basename (pwd)
 }
 print inside
 print (pwd) == start
 cd "a b"
-print basename pwd
+print basename (pwd)
 "#,
         "a b\ntrue\na b\n",
     );
@@ -87,7 +87,7 @@ for name in ["a", "b", "c"] {
       if name == "c" {
         break
       }
-      print basename pwd + " " + get_or "STAGE" "unset"
+      print basename (pwd) + " " + get_or "STAGE" "unset"
     }
   }
 }

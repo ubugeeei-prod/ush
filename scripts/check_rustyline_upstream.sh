@@ -327,7 +327,7 @@ ush_fn_value() {
   __ush_fn_value_arg_1="${2}"
   # shellcheck disable=SC2034
   key="${__ush_fn_value_arg_1}"
-  __ush_at 8 'for line in lines (read_text file) {'
+  __ush_at 8 'for line in lines (read_text $file) {'
   __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${__ush_fn_value_arg_0}")" || return "$?"
   __ush_packed_2="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_1}")" || return "$?"
   __ush_match_0__len=0
@@ -338,12 +338,12 @@ ush_fn_value() {
     eval "__ush_for_value_4=\"\${__ush_match_0__${__ush_for_list_index_3}}\""
     line="${__ush_for_value_4}"
     __ush_for_list_index_3=$((__ush_for_list_index_3 + 1))
-    __ush_at 9 'if starts_with line key {'
+    __ush_at 9 'if starts_with $line $key {'
     if {
     __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with "${line}" "${__ush_fn_value_arg_1}")" || return "$?"
     [ "${__ush_value_5}" = 'true' ]
     }; then
-      __ush_at 10 'return trim (trim_prefix line key)'
+      __ush_at 10 'return trim (trim_prefix $line $key)'
       __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${line}" "${__ush_fn_value_arg_1}")" || return "$?"
       __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || return "$?"
       if [ -n "${__ush_return_path:-}" ]; then
@@ -371,7 +371,7 @@ ush_fn_first() {
   __ush_fn_first_arg_1="${2}"
   # shellcheck disable=SC2034
   separator="${__ush_fn_first_arg_1}"
-  __ush_at 16 'for part in split text separator {'
+  __ush_at 16 'for part in split $text $separator {'
   __ush_packed_9="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_fn_first_arg_0}" "${__ush_fn_first_arg_1}")" || return "$?"
   __ush_match_8__len=0
   ush_fn_std__unpack __ush_match_8 "${__ush_packed_9}"
@@ -436,7 +436,7 @@ __ush_at 27 'let index = work + "/index.jsonl"'
 __ush_binding_27_index="${__ush_binding_26_work}"'/index.jsonl'
 # shellcheck disable=SC2034
 index="${__ush_binding_27_index}"
-__ush_at 28 'curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" index'
+__ush_at 28 'curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" $index'
 command curl '-fsSL' '--retry' '3' 'https://index.crates.io/ru/st/rustyline' '-o' "${__ush_binding_27_index}"
 __ush_at 30 'let versions = output "jq" ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]'
 __ush_match_18__len='3'
@@ -458,12 +458,12 @@ __ush_at 32 'let mut patch = ""'
 __ush_binding_32_patch=''
 # shellcheck disable=SC2034
 patch="${__ush_binding_32_patch}"
-__ush_at 33 'let major = first pinned "."'
+__ush_at 33 'let major = first $pinned "."'
 __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${__ush_binding_21_pinned}" '.' 4>&1 >&3)" || exit "$?"
 __ush_binding_33_major="${__ush_value_21}"
 # shellcheck disable=SC2034
 major="${__ush_binding_33_major}"
-__ush_at 34 'for version in lines versions {'
+__ush_at 34 'for version in lines $versions {'
 __ush_packed_23="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_binding_30_versions}")" || exit "$?"
 __ush_match_22__len=0
 ush_fn_std__unpack __ush_match_22 "${__ush_packed_23}"
@@ -477,7 +477,7 @@ while [ "${__ush_for_list_index_24}" -lt "${__ush_match_22__len}" ]; do
   __ush_binding_31_latest="${version}"
   # shellcheck disable=SC2034
   latest="${__ush_binding_31_latest}"
-  __ush_at 36 'if first version "." == major {'
+  __ush_at 36 'if first $version "." == major {'
   if {
   __ush_value_26="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${version}" '.' 4>&1 >&3)" || exit "$?"
   [ "$(if [ "${__ush_value_26}" = "${__ush_binding_33_major}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]

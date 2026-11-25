@@ -127,7 +127,7 @@ fn defers_run_before_tasks_are_joined_and_temporary_directories_removed() {
 let server = spawn sleep "300"
 defer {
   server.kill()
-  if test "-d" work {
+  if test "-d" $work {
     print "temp dir still there"
   }
 }

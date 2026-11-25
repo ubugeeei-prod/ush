@@ -61,7 +61,7 @@ fn call_operand<'a>(call: &'a Call, functions: &FunctionRegistry) -> Option<Oper
     }
     if matches!(
         call.name.as_str(),
-        "std::process::exec" | "std::process::output"
+        "std::process::exec" | "std::process::output" | "std::io::echo"
     ) {
         return Some(Operand::Command(call));
     }

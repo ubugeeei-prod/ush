@@ -17,7 +17,7 @@ fn ush_scripts_support_use_imports_and_std_modules() {
         use std::path::{exists, tmpfile}
         set "USH_STD_SMOKE" "ok"
         let file = tmpfile()
-        print $ exists file
+        print $ exists $file
         print $ get_or "USH_STD_SMOKE" "missing"
         "#,
     )
@@ -39,10 +39,10 @@ fn ush_scripts_support_std_fs_and_command_helpers() {
         use std::command::{capture, exists, status}
         use std::fs::{read_text, tmpfile, write_text}
         let path = tmpfile()
-        write_text path "ready"
+        write_text $path "ready"
         print $ exists "sh"
         print $ capture "printf '%s\n' cmd"
-        print $ read_text path
+        print $ read_text $path
         print $ status "exit 3"
         "#,
     )

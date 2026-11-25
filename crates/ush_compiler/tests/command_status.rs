@@ -110,7 +110,7 @@ fn functions_returning_unit_are_tested_by_their_success() {
     each_program(
         &format!(
             "{PRELUDE}fn check(path: String) -> () / unknown, exec, fs, stdout, stderr {{
-  ls path | discard_stderr | to_file \"/dev/null\"
+  ls $path | discard_stderr | to_file \"/dev/null\"
   print \"listed \" + path
 }}
 if check \"/\" {{
@@ -156,7 +156,7 @@ fn allow_fail_tolerates_failure_and_collects_results() {
 allow_fail grep "nothing" "missing.txt" | discard_stderr
 let mut failed = ""
 for check in ["true", "false", "true"] {
-  if ! sh "-c" check {
+  if ! sh "-c" $check {
     failed = failed + check + " "
   }
 }

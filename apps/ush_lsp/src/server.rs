@@ -1,3 +1,4 @@
+mod completion;
 mod requests;
 
 use anyhow::Result;
@@ -73,7 +74,7 @@ fn capabilities() -> ServerCapabilities {
         })),
         completion_provider: Some(CompletionOptions {
             resolve_provider: Some(false),
-            trigger_characters: Some(vec![":".into(), ".".into()]),
+            trigger_characters: Some(vec![":".into(), ".".into(), "$".into(), "{".into()]),
             ..CompletionOptions::default()
         }),
         signature_help_provider: Some(SignatureHelpOptions {
@@ -110,7 +111,7 @@ fn handle_request(
         DocumentHighlightRequest::METHOD => requests::highlight(connection, docs, request),
         DocumentSymbolRequest::METHOD => requests::symbols(connection, docs, request),
         FoldingRangeRequest::METHOD => requests::folding(connection, docs, request),
-        Completion::METHOD => requests::completion(connection, docs, request),
+        Completion::METHOD => completion::completion(connection, docs, request),
         HoverRequest::METHOD => requests::hover(connection, docs, request),
         GotoDefinition::METHOD => requests::definition(connection, docs, request),
         References::METHOD => requests::references(connection, docs, request),

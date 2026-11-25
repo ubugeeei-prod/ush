@@ -19,10 +19,10 @@ fn label(value) {
 }
 
 let names = keep ["test", "release"]
-echo (length names)
+echo (length $names)
 echo (delay 20ms)
 let job = async label "ready"
 let value = job.await
 let line = $(printf '%s' "$value")?
-echo line
+echo $line
 echo ($bin::printf "%s" "done")

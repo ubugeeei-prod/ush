@@ -2,5 +2,5 @@
 #| Run with: ush examples/bin_defaults.ush --target prod --verbose
 fn bin(#[alias("t")] target: String, #[default(3)] retries: Int, verbose: Bool) {
   echo (target + ":" + retries)
-  echo verbose
+  echo $verbose
 }

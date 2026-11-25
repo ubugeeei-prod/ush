@@ -2,4 +2,4 @@ fn label() -> String {
   "ush"
 }
 
-echo label
+echo (label)

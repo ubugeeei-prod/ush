@@ -3,7 +3,7 @@ enum Problem {
 }
 
 fn load_config() -> String / Problem, stderr {
-  fail Problem::MissingConfig
+  fail (Problem::MissingConfig)
 }
 
 fn wrap(message: String) -> String {

@@ -267,9 +267,9 @@ ush_fn_serve() {
   (
     __ush_defer_scope
     __ush_task_scope
-    __ush_at 5 'let server = spawn python3 "-m" "http.server" port'
+    __ush_at 5 'let server = spawn python3 "-m" "http.server" $port'
     ush_fn___ush_task_block_0() {
-      __ush_at 5 'let server = spawn python3 "-m" "http.server" port'
+      __ush_at 5 'let server = spawn python3 "-m" "http.server" $port'
       command python3 '-m' 'http.server' "${__ush_fn_serve_arg_0}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     }
     __ush_task_slot

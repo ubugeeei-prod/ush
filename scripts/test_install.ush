@@ -32,7 +32,7 @@ fn target() -> String {
 fn fixture_binary() -> String {
   for directory in split (get "PATH") ":" {
     let candidate = directory + "/true"
-    if test "-f" candidate && test "-x" candidate {
+    if test "-f" $candidate && test "-x" $candidate {
       return candidate
     }
   }
@@ -41,11 +41,11 @@ fn fixture_binary() -> String {
 
 fn archive(work: String, target: String, fixture: String) -> () {
   let package = work + "/ush-" + target
-  mkdir_p package
+  mkdir_p $package
   # A real executable fixture, with no shell source hidden in this ush program.
-  cp fixture (package + "/ush")
-  cp fixture (package + "/ush_lsp")
-  tar "-czf" (work + "/ush.tar.gz") "-C" work ("ush-" + target)
+  cp $fixture (package + "/ush")
+  cp $fixture (package + "/ush_lsp")
+  tar "-czf" (work + "/ush.tar.gz") "-C" $work ("ush-" + target)
   write_text (work + "/sha256sums.txt") (sha256 (work + "/ush.tar.gz") + "  ush-" + target + ".tar.gz\n")
 }
 
@@ -55,18 +55,18 @@ let tools_path = get "PATH"
 let fixture = fixture_binary
 let root = std::path::cwd
 for name in ["USH_PREFIX", "UBSH_PREFIX", "USH_BIN_DIR", "UBSH_BIN_DIR", "USH_VERSION", "UBSH_VERSION", "USH_BRANCH", "UBSH_BRANCH", "UBSH_AUTO_PATH"] {
-  unset name
+  unset $name
 }
 for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relative-prefix", "empty-env", "localhost", "checksum-name", "checksum-content", "profile-failure", "spaces"] {
   let work = temp_dir
-  archive work target fixture
+  archive $work $target $fixture
   let mut home = work + "/home"
   if scenario == "spaces" {
     home = work + "/home with spaces '$value"
   }
-  mkdir_p home
-  set "HOME" home
-  set "PATH" tools_path
+  mkdir_p $home
+  set "HOME" $home
+  set "PATH" $tools_path
   set "SHELL" "/bin/zsh"
   set "USH_AUTO_PATH" "1"
   unset "UBSH_AUTO_PATH"
@@ -77,7 +77,7 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
   let mut expected = 0
   if scenario == "existing" {
     directory = home + "/bin"
-    mkdir_p directory
+    mkdir_p $directory
     set "PATH" (directory + ":" + tools_path)
   }
   else if scenario == "disabled" {
@@ -94,7 +94,7 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
     arguments = [installer, "--prefix", home + "/prefix", "--no-modify-path"]
   }
   else if scenario == "relative-prefix" {
-    cd home
+    cd $home
     directory = home + "/tools/bin"
     arguments = [installer, "--prefix", "tools"]
   }
@@ -118,12 +118,12 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
     mkdir_p (home + "/.zshrc")
     expected = 1
   }
-  let code = redirect "sh" arguments (work + "/out") (work + "/err")
+  let code = redirect "sh" $arguments (work + "/out") (work + "/err")
   if code != expected {
     eprint (read_text (work + "/out"))
     eprint (read_text (work + "/err"))
   }
-  assert_eq code expected
+  assert_eq $code $expected
   if expected == 0 {
     assert (test "-x" (directory + "/ush"))
     assert (test "-x" (directory + "/ush_lsp"))
@@ -131,8 +131,8 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
     if scenario == "automatic" || scenario == "spaces" {
       assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/.local/bin:$PATH\"")
       let original = read_text (home + "/.zshrc")
-      assert_eq (redirect "sh" arguments (work + "/out") (work + "/err")) 0
-      assert_eq (read_text (home + "/.zshrc")) original
+      assert_eq (redirect "sh" $arguments (work + "/out") (work + "/err")) 0
+      assert_eq (read_text (home + "/.zshrc")) $original
     }
     else if scenario == "relative-prefix" {
       assert (contains (read_text (home + "/.zshrc")) "export PATH=\"$HOME/tools/bin:$PATH\"")
@@ -145,14 +145,14 @@ for scenario in ["existing", "automatic", "disabled", "flags", "prefix", "relati
     assert_eq (is_file (directory + "/ush")) false
   }
   echo ("installer: " + scenario + " passed")
-  cd root
+  cd $root
 }
 let work = temp_dir
 assert_eq (redirect "sh" [installer, "--version"] (work + "/out") (work + "/err")) 1
 assert (contains (read_text (work + "/err")) "--version requires a value")
 assert_eq (redirect "sh" [installer, "--unknown"] (work + "/out") (work + "/err")) 1
 for branch in ["", "__unset__"] {
-  set "USH_BRANCH" branch
+  set "USH_BRANCH" $branch
   assert_eq (redirect "sh" [installer] (work + "/out") (work + "/err")) 1
   assert (contains (read_text (work + "/err")) "USH_BRANCH/UBSH_BRANCH is no longer supported")
 }

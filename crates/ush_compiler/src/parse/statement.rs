@@ -1,10 +1,7 @@
 use anyhow::{Context, Result, bail};
 
 use super::{
-    super::{
-        ast::{Attribute, Expr, Statement, StatementKind},
-        util::strip_top_level_suffix,
-    },
+    super::ast::{Attribute, Expr, Statement, StatementKind},
     FileRole, SourceLine, attr, control, declaration,
     expr::parse_expr,
     handle, items, signature,
@@ -203,7 +200,7 @@ fn parse_statement(
     if let Some(pipeline) = super::pipeline::parse_pipeline(trimmed)? {
         return Ok(Statement::new(line_no, StatementKind::Pipeline(pipeline)));
     }
-    if let Some(base) = strip_top_level_suffix(trimmed, '?')
+    if let Some(base) = super::argument::propagation(trimmed)
         && signature::looks_like_call(base)
     {
         return Ok(Statement::new(

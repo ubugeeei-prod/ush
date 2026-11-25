@@ -219,7 +219,7 @@ __ush_at 39 'npm "test"'
 command npm 'test'
 __ush_at 40 'npm "run" "build"'
 command npm 'run' 'build'
-__ush_at 41 'cd root'
+__ush_at 41 'cd $root'
 command cd "${__ush_binding_36_root}"
 __ush_at 42 'banner "bench builds"'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_banner 'bench builds' )
@@ -244,9 +244,9 @@ while [ "${__ush_for_list_index_4}" -lt "${__ush_match_1__len}" ]; do
   eval "__ush_for_value_5=\"\${__ush_match_1__${__ush_for_list_index_4}}\""
   example="${__ush_for_value_5}"
   __ush_for_list_index_4=$((__ush_for_list_index_4 + 1))
-  __ush_at 49 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" example'
+  __ush_at 49 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" $example'
   command cargo 'run' '--locked' '-p' 'ush' '--quiet' '--' 'check' "${example}"
-  __ush_at 50 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" example'
+  __ush_at 50 'cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" $example'
   command cargo 'run' '--locked' '-p' 'ush' '--quiet' '--' 'format' '--check' "${example}"
 done
 __ush_at 52 'if exists "shellcheck" {'

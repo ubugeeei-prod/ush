@@ -328,7 +328,7 @@ use $bin::*
 use std::io::to_file
 
 fn serve(port: String) -> () / unknown, stdin, stdout, stderr, fs, env, net, exec, task {
-  let server = spawn python3 "-m" "http.server" port
+  let server = spawn python3 "-m" "http.server" $port
   defer server.kill()
   curl "-sf" ("http://127.0.0.1:" + port)
 }
@@ -613,9 +613,9 @@ ush_fn_serve() {
   (
     __ush_defer_scope
     __ush_task_scope
-    __ush_at 5 'let server = spawn python3 "-m" "http.server" port'
+    __ush_at 5 'let server = spawn python3 "-m" "http.server" $port'
     ush_fn___ush_task_block_0() {
-      __ush_at 5 'let server = spawn python3 "-m" "http.server" port'
+      __ush_at 5 'let server = spawn python3 "-m" "http.server" $port'
       command python3 '-m' 'http.server' "${__ush_fn_serve_arg_0}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     }
     __ush_task_slot
@@ -1089,7 +1089,7 @@ fn wrap(message: String) -> String {
 
 let wrapped = Envelope::Wrap(Response::Ok("done"))
 match wrapped {
-  Envelope::Wrap(Response::Ok(message)) => print $ wrap message
+  Envelope::Wrap(Response::Ok(message)) => print $ wrap $message
   _ => print "fallback"
 }
 
@@ -1193,7 +1193,7 @@ __ush_binding_19_wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
 if [ "${__ush_binding_19_wrapped__tag}" = 'Envelope::Wrap' ] && [ "${__ush_binding_19_wrapped__0__tag}" = 'Response::Ok' ]; then
   message="${__ush_binding_19_wrapped__0__0-}"
-  __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
+  __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap $message'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
 elif :; then
@@ -1235,7 +1235,7 @@ fn greet(name: String) -> String {
 #| @param name target user
 #| @param count repeat count
 fn bin(#[alias("n")] name: String, #[default(2)] count: Int, verbose: Bool) {
-  print $ greet name
+  print $ greet $name
   print count
   print verbose
 }
@@ -1440,7 +1440,7 @@ ush_fn_bin() {
   __ush_fn_bin_arg_2="${3}"
   # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
-  __ush_at 20 'print $ greet name'
+  __ush_at 20 'print $ greet $name'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)" || return "$?"
   printf '%s\n' "${__ush_value_0}"
   __ush_at 21 'print count'
@@ -1458,7 +1458,7 @@ enum Problem {
 }
 
 fn fail() -> String / Problem, stderr {
-  fail Problem::Nope
+  fail (Problem::Nope)
 }
 
 fn wrap(message: String) -> String {
@@ -1481,7 +1481,7 @@ fn awaited() -> String / Problem, stderr, task {
   value
 }
 
-print $ wrap $ awaited ()
+print wrap (awaited ())
 ```
 
 ```sh
@@ -1644,7 +1644,7 @@ exec 3>&1
 
 # raises: Problem
 ush_fn_fail() {
-  __ush_at 6 'fail Problem::Nope'
+  __ush_at 6 'fail (Problem::Nope)'
   __ush_report 1 'Problem::Nope'
   return 1
 }
@@ -1729,9 +1729,9 @@ ush_fn_awaited() {
   )
 }
 
-__ush_at 29 'print $ wrap $ awaited ()'
+__ush_at 29 'print wrap (awaited ())'
 __ush_task_init
-__ush_at 29 'print $ wrap $ awaited ()'
+__ush_at 29 'print wrap (awaited ())'
 __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)" || exit "$?"
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_4}" 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_5}"
@@ -1745,7 +1745,7 @@ mod "local_modules/report.ush"
 mod "local_modules/text.ush"
 use report::{Status, line}
 
-print line Status::Passed "build"
+print line (Status::Passed) "build"
 print text::label
 ```
 
@@ -1871,7 +1871,7 @@ ush_fn_report__line() {
   name="${__ush_fn_report__line_arg_1}"
   __ush_at 9 'match status {' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
   if [ "${__ush_fn_report__line_arg_0__tag}" = 'report::Status::Passed' ]; then
-    __ush_at 10 'Status::Passed => label + ": " + text::shout name,' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
+    __ush_at 10 'Status::Passed => label + ": " + text::shout $name,' '$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/local_modules/report.ush'
     __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_report__label 4>&1 >&3)" || return "$?"
     __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_text__shout "${__ush_fn_report__line_arg_1}" 4>&1 >&3)" || return "$?"
     if [ -n "${__ush_return_path:-}" ]; then
@@ -1902,7 +1902,7 @@ ush_fn_report__label() {
   return 0
 }
 
-__ush_at 6 'print line Status::Passed "build"'
+__ush_at 6 'print line (Status::Passed) "build"'
 __ush_match_3__tag='report::Status::Passed'
 __ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_report__line "$(__ush_walk_record_6_report_6_Status ush_fn_std__write_cell __ush_match_3)" 'build' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_5}"
@@ -2333,8 +2333,8 @@ let copy = tmpfile()
 
 print payload
 print $ cwd_file.resolve()
-print $ get url
-download url copy
+print $ get $url
+download $url $copy
 copy.remove()
 ```
 
@@ -2560,10 +2560,10 @@ printf '%s\n' "${__ush_binding_5_payload}"
 __ush_at 11 'print $ cwd_file.resolve()'
 __ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_6_cwd_file}")
 printf '%s\n' "${__ush_value_5}"
-__ush_at 12 'print $ get url'
+__ush_at 12 'print $ get $url'
 __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${__ush_binding_7_url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
-__ush_at 13 'download url copy'
+__ush_at 13 'download $url $copy'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${__ush_binding_7_url}" "${__ush_binding_8_copy}" )
 __ush_at 14 'copy.remove()'
 __ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_8_copy}")
@@ -3059,7 +3059,7 @@ impl User {
 
 let user = User { name: "ush", age: 7 }
 print user
-print format user
+print format $user
 print user.prefixed("id")
 print () == ()
 print "ant" < "bee"
@@ -3176,7 +3176,7 @@ return 0
 }
 __ush_value_4="$(__ush_capture_return='1' __ush_return_path='' __ush_method_1 4>&1 >&3)"
 printf '%s\n' "${__ush_value_4}"
-__ush_at 24 'print format user'
+__ush_at 24 'print format $user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell __ush_binding_22_user)"
 __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {

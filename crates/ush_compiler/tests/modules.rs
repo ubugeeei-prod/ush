@@ -59,9 +59,9 @@ fn std_path_helpers_cover_temp_files_and_metadata() {
         r#"
         use std::path::{tmpfile, exists, is_file, basename}
         let path = tmpfile()
-        print $ exists path
-        print $ is_file path
-        print $ basename path
+        print $ exists $path
+        print $ is_file $path
+        print $ basename $path
     "#,
     );
 
@@ -96,18 +96,18 @@ fn std_fs_helpers_cover_basic_file_operations() {
         r#"
         use std::fs::{{append_text, copy, exists, is_dir, is_file, mkdir_p, move, read_text, remove, tmpfile, write_text}}
         let path = tmpfile()
-        write_text path "alpha"
-        append_text path ":beta"
+        write_text $path "alpha"
+        append_text $path ":beta"
         let moved = "{moved}"
-        copy path moved
-        print $ read_text moved
-        print $ exists moved
-        print $ is_file moved
+        copy $path $moved
+        print $ read_text $moved
+        print $ exists $moved
+        print $ is_file $moved
         mkdir_p "{directory}"
         print $ is_dir "{directory}"
-        move moved path
-        remove path
-        print $ exists path
+        move $moved $path
+        remove $path
+        print $ exists $path
         $ rmdir "{directory}"
       "#,
         moved = moved.display(),

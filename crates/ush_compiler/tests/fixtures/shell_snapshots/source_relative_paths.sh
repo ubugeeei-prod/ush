@@ -219,10 +219,10 @@ printf '%s\n' "${__ush_binding_5_payload}"
 __ush_at 11 'print $ cwd_file.resolve()'
 __ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${__ush_binding_6_cwd_file}")
 printf '%s\n' "${__ush_value_5}"
-__ush_at 12 'print $ get url'
+__ush_at 12 'print $ get $url'
 __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${__ush_binding_7_url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
-__ush_at 13 'download url copy'
+__ush_at 13 'download $url $copy'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${__ush_binding_7_url}" "${__ush_binding_8_copy}" )
 __ush_at 14 'copy.remove()'
 __ush_value_7=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${__ush_binding_8_copy}")

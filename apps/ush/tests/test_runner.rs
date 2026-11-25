@@ -85,7 +85,7 @@ fn inc(x: Int) -> Int {
   x + 1
 }
 test "generic list" {
-  assert_eq [inc x for x in 0..2] [1, 2]
+  assert_eq [inc $x for x in 0..2] [1, 2]
   $ export USH_TEST_BLOCK_LEAK=yes
 }
 test {

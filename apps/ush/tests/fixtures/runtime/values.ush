@@ -3,7 +3,7 @@ use std::string::{length, byte_length, chars, reverse, to_lower, to_upper, slice
 use std::bytes::{from_hex, from_text, to_hex, to_text, encode_base64, decode_base64}
 
 test "Unicode bytes checked arithmetic and system queries" {
-  assert std::runtime::available
+  assert (std::runtime::available)
   assert_eq (length "a😀é") 3
   assert_eq (byte_length "a😀é") 7
   assert_eq (chars "a😀\n") ["a", "😀", "\n"]
@@ -45,8 +45,8 @@ test "Unicode bytes checked arithmetic and system queries" {
   assert (random >= -10)
   assert (random <= 10)
   assert_eq (std::net::resolve "127.0.0.1") ["127.0.0.1"]
-  assert_eq std::os::euid std::os::uid
-  assert_eq std::os::egid std::os::gid
+  assert_eq (std::os::euid) (std::os::uid)
+  assert_eq (std::os::egid) (std::os::gid)
   assert (std::os::page_size > 0)
   assert (std::os::cpu_count > 0)
   assert (length (std::os::error_message 2) > 0)

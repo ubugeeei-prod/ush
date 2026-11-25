@@ -21,7 +21,7 @@ impl User {
 
 let user = User { name: "ush", age: 7 }
 print user
-print format user
+print format $user
 print user.prefixed("id")
 print () == ()
 print "ant" < "bee"
