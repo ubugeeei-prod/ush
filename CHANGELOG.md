@@ -12,6 +12,8 @@ project adheres to [Semantic Versioning][semver].
 
 ### Added
 
+- Call programs outside the command catalog by naming them:
+  `use $bin::{vp, "apt-get" as apt_get}`. Quoted names take a ush alias.
 - Native pipelines: `a | b | c` streams as a statement and captures the last
   stage's stdout as a value. A stage is a command, `std::process::exec` or
   `output`, or a function returning `()`. A pipeline fails like bash

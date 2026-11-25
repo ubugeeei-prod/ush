@@ -37,6 +37,24 @@ wildcards are diagnosed; import those functions explicitly with `as` aliases.
 `use $bin::*` imports the command catalog, with local functions and explicit
 imports taking precedence. A trailing `::` is not a wildcard.
 
+The catalog covers POSIX utilities and common developer tools. Name any other
+program explicitly to call it:
+
+```ush
+use $bin::{vp, "apt-get" as apt_get}
+
+apt_get "install" "-y" "fonts-noto-cjk"
+vp "run" "build"
+```
+
+A named program takes any number of String or Int arguments, may print, and
+may use every capability. A name that is not a ush identifier, such as
+`apt-get`, is quoted and given an alias. A program name is one shell word of
+letters, digits, `_`, `-`, `.` and `+` that does not start with `-`. The
+wildcard never imports names outside the catalog, so a misspelled function is
+still a compile error, and the compiled script does not depend on the PATH of
+the machine that compiled it.
+
 ## Pipelines and redirection
 
 ```ush
