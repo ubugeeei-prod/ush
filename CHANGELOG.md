@@ -10,6 +10,15 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.13.0] — 2026-11-25
+
+- Rewrite the installer and all repository scripts as native ush, including argument parsing, checksum lookup, PATH configuration, tests and paired benchmark orchestration.
+- Add typed process argv, execution, capture, status and redirection APIs, managed temporary directories, stderr output and string splitting/lines/integer conversion.
+- Support shell-style `fail 23 "message"`, and let programs reading argv handle their own help flags.
+- Decode common escapes in double-quoted strings. Single-quoted and triple-quoted strings remain raw; use them for literal backslashes when migrating.
+- Preserve trailing newlines when concatenating strings, and capture structured standard-library results correctly.
+- Run Nix package tests with a writable isolated home and explicit test tools.
+
 ## [0.12.0] — 2026-11-25
 
 - Bundle an offline VS Code/Cursor/VSCodium extension with `ush editor install`; improve scoped navigation, shell-style signature help, Unicode positions and incremental LSP edits.

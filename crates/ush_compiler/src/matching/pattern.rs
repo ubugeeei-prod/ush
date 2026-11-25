@@ -53,7 +53,7 @@ pub(super) fn bind_pattern(
             plan,
             format!(
                 "[ \"${{{var}}}\" = {} ]",
-                super::super::util::shell_quote(value)
+                super::super::util::shell_value_quote(value)
             ),
         ),
         (Pattern::Int(value), Type::Int, Storage::Primitive(var)) => {

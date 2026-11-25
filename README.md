@@ -471,7 +471,10 @@ functions, constructor kinds, comprehensions, tests and typed `.sh` externs.
 `install.sh` downloads the matching GitHub Releases archive and installs `ush` plus `ush_lsp`.
 By default it picks the first writable personal bin directory already on `PATH`.
 If none is available, it falls back to `~/.local/bin` and updates your shell rc automatically on POSIX shells.
-It refuses to install unless it can verify the archive against the release `sha256sums.txt` with `sha256sum`, `shasum`, `openssl`, or `python3`.
+It refuses to install unless it can verify the archive against the release `sha256sums.txt` with `sha256sum`, `shasum`, or `openssl`.
+
+The installer and repository scripts are [written in native ush](docs/native-scripting.md).
+Their checked-in shell files are generated bootstrap artifacts.
 Release archives are currently published for:
 
 - macOS `x86_64`

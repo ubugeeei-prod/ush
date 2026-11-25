@@ -1,5 +1,11 @@
 # Run the repository checks from its root directory.
 use $bin::*
+use std::env::set
+use std::path::cwd
+use std::string::lines
+use std::command::exists
+use std::process::exec
+
 fn banner(name: String) -> () {
   print "=== " + name + " ==="
 }
@@ -22,24 +28,30 @@ sh "scripts/check_rs_line_limit.sh"
 banner "installer"
 sh "scripts/test_install.sh"
 banner "rustdoc"
-shell "RUSTDOCFLAGS='-D warnings' cargo doc --locked --workspace --no-deps --document-private-items"
+set "RUSTDOCFLAGS" "-D warnings"
+cargo "doc" "--locked" "--workspace" "--no-deps" "--document-private-items"
 banner "shell targets"
 sh "scripts/test_targets.sh"
 banner "editor"
-shell "(cd editors/vscode && npm ci --ignore-scripts && npm test && npm run build)"
+let root = cwd
+cd "editors/vscode"
+npm "ci" "--ignore-scripts"
+npm "test"
+npm "run" "build"
+cd root
 banner "bench builds"
 cargo "bench" "--locked" "-p" "ush_shell" "--no-run"
 cargo "bench" "--locked" "-p" "ush_compiler" "--no-run"
 banner "vendored dependency"
 sh "scripts/check_rustyline_upstream.sh"
 banner "examples and shellcheck"
-shell """
-for example in examples/*.ush; do
-  cargo run --locked -p ush --quiet -- check "$example"
-  cargo run --locked -p ush --quiet -- format --check "$example"
-done
-if command -v shellcheck >/dev/null 2>&1; then
-  shellcheck --severity=warning install.sh scripts/*.sh
-fi
-"""
+for example in lines (find "examples" "-name" "*.ush" "-type" "f") {
+  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" example
+  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" example
+}
+if exists "shellcheck" {
+  for artifact in lines (find "install.sh" "scripts" "-name" "*.sh" "-type" "f") {
+    exec "shellcheck" ["--severity=warning", artifact]
+  }
+}
 banner "preflight passed"

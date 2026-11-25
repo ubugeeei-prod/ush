@@ -5,6 +5,7 @@ mod http;
 mod path;
 mod process;
 mod regex;
+mod scripting;
 mod string;
 pub(crate) mod testing;
 
@@ -26,6 +27,7 @@ pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
         .chain(path::definitions())
         .chain(process::definitions())
         .chain(regex::definitions())
+        .chain(scripting::definitions())
         .chain(string::definitions())
         .chain(testing::definitions())
     {
@@ -41,7 +43,11 @@ pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
     if !body.contains("ush_fn_std__") {
         return;
     }
-    let runtime = include_str!("runtime.sh");
+    let runtime = concat!(
+        include_str!("runtime.sh"),
+        "\n",
+        include_str!("scripting_runtime.sh")
+    );
     let definitions: crate::types::Map<_, _> = runtime
         .split_terminator("\n}\n")
         .filter_map(|definition| definition.trim_start().split_once("() {\n"))
@@ -69,7 +75,10 @@ pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
 }
 
 pub(super) fn runs_in_parent(name: &str) -> bool {
-    env::runs_in_parent(name) || path::runs_in_parent(name) || fs::runs_in_parent(name)
+    name == "std::process::exit"
+        || env::runs_in_parent(name)
+        || path::runs_in_parent(name)
+        || fs::runs_in_parent(name)
 }
 
 pub(super) fn builtin(

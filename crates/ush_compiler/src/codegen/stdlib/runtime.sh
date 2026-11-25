@@ -12,6 +12,13 @@ ush_fn_std__env__get() {
   eval "printf '%s' \"\${$1-}\""
 }
 
+ush_fn_std__env__contains() {
+  __ush_std_env_validate "$1" || return "$?"
+  __ush_present=''
+  eval "__ush_present=\${$1+x}"
+  if [ "$__ush_present" = x ]; then printf true; else printf false; fi
+}
+
 ush_fn_std__env__get_or() {
   __ush_std_env_validate "$1" || return "$?"
   __ush_default=$2
@@ -375,6 +382,7 @@ ush_fn_std__string__trim_suffix() {
 }
 
 ush_fn_std__pack() {
+  __ush_count=0
   eval "__ush_count=\${${1}__len}"
   __ush_i=0
   while [ "$__ush_i" -lt "$__ush_count" ]; do
@@ -403,8 +411,11 @@ ush_fn_std__unpack() {
 }
 
 ush_fn_std__test() {
-  if test "$@"; then printf true; else
-    __ush_test=$?
+  __ush_test=0
+  # Preserve test's status 2 (invalid arguments), distinct from false/status 1.
+  # shellcheck disable=SC2319
+  test "$@" || __ush_test=$?
+  if [ "$__ush_test" -eq 0 ]; then printf true; else
     if [ "$__ush_test" -eq 1 ]; then printf false; else return "$__ush_test"; fi
   fi
 }

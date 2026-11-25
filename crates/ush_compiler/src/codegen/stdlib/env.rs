@@ -6,6 +6,11 @@ use super::{builtin, param};
 pub(super) fn definitions() -> Vec<FunctionDef> {
     vec![
         builtin(
+            "std::env::contains",
+            vec![param("name", Type::String)],
+            Some(Type::Bool),
+        ),
+        builtin(
             "std::env::get",
             vec![param("name", Type::String)],
             Some(Type::String),

@@ -82,7 +82,7 @@ ush_fn_pick() {
 }
 
 __ush_at 10 'print $ pick true'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
 __ush_at 12 'for item in 0..3 {'
 __ush_for_index_1=0
@@ -94,7 +94,9 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
 done
 __ush_at 16 'let items = [3, 4]'
 items__len='2'
+# shellcheck disable=SC2034
 items__0=3
+# shellcheck disable=SC2034
 items__1=4
 __ush_at 17 'for item in items {'
 __ush_match_2__len="${items__len}"
@@ -106,6 +108,7 @@ while [ "$__ush_copy_index_3" -lt "${items__len}" ]; do
 done
 __ush_for_list_index_5=0
 while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
+  __ush_for_value_6=''
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
@@ -114,7 +117,9 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
 done
 __ush_at 21 'let pair = (5, 6)'
 pair__len='2'
+# shellcheck disable=SC2034
 pair__0=5
+# shellcheck disable=SC2034
 pair__1=6
 __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
@@ -146,13 +151,16 @@ while :; do
 done
 __ush_at 42 'let maybe = Option::Some(7)'
 maybe__tag='Option::Some'
+# shellcheck disable=SC2034
 maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
+{
 it="${maybe__0-}"
 [ "${maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
 }; then
   __ush_at 44 'print it'
   printf '%s\n' $((it))

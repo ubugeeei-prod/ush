@@ -71,19 +71,24 @@ __ush_report() {
 
 __ush_jobs=''
 __ush_task_seq=0
-__ush_task_dir=$(
-  umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
-  __ush_base=$(pwd -P)
-  __ush_n=0
-  while [ "$__ush_n" -lt 1000 ]; do
-    __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
-    if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
-    __ush_n=$((__ush_n + 1))
-  done
-  printf '%s\n' 'ush: cannot create private task directory' >&2
-  exit 1
-)
+__ush_task_dir=''
+__ush_task_init() {
+  [ -z "$__ush_task_dir" ] || return 0
+  __ush_task_dir=$(
+    umask 077
+    CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
+    __ush_base=$(pwd -P)
+    __ush_n=0
+    while [ "$__ush_n" -lt 1000 ]; do
+      __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
+      if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
+      __ush_n=$((__ush_n + 1))
+    done
+    printf '%s\n' 'ush: cannot create private task directory' >&2
+    exit 1
+  )
+}
+
 __ush_task_slot() {
   while :; do
     __ush_task_seq=$((__ush_task_seq + 1))
@@ -136,7 +141,7 @@ __ush_end_scope() {
 }
 __ush_finish() {
   __ush_join "$1"
-  rm -rf "$__ush_task_dir"
+  [ -z "$__ush_task_dir" ] || rm -rf "$__ush_task_dir"
   exit "$__ush_exit"
 }
 trap '__ush_finish "$?"' 0
@@ -185,6 +190,8 @@ ush_fn_worker() {
 __ush_at 5 'print "main"'
 printf '%s\n' 'main'
 __ush_at 6 'let task = async worker "worker"'
+__ush_task_init
+__ush_at 6 'let task = async worker "worker"'
 __ush_task_slot
 __ush_task_0__result=$__ush_slot/result
 : > "${__ush_task_0__result}"
@@ -199,9 +206,9 @@ ush_fn___ush_task_block_1() {
   prefix='work'
   __ush_at 9 'prefix + "bench"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" > "$__ush_return_path"
+    printf '%s' "${prefix}"'bench' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${prefix}" 'bench')" >&4
+    printf '%s' "${prefix}"'bench' >&4
   fi
   return 0
 }
@@ -406,7 +413,7 @@ ush_fn_pick() {
 }
 
 __ush_at 10 'print $ pick true'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_pick 'true' 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
 __ush_at 12 'for item in 0..3 {'
 __ush_for_index_1=0
@@ -418,7 +425,9 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
 done
 __ush_at 16 'let items = [3, 4]'
 items__len='2'
+# shellcheck disable=SC2034
 items__0=3
+# shellcheck disable=SC2034
 items__1=4
 __ush_at 17 'for item in items {'
 __ush_match_2__len="${items__len}"
@@ -430,6 +439,7 @@ while [ "$__ush_copy_index_3" -lt "${items__len}" ]; do
 done
 __ush_for_list_index_5=0
 while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
+  __ush_for_value_6=''
   eval "__ush_for_value_6=\"\${__ush_match_2__${__ush_for_list_index_5}}\""
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
@@ -438,7 +448,9 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
 done
 __ush_at 21 'let pair = (5, 6)'
 pair__len='2'
+# shellcheck disable=SC2034
 pair__0=5
+# shellcheck disable=SC2034
 pair__1=6
 __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
@@ -470,13 +482,16 @@ while :; do
 done
 __ush_at 42 'let maybe = Option::Some(7)'
 maybe__tag='Option::Some'
+# shellcheck disable=SC2034
 maybe__0=7
 __ush_at 43 'if let Option::Some(it) = maybe && it == 7 {'
 if {
+{
 it="${maybe__0-}"
 [ "${maybe__tag}" = 'Option::Some' ]
 } && {
 [ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+}
 }; then
   __ush_at 44 'print it'
   printf '%s\n' $((it))
@@ -582,9 +597,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 12 'message + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -595,9 +610,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 16 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }
@@ -605,25 +620,26 @@ ush_fn_wrap() {
 __ush_at 19 'let wrapped = Envelope::Wrap(Response::Ok("done"))'
 wrapped__tag='Envelope::Wrap'
 wrapped__0__tag='Response::Ok'
+# shellcheck disable=SC2034
 wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
 if [ "${wrapped__tag}" = 'Envelope::Wrap' ] && [ "${wrapped__0__tag}" = 'Response::Ok' ]; then
   message="${wrapped__0__0-}"
   __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
 elif :; then
   __ush_at 22 '_ => print "fallback"'
   printf '%s\n' 'fallback'
 fi
 __ush_at 25 'let value = greet "hello" 2'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)" || exit "$?"
 value="${__ush_value_1}"
 __ush_at 26 'print value'
 printf '%s\n' "${value}"
 __ush_at 27 'print $ wrap (greet "team" 3)'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)"
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)" || exit "$?"
+__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_3}"
 ```
 
@@ -837,9 +853,9 @@ ush_fn_greet() {
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" > "$__ush_return_path"
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' 'hi ' "${__ush_fn_greet_arg_0}")" >&4
+    printf '%s' 'hi '"${__ush_fn_greet_arg_0}" >&4
   fi
   return 0
 }
@@ -855,7 +871,7 @@ ush_fn_bin() {
   # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
   __ush_at 20 'print $ greet name'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)" || return "$?"
   printf '%s\n' "${__ush_value_0}"
   __ush_at 21 'print count'
   printf '%s\n' $((__ush_fn_bin_arg_1))
@@ -930,19 +946,24 @@ __ush_report() {
 
 __ush_jobs=''
 __ush_task_seq=0
-__ush_task_dir=$(
-  umask 077
-  CDPATH= cd -P "${TMPDIR:-/tmp}" || exit 1
-  __ush_base=$(pwd -P)
-  __ush_n=0
-  while [ "$__ush_n" -lt 1000 ]; do
-    __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
-    if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
-    __ush_n=$((__ush_n + 1))
-  done
-  printf '%s\n' 'ush: cannot create private task directory' >&2
-  exit 1
-)
+__ush_task_dir=''
+__ush_task_init() {
+  [ -z "$__ush_task_dir" ] || return 0
+  __ush_task_dir=$(
+    umask 077
+    CDPATH='' cd -P "${TMPDIR:-/tmp}" || exit 1
+    __ush_base=$(pwd -P)
+    __ush_n=0
+    while [ "$__ush_n" -lt 1000 ]; do
+      __ush_dir=$__ush_base/ush-tasks.$$.$__ush_n
+      if mkdir "$__ush_dir" 2>/dev/null; then printf '%s' "$__ush_dir"; exit 0; fi
+      __ush_n=$((__ush_n + 1))
+    done
+    printf '%s\n' 'ush: cannot create private task directory' >&2
+    exit 1
+  )
+}
+
 __ush_task_slot() {
   while :; do
     __ush_task_seq=$((__ush_task_seq + 1))
@@ -995,7 +1016,7 @@ __ush_end_scope() {
 }
 __ush_finish() {
   __ush_join "$1"
-  rm -rf "$__ush_task_dir"
+  [ -z "$__ush_task_dir" ] || rm -rf "$__ush_task_dir"
   exit "$__ush_exit"
 }
 trap '__ush_finish "$?"' 0
@@ -1043,9 +1064,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }
@@ -1072,7 +1093,7 @@ false
   } || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 20 'wrap(outer()?)'
   __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_outer 4>&1 >&3)" || return "$?"
-  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_1}" 4>&1 >&3)"
+  __ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_1}" 4>&1 >&3)" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_value_2}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -1111,8 +1132,10 @@ ush_fn_awaited() {
 }
 
 __ush_at 29 'print $ wrap $ awaited ()'
-__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)"
-__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_4}" 4>&1 >&3)"
+__ush_task_init
+__ush_at 29 'print $ wrap $ awaited ()'
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_awaited 4>&1 >&3)" || exit "$?"
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_4}" 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_5}"
 ```
 
@@ -1328,19 +1351,19 @@ ush_fn_std__path__join() {
 }
 
 __ush_at 4 'let source_root = from_source "."'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')" || exit "$?"
 source_root="${__ush_value_0}"
 __ush_at 5 'let payload = source_root.join("payload.txt")'
 __ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${source_root}" 'payload.txt')
 payload="${__ush_value_1}"
 __ush_at 6 'let cwd_file = from_cwd "notes.txt"'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')" || exit "$?"
 cwd_file="${__ush_value_2}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
 __ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url="$(printf '%s' 'file://' "${__ush_value_3}")"
+url='file://'"${__ush_value_3}"
 __ush_at 8 'let copy = tmpfile()'
-__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
 copy="${__ush_value_4}"
 __ush_at 10 'print payload'
 printf '%s\n' "${payload}"
@@ -1348,7 +1371,7 @@ __ush_at 11 'print $ cwd_file.resolve()'
 __ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${cwd_file}")
 printf '%s\n' "${__ush_value_5}"
 __ush_at 12 'print $ get url'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 13 'download url copy'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${url}" "${copy}" )
@@ -1407,6 +1430,8 @@ path.remove()
 # Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
+__ush_lf='
+'
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
 __ush_source_path='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
 __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
@@ -1616,13 +1641,11 @@ ush_fn_std__string__replace() {
 }
 
 __ush_at 7 'let page = """'
-page='<div>
-  hello
-</div>'
+page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
 __ush_at 13 'env_set "USH_STD_IMPORT" "ready"'
 ush_fn_std__env__set 'USH_STD_IMPORT' 'ready'
 __ush_at 14 'let path = tmpfile()'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
 path="${__ush_value_0}"
 __ush_at 15 'path.write_text("alpha")'
 __ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${path}" 'alpha')
@@ -1649,31 +1672,32 @@ __ush_at 28 'print $ page.ends_with("</div>")'
 __ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
 printf '%s\n' "${__ush_value_4}"
 __ush_at 29 'print $ get_or "USH_STD_IMPORT" "fallback"'
-__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')"
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')" || exit "$?"
 printf '%s\n' "${__ush_value_5}"
 __ush_at 30 'print $ join "/tmp/" "/ush"'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 31 'print $ replace "hello world" "world" "ush"'
-__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')"
+__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')" || exit "$?"
 printf '%s\n' "${__ush_value_7}"
 __ush_at 32 'print $ starts_with "ush" "u"'
-__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')"
+__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')" || exit "$?"
 printf '%s\n' "${__ush_value_8}"
 __ush_at 33 'print $ capture "printf '"'"'%s\n'"'"' hello"'
-__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s\n'"'"' hello')"
+__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s'"${__ush_lf}"''"'"' hello')" || exit "$?"
 printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
-__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')"
+__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')" || exit "$?"
 printf '%s\n' $((__ush_value_10))
 __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
-__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)"
+__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"
 __ush_at 36 'print $ path.read_text()'
 __ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
 printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
-printf '%s\n' from-shell
+printf '%s
+' from-shell
 __ush_at 38 'path.remove()'
 __ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")
 ```
@@ -1799,7 +1823,7 @@ ush_fn_run() {
   __ush_at 14 'trace();'
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_trace ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 15 'choose true'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_choose 'true' 4>&1 >&3)" || return "$?"
   if [ -n "${__ush_return_path:-}" ]; then
     printf '%s' "${__ush_value_0}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
@@ -1809,7 +1833,7 @@ ush_fn_run() {
 }
 
 __ush_at 18 'print $ run ()'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_run 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"
 ```
 
@@ -1938,7 +1962,9 @@ ush_fn_std__read_cell() {
 
 __ush_at 22 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 23 'print user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
@@ -1946,9 +1972,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" >&4
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" >&4
 fi
 return 0
 }
@@ -1960,9 +1986,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" >&4
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" >&4
 fi
 return 0
 }
@@ -1976,9 +2002,9 @@ __ush_prefix_12='id'
 __ush_method_13() {
 __ush_at 18 'prefix + ":" + self.name'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" > "$__ush_return_path"
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" >&4
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" >&4
 fi
 return 0
 }
@@ -2081,9 +2107,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -2092,20 +2118,22 @@ __ush_at 10 'alias ll = "ls -la"'
 alias ll='ls -la'
 __ush_at 12 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 13 'print $ greet count: 3 name: "ush"'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'ush' 3 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_0}"
 __ush_at 14 'print $ greet name: "mini"'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'mini' 2 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_1}"
 __ush_at 15 'match user {'
 if [ "${user__tag}" = 'User::User' ]; then
   name="${user__name-}"
   age="${user__age-}"
   __ush_at 16 'User { name, age } => print name + ":" + age'
-  printf '%s\n' "$(printf '%s' "${name}" ':' "${age}")"
+  printf '%s\n' "${name}"':'"${age}"
 elif :; then
   __ush_at 17 '_ => print "fallback"'
   printf '%s\n' 'fallback'

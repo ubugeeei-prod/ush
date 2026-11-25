@@ -42,6 +42,9 @@ pub(super) fn encode(ty: &Type, prefix: &str) -> String {
 
 pub(crate) fn decode(ty: &Type, prefix: &str, word: &str, out: &mut OutputBuffer) {
     if flat(ty) {
+        if !prefix.contains('$') {
+            out.push_str(&format!("{prefix}__len=0\n"));
+        }
         out.push_str(&format!("ush_fn_std__unpack {prefix} {word}\n"));
     } else {
         out.push_str(&format!(

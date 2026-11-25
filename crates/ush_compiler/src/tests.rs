@@ -1,5 +1,44 @@
 use super::UshCompiler;
 
+#[cfg(feature = "std")]
+#[test]
+fn repository_scripts_are_native_ush() {
+    use std::{fs, path::Path};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let mut sources = vec![root.join("install.ush")];
+    sources.extend(
+        fs::read_dir(root.join("scripts"))
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| path.extension().is_some_and(|ext| ext == "ush")),
+    );
+    for path in sources {
+        let source = fs::read_to_string(&path).unwrap();
+        let ast = format!("{:?}", crate::parse::parse_program(&source).unwrap());
+        for opaque in ["Shell(", "TryShell(", "ShellCapture("] {
+            assert!(
+                !ast.contains(opaque),
+                "{} contains {opaque}",
+                path.display()
+            );
+        }
+        for opaque in [
+            "std::command::capture",
+            "std::command::run",
+            "std::command::status",
+        ] {
+            assert!(
+                !source.contains(opaque),
+                "{} evaluates shell text",
+                path.display()
+            );
+        }
+        UshCompiler
+            .compile_source(&source)
+            .unwrap_or_else(|error| panic!("{}: {error:#}", path.display()));
+    }
+}
+
 #[test]
 fn compiles_basic_program() {
     let compiler = UshCompiler;
@@ -30,7 +69,7 @@ fn concat_is_shell_quoted() {
         )
         .expect("compile");
 
-    assert!(output.contains("\"$(printf '%s' \"${greeting}\" ' world')\""));
+    assert!(output.contains("\"${greeting}\"' world'"));
 }
 
 #[test]

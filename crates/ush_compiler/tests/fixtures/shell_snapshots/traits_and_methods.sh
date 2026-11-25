@@ -90,7 +90,9 @@ ush_fn_std__read_cell() {
 
 __ush_at 22 'let user = User { name: "ush", age: 7 }'
 user__tag='User::User'
+# shellcheck disable=SC2034
 user__name='ush'
+# shellcheck disable=SC2034
 user__age=7
 __ush_at 23 'print user'
 __ush_cells="$(__ush_walk_record_4_User ush_fn_std__write_cell user)"
@@ -98,9 +100,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_0
 __ush_method_1() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_0__name}" ':' "${__ush_match_0__age}")" >&4
+  printf '%s' "${__ush_match_0__name}"':'"${__ush_match_0__age}" >&4
 fi
 return 0
 }
@@ -112,9 +114,9 @@ __ush_walk_record_4_User ush_fn_std__read_cell __ush_match_5
 __ush_method_6() {
 __ush_at 12 'self.name + ":" + self.age'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" > "$__ush_return_path"
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_match_5__name}" ':' "${__ush_match_5__age}")" >&4
+  printf '%s' "${__ush_match_5__name}"':'"${__ush_match_5__age}" >&4
 fi
 return 0
 }
@@ -128,9 +130,9 @@ __ush_prefix_12='id'
 __ush_method_13() {
 __ush_at 18 'prefix + ":" + self.name'
 if [ -n "${__ush_return_path:-}" ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" > "$__ush_return_path"
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" > "$__ush_return_path"
 elif [ "${__ush_capture_return:-0}" = '1' ]; then
-  printf '%s' "$(printf '%s' "${__ush_prefix_12}" ':' "${__ush_match_11__name}")" >&4
+  printf '%s' "${__ush_prefix_12}"':'"${__ush_match_11__name}" >&4
 fi
 return 0
 }

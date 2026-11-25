@@ -80,7 +80,7 @@ pub(super) fn compile_condition(
                 parts.push(plan.script);
             }
             Ok(ConditionPlan {
-                script: parts.join(" && "),
+                script: format!("{{\n{}\n}}", parts.join(" && ")),
                 env: current_env,
                 binds,
             })
@@ -94,11 +94,14 @@ pub(super) fn compile_condition(
                 bail!("pattern bindings are only supported in `&&` conditions");
             }
             Ok(ConditionPlan {
-                script: plans
-                    .iter()
-                    .map(|plan| plan.script.clone())
-                    .collect::<Vec<_>>()
-                    .join(" || "),
+                script: format!(
+                    "{{\n{}\n}}",
+                    plans
+                        .iter()
+                        .map(|plan| plan.script.clone())
+                        .collect::<Vec<_>>()
+                        .join(" || ")
+                ),
                 env: env.clone(),
                 binds: false,
             })

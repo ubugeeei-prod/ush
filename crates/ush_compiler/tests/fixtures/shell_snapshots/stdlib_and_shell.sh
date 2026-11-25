@@ -5,6 +5,8 @@
 # Source map: embedded __ush_at markers; ush explain SOURCE LINE
 set -eu
 
+__ush_lf='
+'
 __ush_source_dir='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots'
 __ush_source_path='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
 __ush_origin='$WORKSPACE/crates/ush_compiler/tests/fixtures/shell_snapshots/stdlib_and_shell.ush'
@@ -214,13 +216,11 @@ ush_fn_std__string__replace() {
 }
 
 __ush_at 7 'let page = """'
-page='<div>
-  hello
-</div>'
+page='<div>'"${__ush_lf}"'  hello'"${__ush_lf}"'</div>'
 __ush_at 13 'env_set "USH_STD_IMPORT" "ready"'
 ush_fn_std__env__set 'USH_STD_IMPORT' 'ready'
 __ush_at 14 'let path = tmpfile()'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
 path="${__ush_value_0}"
 __ush_at 15 'path.write_text("alpha")'
 __ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__write_text "${path}" 'alpha')
@@ -247,30 +247,31 @@ __ush_at 28 'print $ page.ends_with("</div>")'
 __ush_value_4=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__ends_with "${page}" '</div>')
 printf '%s\n' "${__ush_value_4}"
 __ush_at 29 'print $ get_or "USH_STD_IMPORT" "fallback"'
-__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')"
+__ush_value_5="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'USH_STD_IMPORT' 'fallback')" || exit "$?"
 printf '%s\n' "${__ush_value_5}"
 __ush_at 30 'print $ join "/tmp/" "/ush"'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join '/tmp/' '/ush')" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 31 'print $ replace "hello world" "world" "ush"'
-__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')"
+__ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__replace 'hello world' 'world' 'ush')" || exit "$?"
 printf '%s\n' "${__ush_value_7}"
 __ush_at 32 'print $ starts_with "ush" "u"'
-__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')"
+__ush_value_8="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__starts_with 'ush' 'u')" || exit "$?"
 printf '%s\n' "${__ush_value_8}"
 __ush_at 33 'print $ capture "printf '"'"'%s\n'"'"' hello"'
-__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s\n'"'"' hello')"
+__ush_value_9="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__capture 'printf '"'"'%s'"${__ush_lf}"''"'"' hello')" || exit "$?"
 printf '%s\n' "${__ush_value_9}"
 __ush_at 34 'print $ status "exit 7"'
-__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')"
+__ush_value_10="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__command__status 'exit 7')" || exit "$?"
 printf '%s\n' $((__ush_value_10))
 __ush_at 35 'print $ regex_capture("release-v0.3.4", "v([0-9.]+)", 1)'
-__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)"
+__ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__regex__capture 'release-v0.3.4' 'v([0-9.]+)' 1)" || exit "$?"
 printf '%s\n' "${__ush_value_11}"
 __ush_at 36 'print $ path.read_text()'
 __ush_value_12=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${path}")
 printf '%s\n' "${__ush_value_12}"
 __ush_at 37 'shell "printf '"'"'%s\n'"'"' from-shell"'
-printf '%s\n' from-shell
+printf '%s
+' from-shell
 __ush_at 38 'path.remove()'
 __ush_value_13=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__remove "${path}")

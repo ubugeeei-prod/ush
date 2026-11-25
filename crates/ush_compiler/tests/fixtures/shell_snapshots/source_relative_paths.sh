@@ -190,19 +190,19 @@ ush_fn_std__path__join() {
 }
 
 __ush_at 4 'let source_root = from_source "."'
-__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')"
+__ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_source '.')" || exit "$?"
 source_root="${__ush_value_0}"
 __ush_at 5 'let payload = source_root.join("payload.txt")'
 __ush_value_1=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__join "${source_root}" 'payload.txt')
 payload="${__ush_value_1}"
 __ush_at 6 'let cwd_file = from_cwd "notes.txt"'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__from_cwd 'notes.txt')" || exit "$?"
 cwd_file="${__ush_value_2}"
 __ush_at 7 'let url = "file://" + payload.resolve()'
 __ush_value_3=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${payload}")
-url="$(printf '%s' 'file://' "${__ush_value_3}")"
+url='file://'"${__ush_value_3}"
 __ush_at 8 'let copy = tmpfile()'
-__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)"
+__ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__tmpfile)" || exit "$?"
 copy="${__ush_value_4}"
 __ush_at 10 'print payload'
 printf '%s\n' "${payload}"
@@ -210,7 +210,7 @@ __ush_at 11 'print $ cwd_file.resolve()'
 __ush_value_5=$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path__resolve "${cwd_file}")
 printf '%s\n' "${__ush_value_5}"
 __ush_at 12 'print $ get url'
-__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")"
+__ush_value_6="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__http__get "${url}")" || exit "$?"
 printf '%s\n' "${__ush_value_6}"
 __ush_at 13 'download url copy'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__http__download "${url}" "${copy}" )

@@ -19,7 +19,31 @@ pub(crate) fn parse_string_literal(source: &str) -> Option<String> {
     if bytes.last().copied()? != quote {
         return None;
     }
-    Some(source[1..source.len() - 1].into())
+    let body = &source[1..source.len() - 1];
+    if quote == b'\'' {
+        return Some(body.into());
+    }
+    let mut out = String::default();
+    let mut chars = body.chars();
+    while let Some(ch) = chars.next() {
+        if ch != '\\' {
+            out.push(ch);
+            continue;
+        }
+        match chars.next() {
+            Some('n') => out.push('\n'),
+            Some('r') => out.push('\r'),
+            Some('t') => out.push('\t'),
+            Some('"') => out.push('"'),
+            Some('\\') => out.push('\\'),
+            Some(other) => {
+                out.push('\\');
+                out.push(other);
+            }
+            None => out.push('\\'),
+        }
+    }
+    Some(out)
 }
 
 fn parse_multiline_string(body: &str) -> String {

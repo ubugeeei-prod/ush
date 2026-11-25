@@ -64,9 +64,9 @@ ush_fn_greet() {
   count="${__ush_fn_greet_arg_1}"
   __ush_at 12 'message + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" > "$__ush_return_path"
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' "${__ush_fn_greet_arg_0}" ':' "${__ush_fn_greet_arg_1}")" >&4
+    printf '%s' "${__ush_fn_greet_arg_0}"':'"${__ush_fn_greet_arg_1}" >&4
   fi
   return 0
 }
@@ -77,9 +77,9 @@ ush_fn_wrap() {
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 16 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" > "$__ush_return_path"
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' "$(printf '%s' '<' "${__ush_fn_wrap_arg_0}" '>')" >&4
+    printf '%s' '<'"${__ush_fn_wrap_arg_0}"'>' >&4
   fi
   return 0
 }
@@ -87,23 +87,24 @@ ush_fn_wrap() {
 __ush_at 19 'let wrapped = Envelope::Wrap(Response::Ok("done"))'
 wrapped__tag='Envelope::Wrap'
 wrapped__0__tag='Response::Ok'
+# shellcheck disable=SC2034
 wrapped__0__0='done'
 __ush_at 20 'match wrapped {'
 if [ "${wrapped__tag}" = 'Envelope::Wrap' ] && [ "${wrapped__0__tag}" = 'Response::Ok' ]; then
   message="${wrapped__0__0-}"
   __ush_at 21 'Envelope::Wrap(Response::Ok(message)) => print $ wrap message'
-  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)"
+  __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${message}" 4>&1 >&3)" || exit "$?"
   printf '%s\n' "${__ush_value_0}"
 elif :; then
   __ush_at 22 '_ => print "fallback"'
   printf '%s\n' 'fallback'
 fi
 __ush_at 25 'let value = greet "hello" 2'
-__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)"
+__ush_value_1="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'hello' 2 4>&1 >&3)" || exit "$?"
 value="${__ush_value_1}"
 __ush_at 26 'print value'
 printf '%s\n' "${value}"
 __ush_at 27 'print $ wrap (greet "team" 3)'
-__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)"
-__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)"
+__ush_value_2="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet 'team' 3 4>&1 >&3)" || exit "$?"
+__ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_wrap "${__ush_value_2}" 4>&1 >&3)" || exit "$?"
 printf '%s\n' "${__ush_value_3}"

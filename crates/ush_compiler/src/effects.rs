@@ -114,7 +114,19 @@ pub(crate) fn analyze_function_errors(
 
 fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
     let mut errors = registry.get(name).cloned().unwrap_or_default();
-    if crate::commands::lookup(name).is_some() || name.starts_with("std::test::") {
+    if crate::commands::lookup(name).is_some()
+        || name.starts_with("std::test::")
+        || matches!(
+            name,
+            "std::process::exec"
+                | "std::process::arg"
+                | "std::process::exit"
+                | "std::process::output"
+                | "std::string::split"
+                | "std::string::to_int"
+                | "std::fs::temp_dir"
+        )
+    {
         errors.insert(ErrorType::Unknown);
     }
     errors
