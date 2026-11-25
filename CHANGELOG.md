@@ -33,12 +33,35 @@ project adheres to [Semantic Versioning][semver].
   script.
 - `ush effects` reports pipeline, `export` and `cd` effects; the formatter
   indents continued pipelines; editors highlight `export`.
+- Local modules: `mod "lib/gh.ush" as gh` imports a `.ush` file relative to
+  the importing file (the alias defaults to the file stem). Reach its items as
+  `gh::run` or with `use gh::{run, Status}` / `use gh::*`. Module files hold
+  only declarations, and their items are private unless marked `pub`.
+- Modules are inlined into one standalone script. Each module's items get a
+  namespace of their own, so two modules may define the same function, and
+  only reachable functions are emitted. Import cycles are diagnosed with the
+  chain of files.
+- Diagnostics and runtime failures inside a module name the module file and
+  line; `ush check`, `ush test`, `ush effects`, `ush explain`, sourcemaps and
+  the language server follow a script's modules. Sourcemap entries for module
+  lines carry `source_file`.
+- `ush compile --check` compiles in memory and exits 1 with a short diff when
+  a committed output is stale or missing.
+- `ush compile` accepts several inputs with `--out-dir DIR`, writing each as
+  `DIR/<stem>.sh` beside its input; unchanged outputs are not rewritten.
 
 ### Changed
 
 - The last line of a function declared `-> ()` is always a statement. A
   trailing command or pipeline there streams instead of failing to compile as
   a returned String.
+- `--checked-in` output may be written to any directory. The header names the
+  source relative to the output, and source-relative lookups
+  (`std::path::from_source`, `__ush_source_dir`, `extern` paths) resolve from
+  the source's location. Adjacent outputs are unchanged.
+- Compile errors in function bodies and effect checks now name the line of
+  the offending statement.
+- `extern` libraries declared in a module are sourced from beside the module.
 
 ## [0.15.0] — 2026-11-25
 

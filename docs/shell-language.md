@@ -133,6 +133,89 @@ so `git "log" | head` runs git; a call to a function that returns a String
 feeds that String, which has lost its trailing newlines like every returned
 value.
 
+## Local modules
+
+Split a program into files with `mod`. A module is a `.ush` file of
+declarations; its `pub` items are what other files may use.
+
+```ush
+# lib/github.ush
+use std::string::{trim}
+
+pub enum Level {
+  Notice,
+  Warning,
+}
+
+pub fn annotate(level: Level, message: String) {
+  match level {
+    Level::Notice => print "::notice::" + clean message,
+    Level::Warning => print "::warning::" + clean message,
+  }
+}
+
+fn clean(message: String) -> String {
+  trim message
+}
+```
+
+```ush
+# ci/check.ush
+mod "../lib/github.ush" as gh
+use gh::{Level, annotate}
+
+annotate Level::Notice "starting"
+gh::annotate Level::Warning "  disk is nearly full  "
+```
+
+- `mod "path.ush" as name` imports the file at `path`, relative to the
+  importing file. Without `as`, the module is named after the file stem,
+  which must then be an identifier (`mod "lib/github.ush"` is `github`).
+  Paths must be relative and end in `.ush`; `std`, `self` and `super` are
+  reserved names.
+- `name::item` calls or references a function (`gh::annotate`,
+  `&gh::annotate`). Types, enums, traits and effects are brought in with
+  `use`: `use gh::{Level}`, `use gh::{annotate as note}` or `use gh::*`.
+  A record type can also be built as `gh::Entry { … }`.
+- A module may contain only declarations: `fn`, `type`, `enum`, `trait`,
+  `impl`, `effect`, `alias`, `use`, `mod`, `extern` and `test` blocks.
+  Any other top-level statement is an error naming the module line.
+- In a module, items are private unless marked `pub` (`pub fn`, `pub type`,
+  `pub enum`, `pub trait`, `pub effect`, `pub extern … { … }`). Using a
+  private item from another file is an error. Root scripts may use `pub`
+  but need not.
+- A module's own declarations win over its imports, and explicit imports
+  win over `use m::*`; a name two wildcards provide is ambiguous. A local
+  type that is also imported by name is an error.
+- Each file is resolved against its own imports: a module's
+  `use std::string::*` does not leak into the script that imports it.
+- `extern` libraries and `std::path::from_source` inside a module resolve
+  beside the module file. `std::path::source_root` and
+  `__ush_source_dir` stay the root script's directory.
+
+The compiler inlines modules into one standalone script; nothing is
+sourced at run time. Each module's items move into a namespace named after
+the alias that first imported it (`gh::annotate` becomes
+`ush_fn_gh__annotate`), so two modules may both define `annotate`. A
+module imported from several places is linked once; a later module that
+wants a taken namespace gets a numbered one (`util_2`). Only functions the
+program can reach are emitted, like standard-library helpers. Import
+cycles are rejected with the chain of files.
+
+Compile errors inside a module name the importing line of the root script,
+then the module file and its line:
+
+```text
+ush: failed to compile ci/check.ush: line 1: lib/github.ush: line 17: unknown variable: mesage
+```
+
+At run time, a failing statement inside a module reports the module file
+(`lib/github.ush:12: command failed (exit 1)`), and `ush explain` and
+sourcemaps map generated lines back to it. `ush check`, `ush test`,
+`ush effects` and the language server read a script's modules from disk;
+source compiled from memory cannot import modules. Run `ush check` on a
+module file to check all of its items, including ones no script uses yet.
+
 ## Generics, kinds, and function values
 
 ```ush
@@ -276,9 +359,10 @@ print answer
 
 The optional module name provides qualified calls such as `helpers::greet`;
 without `as`, declarations use their direct names. `extern` sources the
-library at runtime. Relative paths are resolved beside the `.ush` source,
-or beside the generated script for `--checked-in` output. Distribute the
-`.sh` file alongside relocatable artifacts. In-memory compilation resolves
+library at runtime. Relative paths are resolved beside the `.ush` source
+that declares the `extern`, including from a `--checked-in` script compiled
+to another directory. Distribute the `.sh` file alongside relocatable
+artifacts. In-memory compilation resolves
 relative libraries from the working directory.
 
 Signatures declare scalar arguments and `String`, `Int`, `Bool`, or `()`

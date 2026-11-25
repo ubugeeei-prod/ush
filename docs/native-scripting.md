@@ -60,3 +60,72 @@ The benchmark and dependency checks require `jq` for JSON and floating-point
 calculations. Their orchestration, iteration and pass/fail policy stay in ush.
 The installer requires ordinary POSIX tools and a SHA-256 tool, with curl or wget
 for HTTPS downloads. The tynix development shell supplies repository check tools.
+
+## Checked-in output
+
+`--checked-in` emits a deterministic script meant to be committed, so
+contributors without ush can run it. The output may live in any directory:
+
+```sh
+ush compile ci/check.ush --checked-in -o ci/compiled/check.sh
+```
+
+The header names the source relative to the output and the command that
+regenerates it; both paths are relative to the output's directory:
+
+```sh
+#!/bin/sh
+# Generated from '../check.ush' by ush.
+# DO NOT EDIT MANUALLY.
+# Source: ../check.ush
+# Source map: embedded __ush_at markers; ush explain SOURCE LINE
+# Regenerate with: ush compile '../check.ush' --checked-in -o 'check.sh'
+```
+
+At run time the script finds its own directory, follows the recorded
+relative path, and from there resolves `std::path::from_source`,
+`std::path::source_root`, `__ush_source_dir` and relative `extern`
+libraries, so `ci/compiled/check.sh` behaves as if it sat next to
+`ci/check.ush`, from any working directory. [Local modules](shell-language.md#local-modules)
+are inlined, so the output needs no other `.ush` file; `extern` `.sh`
+libraries must still be shipped at their relative paths. The generated
+text contains no absolute paths, and compiling the same source to the same
+relative location gives the same bytes on every machine.
+
+### Many scripts and freshness checks
+
+One process can compile any number of scripts. `--out-dir DIR` writes each
+input as `DIR/<stem>.sh`; a relative `DIR` is taken from each input's own
+directory, so scripts spread across many directories each get a `compiled/`
+beside them:
+
+```sh
+ush compile --checked-in --out-dir compiled ci/*/scripts/*.ush
+```
+
+Each output is byte-identical to what a single `-o` command writes, and an
+unchanged file is not rewritten. `--check` compiles in memory and compares
+instead of writing; use it as a CI gate:
+
+```sh
+ush compile --check --checked-in --out-dir compiled ci/*/scripts/*.ush
+```
+
+It exits 0 when every output matches. Otherwise it exits 1, reports each
+missing or stale file with its first differing lines, and asks for the same
+command without `--check`:
+
+```text
+ush: ci/lint/scripts/compiled/run.sh is stale
+--- ci/lint/scripts/compiled/run.sh (committed)
++++ ci/lint/scripts/compiled/run.sh (generated)
+@@ -88,1 +88,1 @@
+-  __ush_at 4 'print "lint"'
++  __ush_at 4 'print "lint: ok"'
+ush: 1 output(s) out of date; run the same command without --check
+```
+
+Every input is processed even when one fails to compile, so a single run
+lists all broken or stale scripts. Several inputs require `--out-dir`;
+`-o` and `--sourcemap` take one input.
+
