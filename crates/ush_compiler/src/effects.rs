@@ -115,6 +115,7 @@ pub(crate) fn analyze_function_errors(
 fn callee_errors(name: &str, registry: &FunctionErrorRegistry) -> ErrorSet {
     let mut errors = registry.get(name).cloned().unwrap_or_default();
     if crate::commands::lookup(name).is_some()
+        || crate::codegen::host_required(name)
         || name.starts_with("std::test::")
         || name.starts_with("std::os::")
         || name.starts_with("std::io::read_")

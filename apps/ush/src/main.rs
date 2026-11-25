@@ -3,6 +3,7 @@ mod editor;
 mod effects_report;
 mod explain;
 mod panic_hook;
+mod runtime;
 mod script_docs;
 mod sourcemap_json;
 mod test_runner;
@@ -34,6 +35,10 @@ fn main() {
 
 fn run() -> Result<()> {
     panic_hook::install();
+
+    if runtime::handle()? {
+        return Ok(());
+    }
 
     if script_docs::handle_raw_doc_request()? {
         return Ok(());

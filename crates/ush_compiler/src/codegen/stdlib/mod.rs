@@ -1,6 +1,7 @@
 mod env;
 mod external;
 mod fs;
+mod host;
 mod http;
 mod path;
 mod portable;
@@ -9,6 +10,7 @@ mod regex;
 mod scripting;
 mod string;
 pub(crate) mod testing;
+pub(crate) use host::required as host_required;
 
 use anyhow::{Result, bail};
 
@@ -25,6 +27,7 @@ pub(crate) fn register_builtins(functions: &mut FunctionRegistry) -> Result<()> 
         .chain(fs::definitions())
         .chain(external::definitions())
         .chain(http::definitions())
+        .chain(host::definitions())
         .chain(path::definitions())
         .chain(portable::definitions())
         .chain(process::definitions())
@@ -50,7 +53,9 @@ pub(super) fn emit_builtins(out: &mut OutputBuffer, body: &str) {
         "\n",
         include_str!("scripting_runtime.sh"),
         "\n",
-        include_str!("portable_runtime.sh")
+        include_str!("portable_runtime.sh"),
+        "\n",
+        include_str!("host_runtime.sh")
     );
     let definitions: crate::types::Map<_, _> = runtime
         .split_terminator("\n}\n")

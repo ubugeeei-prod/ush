@@ -10,6 +10,19 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.15.0] — 2026-11-25
+
+### Added
+
+- 47 optional-runtime std APIs: Unicode text, byte codecs and binary files,
+  filesystem metadata and atomic writes, clocks, OS randomness, DNS, system
+  queries and checked integer arithmetic.
+- A versioned argv-only runtime protocol and actionable missing-runtime errors.
+  Portable programs still run with POSIX sh alone.
+- Cross-shell runtime tests covering binary NUL, Unicode, integer overflow,
+  invalid inputs, metadata, atomic replacement and UTC formatting across TZs.
+
+
 ## [0.14.0] — 2026-11-25
 
 ### Added
@@ -474,7 +487,7 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.15.0...HEAD
 [0.11.1]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.1
 [0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
 [0.10.0]: https://github.com/ubugeeei/ush/releases/tag/v0.10.0
