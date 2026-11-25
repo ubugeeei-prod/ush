@@ -13,6 +13,8 @@
 //! private to that crate. A richer hover (inferred type, doc-comment
 //! lookup) can be layered on later without changing the LSP wiring.
 
+use std::path::Path;
+
 use crate::semantic::semantic_tokens;
 use crate::token::{SemanticToken, SemanticTokenKind};
 
@@ -102,6 +104,12 @@ const KEYWORDS: &[(&str, &str)] = &[
 ];
 
 pub fn hover(source: &str, line: u32, character: u32) -> Option<Hover> {
+    hover_at(source, None, line, character)
+}
+
+/// A hover for `source` as the contents of `path`, whose modules are
+/// read from disk. A function's hover adds its row, written or inferred.
+pub fn hover_at(source: &str, path: Option<&Path>, line: u32, character: u32) -> Option<Hover> {
     let tokens = semantic_tokens(source);
     let cursor = tokens
         .iter()
@@ -124,7 +132,11 @@ pub fn hover(source: &str, line: u32, character: u32) -> Option<Hover> {
             Some(SemanticTokenKind::Type) => "type",
             _ => "variable",
         };
-        format!("**{role}** `{text}`\n\n```ush\n{snippet}\n```")
+        let row = (role == "function")
+            .then(|| crate::rows::function_row(source, path, &text))
+            .flatten()
+            .unwrap_or_default();
+        format!("**{role}** `{text}`\n\n```ush\n{snippet}\n```{row}")
     } else {
         match cursor.kind {
             SemanticTokenKind::Keyword => keyword_hover(&text)?,
