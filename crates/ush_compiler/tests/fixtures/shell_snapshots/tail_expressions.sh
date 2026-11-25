@@ -69,6 +69,7 @@ ush_fn_trace() {
 
 ush_fn_choose() {
   __ush_fn_choose_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_choose_arg_0}"
   __ush_at 7 'match flag {'
   if [ "${__ush_fn_choose_arg_0}" = "true" ]; then

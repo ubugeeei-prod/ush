@@ -57,6 +57,7 @@ exec 3>&1
 
 ush_fn_pick() {
   __ush_fn_pick_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_pick_arg_0}"
   __ush_at 2 'if flag {'
   if {

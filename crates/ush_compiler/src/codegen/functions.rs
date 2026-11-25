@@ -125,6 +125,8 @@ pub(crate) fn compile_function(
             push_output(out, &unpack, 2);
         } else {
             push_line(out, &format!("{storage}=\"${{{}}}\"", index + 1), 2);
+            // Preserve source names for embedded shell, even when typed code uses only storage.
+            push_line(out, "# shellcheck disable=SC2034", 2);
             push_line(out, &format!("{}=\"${{{storage}}}\"", param.name), 2);
         }
         env.insert(

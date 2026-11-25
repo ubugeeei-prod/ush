@@ -138,6 +138,7 @@ ush_fn_fail() {
 
 ush_fn_wrap() {
   __ush_fn_wrap_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then

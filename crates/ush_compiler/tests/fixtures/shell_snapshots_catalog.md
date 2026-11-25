@@ -171,6 +171,7 @@ esac
 
 ush_fn_worker() {
   __ush_fn_worker_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_worker_arg_0}"
   __ush_at 2 'message'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -380,6 +381,7 @@ exec 3>&1
 
 ush_fn_pick() {
   __ush_fn_pick_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_pick_arg_0}"
   __ush_at 2 'if flag {'
   if {
@@ -573,8 +575,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 12 'message + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -587,6 +591,7 @@ ush_fn_greet() {
 
 ush_fn_wrap() {
   __ush_fn_wrap_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 16 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -828,6 +833,7 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -840,10 +846,13 @@ ush_fn_greet() {
 
 ush_fn_bin() {
   __ush_fn_bin_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_bin_arg_0}"
   __ush_fn_bin_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_bin_arg_1}"
   __ush_fn_bin_arg_2="${3}"
+  # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
   __ush_at 20 'print $ greet name'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)"
@@ -1030,6 +1039,7 @@ ush_fn_fail() {
 
 ush_fn_wrap() {
   __ush_fn_wrap_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_wrap_arg_0}"
   __ush_at 10 '"<" + message + ">"'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -1763,6 +1773,7 @@ ush_fn_trace() {
 
 ush_fn_choose() {
   __ush_fn_choose_arg_0="${1}"
+  # shellcheck disable=SC2034
   flag="${__ush_fn_choose_arg_0}"
   __ush_at 7 'match flag {'
   if [ "${__ush_fn_choose_arg_0}" = "true" ]; then
@@ -2063,8 +2074,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then

@@ -68,3 +68,14 @@ fn comprehension_iterable_reads_the_outer_binding_before_shadowing() {
     assert_eq!(definition(source, 1, 10).unwrap().start, 17);
     assert_eq!(references(source, 0, 4).len(), 3);
 }
+
+#[test]
+fn outline_includes_named_tests_and_extern_modules() {
+    let symbols = ush_tooling::document_symbols(
+        "extern \"helpers.sh\" as helpers {\n}\ntest \"日本語😀\" {\n}\ntest {\n}\n",
+    );
+    assert_eq!(
+        symbols.iter().map(|s| s.name.as_str()).collect::<Vec<_>>(),
+        ["helpers", "test 日本語😀", "test"]
+    );
+}

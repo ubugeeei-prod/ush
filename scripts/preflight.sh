@@ -61,6 +61,7 @@ esac
 
 ush_fn_banner() {
   __ush_fn_banner_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_banner_arg_0}"
   __ush_at 4 'print "=== " + name + " ==="'
   printf '%s\n' "$(printf '%s' '=== ' "${__ush_fn_banner_arg_0}" ' ===')"

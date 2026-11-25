@@ -30,6 +30,7 @@ pub enum SymbolKind {
     Type,
     Variable,
     Alias,
+    Module,
 }
 
 /// Walk the source line-by-line, looking for top-level declarations.
@@ -62,6 +63,36 @@ pub fn document_symbols(source: &str) -> Vec<DocumentSymbol> {
 }
 
 fn declaration_on_line(line_no: u32, line: &str) -> Option<DocumentSymbol> {
+    if let Some(rest) = line.strip_prefix("test")
+        && (rest.starts_with(char::is_whitespace) || rest.starts_with('{'))
+    {
+        let label = rest.trim().trim_end_matches('{').trim();
+        return Some(DocumentSymbol {
+            name: if label.is_empty() {
+                "test".into()
+            } else {
+                format!("test {}", label.trim_matches('"'))
+            },
+            kind: SymbolKind::Function,
+            line: line_no,
+            start: 0,
+            length: (line.trim_end_matches('{').trim_end().len()) as u32,
+        });
+    }
+    if let Some(rest) = line.strip_prefix("extern ") {
+        let (name, start) = if let Some((prefix, alias)) = line.rsplit_once(" as ") {
+            (alias.trim_end_matches('{').trim(), prefix.len() + 4)
+        } else {
+            (rest.trim_end_matches('{').trim(), 7)
+        };
+        return Some(DocumentSymbol {
+            name: name.trim_matches('"').into(),
+            kind: SymbolKind::Module,
+            line: line_no,
+            start: start as u32,
+            length: name.len() as u32,
+        });
+    }
     let (keyword, kind) = if line.starts_with("fn ") {
         ("fn", SymbolKind::Function)
     } else if line.starts_with("enum ") {

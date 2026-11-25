@@ -175,6 +175,7 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_at 13 '"hi " + name'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -187,10 +188,13 @@ ush_fn_greet() {
 
 ush_fn_bin() {
   __ush_fn_bin_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_bin_arg_0}"
   __ush_fn_bin_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_bin_arg_1}"
   __ush_fn_bin_arg_2="${3}"
+  # shellcheck disable=SC2034
   verbose="${__ush_fn_bin_arg_2}"
   __ush_at 20 'print $ greet name'
   __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_greet "${__ush_fn_bin_arg_0}" 4>&1 >&3)"

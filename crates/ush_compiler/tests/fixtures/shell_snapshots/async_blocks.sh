@@ -129,6 +129,7 @@ esac
 
 ush_fn_worker() {
   __ush_fn_worker_arg_0="${1}"
+  # shellcheck disable=SC2034
   message="${__ush_fn_worker_arg_0}"
   __ush_at 2 'message'
   if [ -n "${__ush_return_path:-}" ]; then

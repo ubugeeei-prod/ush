@@ -137,11 +137,7 @@ pub fn rename_workspace_edit(
     locations: &[Reference],
     new_name: &str,
 ) -> WorkspaceEdit {
-    // lsp_types' `Uri` has interior mutability (cached parse state)
-    // so `HashMap<Uri, _>` trips clippy's `mutable_key_type`. The
-    // entry is correctness-safe here — we never mutate the `Uri`
-    // after inserting — but suppress the lint at the use-site
-    // rather than reaching into a different container.
+    // Uri caches parse state internally; keys are never mutated after insertion.
     #[allow(clippy::mutable_key_type)]
     let mut changes: HashMap<Uri, Vec<TextEdit>> = HashMap::new();
     let edits: Vec<TextEdit> = locations
@@ -232,6 +228,7 @@ pub fn document_symbols(source: &str, items: &[UshDocumentSymbol]) -> Vec<LspDoc
                     UshSymbolKind::Type => LspSymbolKind::STRUCT,
                     UshSymbolKind::Variable => LspSymbolKind::VARIABLE,
                     UshSymbolKind::Alias => LspSymbolKind::CONSTANT,
+                    UshSymbolKind::Module => LspSymbolKind::MODULE,
                 },
                 tags: None,
                 deprecated: None,

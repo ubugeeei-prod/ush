@@ -57,8 +57,10 @@ exec 3>&1
 
 ush_fn_greet() {
   __ush_fn_greet_arg_0="${1}"
+  # shellcheck disable=SC2034
   name="${__ush_fn_greet_arg_0}"
   __ush_fn_greet_arg_1="${2}"
+  # shellcheck disable=SC2034
   count="${__ush_fn_greet_arg_1}"
   __ush_at 2 'name + ":" + count'
   if [ -n "${__ush_return_path:-}" ]; then
