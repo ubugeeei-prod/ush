@@ -10,14 +10,12 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
-### Changed
+## [0.16.0] — 2026-11-25
+
+### Breaking changes
 
 - **Breaking:** whitespace call arguments now use CLI-style bare words for strings and `$name` / `${name}` for variable references. Bare words support interpolation such as `--output=$path`; values are never split, globbed, or evaluated as shell source. Use `(expression)` for computed arguments and nested calls. Existing expression contexts and parenthesized calls retain their semantics.
 - Update native scripts, examples, fixtures, diagnostics, formatter, syntax highlighting, and LSP navigation/completion for the new argument rules.
-
-### Added
-
-- Native `echo` writes any number of Display values separated by spaces and a final newline, without imports. It works in pipelines and captures; generated `printf` keeps `-n`, backslashes, percent signs, and empty arguments literal across shells. `print` remains available for compatibility.
 
 - Make `let` bindings immutable by default; introduce `let mut` and bare `name = value` reassignment, with compile-time mutability and type diagnostics. Shadowing keeps outer bindings intact, including function locals and loop variables.
 - Support mutable aggregates, asynchronous task handles, and awaited results; evaluate structured assignment before replacing its destination.
@@ -25,6 +23,8 @@ project adheres to [Semantic Versioning][semver].
 - Migrate the native ush installer and repository scripts to explicit mutation.
 
 ### Added
+
+- Native `echo` writes any number of Display values separated by spaces and a final newline, without imports. It works in pipelines and captures; generated `printf` keeps `-n`, backslashes, percent signs, and empty arguments literal across shells. `print` remains available for compatibility.
 
 - A command, a pipeline or a function returning `()` used as an `if` or
   `while` condition tests whether it succeeded. Its output streams, a
