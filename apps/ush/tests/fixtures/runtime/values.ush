@@ -1,0 +1,52 @@
+use std::test::{assert, assert_eq}
+use std::string::{length, byte_length, chars, reverse, to_lower, to_upper, slice, find}
+use std::bytes::{from_hex, from_text, to_hex, to_text, encode_base64, decode_base64}
+
+assert std::runtime::available
+assert_eq (length "a😀é") 3
+assert_eq (byte_length "a😀é") 7
+assert_eq (chars "a😀\n") ["a", "😀", "\n"]
+assert_eq (reverse "a😀é") "é😀a"
+assert_eq (to_lower "ÄBC") "äbc"
+assert_eq (to_upper "Straße") "STRASSE"
+assert_eq (slice "a😀é" 1 3) "😀é"
+assert_eq (slice "a😀é" 2 2) ""
+assert_eq (find "a😀é" "é") 2
+assert_eq (find "a😀é" "missing") -1
+assert_eq (find "abc" "") 0
+assert_eq (from_hex "0001FEff") [0, 1, 254, 255]
+assert_eq (to_hex [0, 1, 254, 255]) "0001feff"
+assert_eq (to_text (from_text "日本語")) "日本語"
+assert_eq (from_text "a\n") [97, 10]
+assert_eq (encode_base64 [0, 1, 254, 255]) "AAH+/w=="
+assert_eq (decode_base64 "AAH+/w==") [0, 1, 254, 255]
+assert_eq (to_hex (decode_base64 "")) ""
+assert_eq (std::int::add 2 3) 5
+assert_eq (std::int::sub 2 3) -1
+assert_eq (std::int::mul -2 3) -6
+assert_eq (std::int::div -7 3) -2
+assert_eq (std::int::rem -7 3) -1
+assert_eq (std::int::pow 2 10) 1024
+assert (std::time::unix_seconds > 0)
+assert (std::time::unix_millis > std::time::unix_seconds)
+assert_eq (std::time::format_utc 0 "%Y-%m-%d %H:%M:%S %z") "1970-01-01 00:00:00 +0000"
+assert_eq (std::time::format_utc -1 "%Y-%m-%d %H:%M:%S") "1969-12-31 23:59:59"
+assert_eq (std::time::format_utc 0 "") ""
+assert_eq (std::time::format_utc 0 "%Z %%z") "UTC %z"
+std::time::sleep_millis 0
+assert_eq (length (std::random::hex 16)) 32
+assert_eq (length (to_hex (std::random::bytes 16))) 32
+assert_eq (std::random::hex 0) ""
+assert_eq (std::random::int -7 -7) -7
+assert_eq (std::random::int -9223372036854775808 -9223372036854775808) -9223372036854775808
+assert_eq (std::random::int 9223372036854775807 9223372036854775807) 9223372036854775807
+let random = std::random::int -10 10
+assert (random >= -10)
+assert (random <= 10)
+assert_eq (std::net::resolve "127.0.0.1") ["127.0.0.1"]
+assert_eq std::os::euid std::os::uid
+assert_eq std::os::egid std::os::gid
+assert (std::os::page_size > 0)
+assert (std::os::cpu_count > 0)
+assert (length (std::os::error_message 2) > 0)
+print "passed"
