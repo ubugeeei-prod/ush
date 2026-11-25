@@ -340,7 +340,7 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   # shellcheck disable=SC2034
   __ush_match_12__2="${generated}"
   __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'cmp' "$(ush_fn_std__pack __ush_match_12)")" || exit "$?"
-  [ "$(if [ $((__ush_value_14)) -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_value_14}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 21 'fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)'
     __ush_status=1

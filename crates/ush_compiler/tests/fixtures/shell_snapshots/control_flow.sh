@@ -90,7 +90,7 @@ while [ "${__ush_for_index_1}" -lt 3 ]; do
   item="${__ush_for_index_1}"
   __ush_for_index_1=$((__ush_for_index_1 + 1))
   __ush_at 13 'print item'
-  printf '%s\n' $((item))
+  printf '%s\n' "${item}"
 done
 __ush_at 16 'let items = [3, 4]'
 items__len='2'
@@ -113,7 +113,7 @@ while [ "${__ush_for_list_index_5}" -lt "${__ush_match_2__len}" ]; do
   item="${__ush_for_value_6}"
   __ush_for_list_index_5=$((__ush_for_list_index_5 + 1))
   __ush_at 18 'print item'
-  printf '%s\n' $((item))
+  printf '%s\n' "${item}"
 done
 __ush_at 21 'let pair = (5, 6)'
 pair__len='2'
@@ -125,20 +125,20 @@ __ush_at 22 'for item in pair {'
 __ush_match_7__len='2'
 __ush_match_7__0="${pair__0}"
 __ush_match_7__1="${pair__1}"
-item=$((__ush_match_7__0))
+item="${__ush_match_7__0}"
 __ush_at 23 'print item'
-printf '%s\n' $((item))
-item=$((__ush_match_7__1))
+printf '%s\n' "${item}"
+item="${__ush_match_7__1}"
 __ush_at 23 'print item'
-printf '%s\n' $((item))
+printf '%s\n' "${item}"
 __ush_at 26 'let count = 0'
 count=0
 __ush_at 27 'while count < 2 {'
 while {
-[ "$(if [ $((count)) -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${count}" -lt 2 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; do
   __ush_at 28 'print count'
-  printf '%s\n' $((count))
+  printf '%s\n' "${count}"
   __ush_at 29 'let count = count + 1'
   count=$((count + 1))
 done
@@ -159,9 +159,9 @@ if {
 it="${maybe__0-}"
 [ "${maybe__tag}" = 'Option::Some' ]
 } && {
-[ "$(if [ $((it)) -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${it}" -eq 7 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }
 }; then
   __ush_at 44 'print it'
-  printf '%s\n' $((it))
+  printf '%s\n' "${it}"
 fi

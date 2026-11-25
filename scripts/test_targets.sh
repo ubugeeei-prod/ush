@@ -593,7 +593,7 @@ while [ "${__ush_for_list_index_14}" -lt "${__ush_match_11__len}" ]; do
   # shellcheck disable=SC2034
   __ush_match_50__0="${work}"'/script'
   __ush_value_52="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${target}" "$(ush_fn_std__pack __ush_match_50)" "${work}"'/out' "${work}"'/err')" || exit "$?"
-  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq $((__ush_value_52)) 1 )
+  ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_52}" 1 )
   __ush_at 48 'assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")'
   __ush_value_53="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${work}"'/err')" || exit "$?"
   __ush_value_54="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__contains "${__ush_value_53}" 'error_streams.ush:6: Problem::MissingConfig')" || exit "$?"

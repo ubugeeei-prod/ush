@@ -194,7 +194,7 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   __ush_at 14 'if to_int count > 250 {'
   if {
   __ush_value_11="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__to_int "${count}")" || exit "$?"
-  [ "$(if [ $((__ush_value_11)) -gt 250 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${__ush_value_11}" -gt 250 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 15 'eprint (file + " has " + count + " lines (limit: 250)")'
     ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${file}"' has '"${count}"' lines (limit: 250)' )
@@ -203,4 +203,4 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   fi
 done
 __ush_at 19 'exit failed'
-ush_fn_std__process__exit $((failed))
+ush_fn_std__process__exit "${failed}"

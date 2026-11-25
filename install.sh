@@ -974,7 +974,7 @@ ush_fn_expected_checksum() {
       }; then
         __ush_at 177 'if field == 0 {'
         if {
-        [ "$(if [ $((field)) -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+        [ "$(if [ "${field}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }; then
           __ush_at 178 'let digest = word'
           digest="${word}"
@@ -982,7 +982,7 @@ ush_fn_expected_checksum() {
           __ush_at 180 'else if field == 1 && trim_prefix word "*" == asset {'
           if {
           {
-          [ "$(if [ $((field)) -eq 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+          [ "$(if [ "${field}" -eq 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
           } && {
           __ush_value_60="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${word}" '*')" || return "$?"
           [ "$(if [ "${__ush_value_60}" = "${__ush_fn_expected_checksum_arg_1}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]

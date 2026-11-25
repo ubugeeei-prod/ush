@@ -389,16 +389,16 @@ ush_fn_build() {
   # shellcheck disable=SC2034
   __ush_match_1__7='--message-format=json'
   __ush_value_3="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect 'cargo' "$(ush_fn_std__pack __ush_match_1)" "${log}" "${error_log}")" || return "$?"
-  code=$((__ush_value_3))
+  code="${__ush_value_3}"
   __ush_at 24 'eprint (read_text error_log)'
   __ush_value_4="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${error_log}")" || return "$?"
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_4}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 25 'if code != 0 {'
   if {
-  [ "$(if [ $((code)) -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 26 'fail code ("benchmark build failed in " + checkout)'
-    __ush_status=$((code))
+    __ush_status="${code}"
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
     __ush_report "$__ush_status" 'benchmark build failed in '"${__ush_fn_build_arg_0}"
     return "$__ush_status"
@@ -520,10 +520,10 @@ ush_fn_measure() {
   # shellcheck disable=SC2034
   __ush_match_18__11='10000'
   __ush_value_20="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__redirect "${__ush_fn_measure_arg_0}" "$(ush_fn_std__pack __ush_match_18)" "${run}"'/out' "${run}"'/err')" || return "$?"
-  code=$((__ush_value_20))
+  code="${__ush_value_20}"
   __ush_at 50 'if code != 0 {'
   if {
-  [ "$(if [ $((code)) -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${code}" -ne 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 51 'eprint (read_text (run + "/out"))'
     __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/out')" || return "$?"
@@ -532,7 +532,7 @@ ush_fn_measure() {
     __ush_value_22="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__fs__read_text "${run}"'/err')" || return "$?"
     ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__io__eprint "${__ush_value_22}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
     __ush_at 53 'fail code ("benchmark failed: " + name)'
-    __ush_status=$((code))
+    __ush_status="${code}"
     if [ "$__ush_status" -lt 1 ] || [ "$__ush_status" -gt 255 ]; then __ush_status=1; fi
     __ush_report "$__ush_status" 'benchmark failed: '"${__ush_fn_measure_arg_1}"
     return "$__ush_status"
@@ -559,7 +559,7 @@ ush_fn_measure() {
   done
   __ush_at 61 'if count != 1 {'
   if {
-  [ "$(if [ $((count)) -ne 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+  [ "$(if [ "${count}" -ne 1 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
   }; then
     __ush_at 62 'fail 1 ("expected one Criterion estimate for " + name)'
     __ush_status=1
@@ -734,7 +734,7 @@ ush_fn_compare() {
         # shellcheck disable=SC2034
         __ush_match_53__4='$ratio > 1.25'
         __ush_value_55="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__process__status 'jq' "$(ush_fn_std__pack __ush_match_53)")" || return "$?"
-        [ "$(if [ $((__ush_value_55)) -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+        [ "$(if [ "${__ush_value_55}" -eq 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
         }; then
           __ush_at 96 'let failures = failures + 1'
           failures=$((failures + 1))
@@ -763,9 +763,9 @@ ush_fn_compare() {
   done
   __ush_at 109 'failures'
   if [ -n "${__ush_return_path:-}" ]; then
-    printf '%s' $((failures)) > "$__ush_return_path"
+    printf '%s' "${failures}" > "$__ush_return_path"
   elif [ "${__ush_capture_return:-0}" = '1' ]; then
-    printf '%s' $((failures)) >&4
+    printf '%s' "${failures}" >&4
   fi
   return 0
 }
@@ -845,7 +845,7 @@ while [ "${__ush_for_list_index_67}" -lt "${__ush_match_66__len}" ]; do
 done
 __ush_at 136 'if failures > 0 {'
 if {
-[ "$(if [ $((failures)) -gt 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
+[ "$(if [ "${failures}" -gt 0 ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
 }; then
   __ush_at 137 'fail 1 ("Performance regression above 25% in " + failures + " benchmark(s)")'
   __ush_status=1
