@@ -73,7 +73,17 @@ pub(crate) fn compile_control_statement(
         StatementKind::Scoped { scope, body } => {
             super::scoped::compile_scoped(scope, body, env, &mut ctx, out)
         }
-        StatementKind::AllowFail(command) => super::process::compile_allow_fail(
+        StatementKind::AllowFail(command) => super::command_statements::compile_allow_fail(
+            command,
+            env,
+            ctx.functions,
+            ctx.impls,
+            ctx.enums,
+            ctx.state,
+            ctx.inside_function,
+            out,
+        ),
+        StatementKind::Detach(command) => super::command_statements::compile_detach(
             command,
             env,
             ctx.functions,

@@ -42,7 +42,7 @@ fn statement(s: &Statement) -> bool {
         S::Scoped { scope, body } => {
             matches!(scope, crate::ast::Scope::Cd(_)) || scope.exprs().any(expr) || references(body)
         }
-        S::AllowFail(e) => expr(e),
+        S::AllowFail(e) | S::Detach(e) => expr(e),
         S::Defer(body) => references(body),
         _ => false,
     }

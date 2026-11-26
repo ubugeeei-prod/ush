@@ -128,7 +128,7 @@ impl Checker {
                 }
                 self.branch(body, &mut locals.clone(), returns, false)?;
             }
-            S::AllowFail(e) => {
+            S::AllowFail(e) | S::Detach(e) => {
                 self.expr(e, locals)?;
             }
             S::Defer(body) => self.branch(body, &mut locals.clone(), &mut Vec::new(), false)?,

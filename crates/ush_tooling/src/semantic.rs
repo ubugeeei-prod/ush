@@ -60,6 +60,7 @@ const KEYWORDS: &[&str] = &[
     "defer",
     "status_of",
     "allow_fail",
+    "detach",
     "glob",
 ];
 

@@ -9,7 +9,7 @@ test('new language syntax, Unicode and multiline strings', async () => {
   await onig.loadWASM(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
   const registry = new tm.Registry({onigLib: Promise.resolve({createOnigScanner: p => new onig.OnigScanner(p), createOnigString: s => new onig.OnigString(s)}), loadGrammar: async () => tm.parseRawGrammar(fs.readFileSync(path.join(__dirname, '../syntaxes/ush.tmLanguage.json'),'utf8'),'ush.json')});
   const grammar = await registry.loadGrammar('source.ush');
-  for (const keyword of ['extern','test','use','for','in','if','as','mut','defer','spawn','status_of','allow_fail']) {
+  for (const keyword of ['extern','test','use','for','in','if','as','mut','defer','spawn','status_of','allow_fail','detach']) {
     const result = grammar.tokenizeLine(`${keyword} x`, tm.INITIAL);
     assert(result.tokens[0].scopes.includes('keyword.control.ush'), keyword);
   }

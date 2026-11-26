@@ -111,7 +111,7 @@ pub(crate) fn walk_statement<V: VisitMut + ?Sized>(v: &mut V, statement: &mut St
             scope.exprs_mut().for_each(|e| v.expr(e));
             walk_block(v, body);
         }
-        S::AllowFail(e) => v.expr(e),
+        S::AllowFail(e) | S::Detach(e) => v.expr(e),
         S::Defer(body) => walk_block(v, body),
         S::Use(_)
         | S::Module(_)

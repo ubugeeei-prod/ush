@@ -33,6 +33,10 @@ const KEYWORDS: &[(&str, &str)] = &[
         "allow_fail",
         "run a command and carry on whatever its status",
     ),
+    (
+        "detach",
+        "start a command in the background and never wait for it",
+    ),
     ("async", "spawn an asynchronous task"),
     ("await", "await an async task"),
     ("break", "exit the current loop"),

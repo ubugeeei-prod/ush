@@ -171,3 +171,33 @@ job.kill(9)"#,
         assert!(error.contains(message), "{body}\n=> {error}");
     }
 }
+
+#[test]
+fn a_detached_command_outlives_the_program_without_holding_its_output() {
+    // The harness reads the program's stdout and stderr to their end, as a
+    // CI step does: a detached command holding them would keep it waiting.
+    each_run(
+        "detach sh \"-c\" \"sleep 1; echo late > late.txt\" |& to_file late.log\ndetach sh \"-c\" \"echo stray; exit 3\"\nprint \"started\"\n",
+        |shell, dir, (status, stdout, stderr)| {
+            assert_eq!(status, 0, "{shell}: {stderr}");
+            assert_eq!(stdout, "started\n", "{shell}");
+            assert!(!dir.join("late.txt").exists(), "{shell}: waited for it");
+            let late = (0..100).find_map(|_| {
+                thread::sleep(Duration::from_millis(50));
+                fs::read_to_string(dir.join("late.txt")).ok()
+            });
+            assert_eq!(late.as_deref(), Some("late\n"), "{shell}");
+        },
+    );
+}
+
+#[test]
+fn detach_runs_a_command() {
+    let error = UshCompiler::default()
+        .compile_source(&format!("{PRELUDE}detach 1\n"))
+        .expect_err("detach needs a command");
+    assert!(
+        format!("{error:#}").contains("`detach` runs a command"),
+        "{error:#}"
+    );
+}
