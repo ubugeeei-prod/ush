@@ -230,3 +230,17 @@ pub(crate) fn split_pipeline(source: &str) -> crate::types::HeapVec<(&str, bool)
     pieces.push((&source[start..], false));
     pieces
 }
+
+/// The inside of `( … )` when one pair of parentheses wraps all of `source`.
+pub(crate) fn parenthesized(source: &str) -> Option<&str> {
+    let inner = source.strip_prefix('(')?.strip_suffix(')')?;
+    let mut state = ScanState::default();
+    let mut index = 0usize;
+    while index < inner.len() {
+        if !state.in_string() && state.paren == 0 && inner.as_bytes()[index] == b')' {
+            return None;
+        }
+        index = advance(inner, index, &mut state);
+    }
+    Some(inner)
+}

@@ -16,6 +16,15 @@ project adheres to [Semantic Versioning][semver].
   element as an argument of its own, as `"${files[@]}"` does in bash. An empty
   List adds no words, and predicates such as `test` still take single words.
 
+### Fixed
+
+- `let b = (x != "y") && (x == "y")` compiled silently to the wrong value:
+  the outer parentheses were removed as if one pair wrapped the whole
+  expression, which left `x` compared with the text `y") && (x == "y`. Only a
+  pair that encloses the whole expression is removed now. `&&` and `||` in a
+  value, which ush does not support, are a compile error that names the
+  conditions of `if` and `while` as their place.
+
 ## [0.19.0] — 2026-11-26
 
 ### Added

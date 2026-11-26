@@ -5,8 +5,7 @@ use anyhow::{Result, anyhow, bail};
 use super::super::{
     ast::{Expr, NamedFieldType, Pattern, Type},
     util::{
-        is_identifier, parse_paren_body, parse_string_literal, parse_type, split_top_level,
-        strip_top_level_suffix,
+        is_identifier, parse_string_literal, parse_type, split_top_level, strip_top_level_suffix,
     },
 };
 use crate::types::HeapVec as Vec;
@@ -168,11 +167,8 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
             parse_expr,
         )?));
     }
-    if trimmed.starts_with('(')
-        && trimmed.ends_with(')')
-        && let Some((head, inner)) = parse_paren_body(trimmed)
-        && head.is_empty()
-    {
+    // Only a pair that wraps the whole expression: `(a) && (b)` is not `a) && (b`.
+    if let Some(inner) = crate::scan::parenthesized(trimmed) {
         let items = split_top_level(inner, ',');
         if items.len() > 1 {
             return Ok(Expr::Tuple(
@@ -214,6 +210,12 @@ pub(super) fn parse_atom(source: &str) -> Result<Expr> {
     }
     if super::path::looks_like_call_target(trimmed) {
         return Ok(Expr::Var(trimmed.into()));
+    }
+    if ["&&", "||"]
+        .iter()
+        .any(|token| super::condition::split_logic(trimmed, token).is_some())
+    {
+        bail!("`&&` and `||` join the conditions of `if` and `while`, not values: {trimmed}");
     }
     bail!("unsupported expression: {trimmed}")
 }

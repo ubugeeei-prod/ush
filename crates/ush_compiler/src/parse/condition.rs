@@ -4,7 +4,7 @@ use super::{
     super::ast::Condition,
     expr::{parse_expr, parse_pattern},
 };
-use crate::scan::{ScanState, advance};
+use crate::scan::{ScanState, advance, parenthesized};
 use crate::types::HeapVec as Vec;
 use alloc::boxed::Box;
 
@@ -76,21 +76,7 @@ fn parse_optional_binding(source: &str) -> Result<Option<Condition>> {
     }))
 }
 
-/// The inside of `( … )` when one pair of parentheses wraps all of `source`.
-fn parenthesized(source: &str) -> Option<&str> {
-    let inner = source.strip_prefix('(')?.strip_suffix(')')?;
-    let mut state = ScanState::default();
-    let mut index = 0usize;
-    while index < inner.len() {
-        if !state.in_string() && state.paren == 0 && inner.as_bytes()[index] == b')' {
-            return None;
-        }
-        index = advance(inner, index, &mut state);
-    }
-    Some(inner)
-}
-
-fn split_logic<'a>(source: &'a str, token: &str) -> Option<Vec<&'a str>> {
+pub(super) fn split_logic<'a>(source: &'a str, token: &str) -> Option<Vec<&'a str>> {
     let mut parts = Vec::new();
     let mut start = 0usize;
     let mut state = ScanState::default();
