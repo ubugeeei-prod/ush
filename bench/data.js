@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795690397224,
+  "lastUpdate": 1795692011473,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -7073,6 +7073,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 85293,
             "range": "± 828",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d8826b5397ee11cd02c0d500a52db1a98868d781",
+          "message": "feat(lang): let a list or grouping span lines until its bracket closes (#196)\n\nA long list had to stay on one line, and `ush format` flattened lists\nwritten over several. A line with an open `[` or `(` now goes on to the\nnext line until the bracket closes. Comments and blank lines inside are\nskipped, and a comma may follow the last item. `open_brackets` scans\noutside strings and comments, so a `[` in text opens nothing. The\nformatter indents the lines inside one level per open bracket, leaves\ntheir text as written, and puts the closing line with its opening one.\nA line that ends with `{` opens a block and never continues this way,\nso a typo such as `fn f( {` keeps its own error instead of swallowing\nthe block.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T20:13:27+09:00",
+          "tree_id": "4c12b3ab8d116ec00643237678209244d6c26849",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/d8826b5397ee11cd02c0d500a52db1a98868d781"
+        },
+        "date": 1795692010904,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1108,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 182,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 422,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 908,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 891,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 826,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 167,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 102,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 180,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 89,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 985,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 858,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 833,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 573,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1996,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 15,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1466,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 8018,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 26068,
+            "range": "± 617",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 8697884,
+            "range": "± 132846",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 139350,
+            "range": "± 1566",
             "unit": "ns/iter"
           }
         ]
