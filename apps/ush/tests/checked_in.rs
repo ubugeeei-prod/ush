@@ -149,3 +149,41 @@ fn relative_script_filename_does_not_require_current_directory_on_path() {
     );
     assert_eq!(output.stdout, b"local\n");
 }
+
+#[test]
+fn a_source_relative_path_reaches_external_programs_as_a_real_path() {
+    let directory = tempdir().expect("tempdir");
+    let root = fs::canonicalize(directory.path()).unwrap();
+    let source = root.join("scripts/read.ush");
+    let output = root.join("scripts/compiled/read.sh");
+    fs::create_dir_all(output.parent().unwrap()).unwrap();
+    fs::write(root.join("scripts/payload.txt"), "payload\n").unwrap();
+    fs::write(
+        &source,
+        "use $bin::{cat}\nuse std::path::from_source\nlet payload = from_source payload.txt\ncat $payload\nprint $payload\n",
+    )
+    .unwrap();
+    let result = compile(&source, &output);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+
+    let other = tempdir().unwrap();
+    let run = Command::new("sh")
+        .arg(&output)
+        .current_dir(other.path())
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let payload = root.join("scripts/payload.txt");
+    assert_eq!(
+        String::from_utf8_lossy(&run.stdout),
+        format!("payload\n{}\n", payload.display())
+    );
+}

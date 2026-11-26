@@ -178,7 +178,12 @@ ush_fn_std__path__from_cwd() {
 }
 
 ush_fn_std__path__from_source() {
-  __ush_std_path_make_ref source "$1"
+  # The source's directory is fixed for the whole run, so a source-relative path
+  # is resolved at once: the value is a real path wherever it is passed.
+  case "$1" in
+    ''|/*) printf '%s' "$1" ;;
+    *) __ush_std_path_resolve "__ush_pathref__:source:$1" ;;
+  esac
 }
 
 ush_fn_std__path__resolve() {
