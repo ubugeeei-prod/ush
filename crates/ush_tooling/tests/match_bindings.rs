@@ -1,4 +1,6 @@
-use ush_tooling::{SemanticTokenKind, definition, format_source, semantic_tokens};
+use ush_tooling::{
+    SemanticTokenKind, definition, format_source, rename_locations, semantic_tokens,
+};
 
 #[test]
 fn match_result_is_visible_only_after_its_initializer() {
@@ -28,4 +30,25 @@ fn formatter_and_highlighter_recognize_match_initializers() {
     assert!(tokens.iter().any(|t| t.line == 0
         && t.kind == SemanticTokenKind::String
         && &formatted[t.start as usize..(t.start + t.length) as usize] == "-s"));
+}
+
+#[test]
+fn rename_distinguishes_match_results_outer_bindings_and_each_arm() {
+    let source = "let os = \"Linux\"\nlet other = \"outer\"\nlet os = match os {\n  \"Linux\" => os\n  other => other\n}\necho $os $other\n";
+    let positions = |line, column, name| {
+        rename_locations(source, line, column, name)
+            .unwrap()
+            .iter()
+            .map(|r| (r.line, r.start))
+            .collect::<Vec<_>>()
+    };
+    assert_eq!(positions(6, 6, "platform"), [(2, 4), (6, 6)]);
+    assert_eq!(positions(0, 4, "input"), [(0, 4), (2, 15), (3, 13)]);
+    assert_eq!(positions(4, 2, "fallback"), [(4, 2), (4, 11)]);
+    assert_eq!(positions(1, 4, "outer"), [(1, 4), (6, 10)]);
+    assert!(rename_locations(source, 0, 4, "other").is_err());
+    assert!(rename_locations(source, 4, 2, "_").is_err());
+    let arms = "let x = match \"x\" {\n  other => other\n  other => other\n}\n";
+    assert_eq!(definition(arms, 1, 12).unwrap().line, 1);
+    assert_eq!(definition(arms, 2, 12).unwrap().line, 2);
 }

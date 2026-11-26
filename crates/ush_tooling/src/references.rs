@@ -82,12 +82,17 @@ pub fn rename_locations(
     }
     let index = Index::new(source);
     // The tolerant index cannot yet prove capture safety for destructuring patterns.
-    if index.names.contains(&"match") || index.names.windows(2).any(|p| p == ["if", "let"]) {
+    if index.unsupported_patterns {
         return Err(RenameError::PatternBindings);
     }
     let Some(i) = index.at(line, character) else {
         return Ok(Vec::new());
     };
+    if new_name == "_"
+        && index.resolved[i].is_some_and(|decl| index.names.get(decl + 1) == Some(&"=>"))
+    {
+        return Err(RenameError::InvalidName);
+    }
     if index.resolved[i].is_some_and(|decl| index.external[decl]) {
         return Err(RenameError::ExternalBinding);
     }
