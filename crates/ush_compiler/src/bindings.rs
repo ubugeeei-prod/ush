@@ -158,7 +158,7 @@ fn statement(s: &Statement, scope: &mut Scope, globals: &Scope) -> Result<()> {
             }
             block(body, &mut scope.clone(), globals)?;
         }
-        S::AllowFail(e) => expr(e, scope, globals)?,
+        S::AllowFail(e) | S::Detach(e) => expr(e, scope, globals)?,
         S::Defer(body) => block(body, &mut scope.clone(), globals)?,
         S::Use(_)
         | S::Module(_)

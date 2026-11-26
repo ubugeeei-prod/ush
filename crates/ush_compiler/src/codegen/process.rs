@@ -1,7 +1,7 @@
-//! Commands used for their exit status: conditions, `status_of` and
-//! `allow_fail`. The command streams its stdout and stderr as it would as a
-//! statement; only its status is used, and a failure does not stop the
-//! script.
+//! Commands used for their exit status: conditions, `status_of`, and the
+//! operands of `allow_fail` and `detach`. The command streams its stdout and
+//! stderr as it would as a statement; only its status is used, and a failure
+//! does not stop the script.
 
 use anyhow::{Result, anyhow, bail};
 
@@ -191,34 +191,7 @@ pub(super) fn hoist_status(
 }
 
 /// `allow_fail command`: run it and carry on whatever its status.
-#[allow(clippy::too_many_arguments)]
-pub(super) fn compile_allow_fail(
-    command: &Expr,
-    env: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-    state: &mut CodegenState,
-    inside_function: bool,
-    out: &mut OutputBuffer,
-) -> Result<()> {
-    let operand =
-        operand(command, env, functions, true)?.ok_or_else(not_a_command("allow_fail"))?;
-    let test = render(
-        operand,
-        env,
-        functions,
-        impls,
-        enums,
-        state,
-        inside_function,
-        out,
-    )?;
-    out.push_str(&format!("{test} || :\n"));
-    Ok(())
-}
-
-fn not_a_command(keyword: &'static str) -> impl FnOnce() -> anyhow::Error {
+pub(super) fn not_a_command(keyword: &'static str) -> impl FnOnce() -> anyhow::Error {
     move || {
         anyhow!("`{keyword}` runs a command, a pipeline, a function returning `()` or `task.await`")
     }

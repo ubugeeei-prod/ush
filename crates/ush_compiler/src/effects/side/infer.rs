@@ -95,7 +95,9 @@ fn statement_effects(statement: &Statement, ctx: Context<'_>) -> EffectSet {
             })
         }
         StatementKind::Scoped { scope, body } => super::shell::scoped_effects(scope, body, ctx),
-        StatementKind::AllowFail(command) => super::shell::status_effects(command, ctx),
+        StatementKind::AllowFail(command) | StatementKind::Detach(command) => {
+            super::shell::status_effects(command, ctx)
+        }
         StatementKind::Defer(body) => block_effects(body, ctx),
     }
 }

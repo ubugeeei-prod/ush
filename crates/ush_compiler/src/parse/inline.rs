@@ -50,6 +50,12 @@ pub(super) fn parse_inline_body(
             StatementKind::AllowFail(parse_expr(rest)?),
         ));
     }
+    if let Some(rest) = source.strip_prefix("detach ") {
+        return Ok(Statement::new(
+            line_no,
+            StatementKind::Detach(parse_expr(rest)?),
+        ));
+    }
     if let Some(rest) = source.strip_prefix("alias ") {
         return Ok(Statement::new(line_no, parse_alias(rest)?));
     }

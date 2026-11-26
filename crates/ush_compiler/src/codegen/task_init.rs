@@ -88,7 +88,7 @@ impl Walker<'_> {
             S::Pipeline(pipeline) => pipeline.exprs().any(|e| self.expr(e)),
             S::Export(bindings) => bindings.iter().any(|b| self.expr(&b.value)),
             S::Scoped { scope, body } => scope.exprs().any(|e| self.expr(e)) || self.body(body),
-            S::AllowFail(e) => self.expr(e),
+            S::AllowFail(e) | S::Detach(e) => self.expr(e),
             S::Defer(body) => self.body(body),
             _ => false,
         }

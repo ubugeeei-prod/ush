@@ -83,7 +83,7 @@ impl Resolver<'_> {
                 kind.exprs_mut().for_each(|e| self.expr(e, scope));
                 self.block(body, &mut scope.clone());
             }
-            S::AllowFail(command) => self.expr(command, scope),
+            S::AllowFail(command) | S::Detach(command) => self.expr(command, scope),
             S::Defer(body) => self.block(body, &mut scope.clone()),
             _ => {}
         }

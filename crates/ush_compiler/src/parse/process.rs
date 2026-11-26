@@ -1,4 +1,4 @@
-//! `allow_fail command` and `defer { … }`.
+//! `allow_fail command`, `detach command` and `defer { … }`.
 
 use anyhow::{Result, bail};
 
@@ -10,7 +10,7 @@ use crate::{
     types::HeapVec as Vec,
 };
 
-/// Parse a statement that starts with `allow_fail` or `defer`.
+/// Parse a statement that starts with `allow_fail`, `detach` or `defer`.
 pub(super) fn parse(
     line_no: usize,
     trimmed: &str,
@@ -22,6 +22,12 @@ pub(super) fn parse(
     }
     if trimmed == "allow_fail" {
         bail!("`allow_fail` needs a command to run");
+    }
+    if let Some(command) = trimmed.strip_prefix("detach ") {
+        return Ok(Some(StatementKind::Detach(parse_expr(command)?)));
+    }
+    if trimmed == "detach" {
+        bail!("`detach` needs a command to run");
     }
     if trimmed == "defer {" {
         *cursor += 1;

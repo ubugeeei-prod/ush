@@ -18,6 +18,11 @@ project adheres to [Semantic Versioning][semver].
 - `std::path::script` returns the absolute path of the running script file,
   like `$0` resolved. It follows the generated script when it is copied, for
   example as a hook, where `std::path::from_source` still names the source.
+- `detach command` starts a command, pipeline or `()` function call in the
+  background and never waits for it, as `nohup cmd > log 2>&1 &` does. Its
+  status never fails the script, it reads `/dev/null`, and its output goes
+  only where its own redirections send it, so it can outlive the script
+  without keeping a CI step or `$(…)` waiting.
 
 ### Fixed
 

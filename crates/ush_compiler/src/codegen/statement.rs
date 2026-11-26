@@ -221,6 +221,7 @@ pub(crate) fn compile_statement(
             | StatementKind::Export(_)
             | StatementKind::Scoped { .. }
             | StatementKind::AllowFail(_)
+            | StatementKind::Detach(_)
             | StatementKind::Defer(_)) => {
                 return Err(anyhow!(
                     "internal codegen invariant violated: control-flow statement {kind:?} must be \

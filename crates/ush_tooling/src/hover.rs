@@ -96,6 +96,11 @@ const KEYWORDS: &[(&str, &str)] = &[
         "Run a command, streaming its output, and continue whatever its exit status.",
     ),
     (
+        "detach",
+        "Start a command in the background and never wait for it. It reads nothing and writes \
+         only where its own redirections send it, so it may outlive the script.",
+    ),
+    (
         "defer",
         "Run a statement or block when the enclosing function returns or the script exits, \
          last registered first.",

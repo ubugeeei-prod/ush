@@ -106,6 +106,7 @@ fn visit(text: &str, base: usize, ranges: &mut Vec<(usize, usize)>) {
             | "spawn"
             | "defer"
             | "allow_fail"
+            | "detach"
             | "status_of"
     ) {
         visit(text[head.len()..].trim_end_matches('{'), base, ranges);

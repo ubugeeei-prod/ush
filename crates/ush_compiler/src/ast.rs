@@ -126,6 +126,9 @@ pub(crate) enum StatementKind {
     /// `allow_fail command`: run it, streaming, and continue whatever its
     /// exit status.
     AllowFail(Expr),
+    /// `detach command`: start it in the background, apart from the
+    /// script's standard streams, and never wait for it.
+    Detach(Expr),
     /// `defer { … }`: run the block when the enclosing function returns or
     /// the script exits, last registered first.
     Defer(Vec<Statement>),

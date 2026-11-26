@@ -443,6 +443,24 @@ Pair a long-running `spawn` with `defer job.kill()`: otherwise the script
 waits for the server at exit. Handles follow the binding rules, so a
 deferred `job.kill()` stops the task the binding holds when the block runs.
 
+### Detached commands
+
+```ush
+use $bin::{nohup, vp}
+use std::io::to_file
+
+detach nohup vp run build:test |& to_file prebuild.log
+```
+
+`detach command` starts a command, a pipeline or a call to a function
+returning `()` in the background and never waits for it. The scope does not
+join it, its exit status never fails the script, and it keeps running after
+the script ends. It reads nothing, and its stdout and stderr go only where its
+own redirections send them; anything else it writes is discarded. A process
+that outlives the script must not keep the script's output open, or a reader
+such as a CI step or `$(…)` would wait for it. There is no handle: use `spawn`
+for a task to await or kill.
+
 ## Deferred cleanup
 
 ```ush

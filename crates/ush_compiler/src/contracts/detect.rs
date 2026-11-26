@@ -33,7 +33,7 @@ fn statement(s: &Statement) -> bool {
         S::Pipeline(pipeline) => pipeline.exprs().any(expr),
         S::Export(bindings) => bindings.iter().any(|b| expr(&b.value)),
         S::Scoped { scope, body } => scope.exprs().any(expr) || references(body),
-        S::AllowFail(e) => expr(e),
+        S::AllowFail(e) | S::Detach(e) => expr(e),
         S::Defer(body) => references(body),
         _ => false,
     }
