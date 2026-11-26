@@ -1,5 +1,6 @@
 //! Whitespace call arguments are shell words; expressions opt in explicitly.
 
+use alloc::string::ToString;
 use anyhow::{Result, bail};
 
 use super::expr::parse_expr;
@@ -12,12 +13,12 @@ use crate::{
 pub(super) fn parse(source: &str) -> Result<Expr> {
     let text = source.trim();
     if text.starts_with(['(', '[', '"', '\'', '&'])
-        || text.parse::<i64>().is_ok()
+        || is_integer(text)
         || matches!(text, "true" | "false")
         || super::signature::is_paren_call(text)
         || text
             .find(|c: char| c.is_ascii_alphabetic())
-            .is_some_and(|i| text[..i].parse::<i64>().is_ok() && is_identifier(&text[i..]))
+            .is_some_and(|i| is_integer(&text[..i]) && is_identifier(&text[i..]))
     {
         return parse_expr(text);
     }
@@ -28,6 +29,13 @@ pub(super) fn parse(source: &str) -> Result<Expr> {
         return interpolate(text);
     }
     Ok(Expr::String(text.into()))
+}
+
+/// An integer written the way it prints. `0755`, `-0`, `007` and `+1` stay
+/// words, so `chmod 0755` and `xargs -0` reach the program as written.
+fn is_integer(text: &str) -> bool {
+    text.parse::<i64>()
+        .is_ok_and(|number| number.to_string() == text)
 }
 
 fn interpolate(text: &str) -> Result<Expr> {

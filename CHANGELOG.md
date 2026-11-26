@@ -17,6 +17,11 @@ project adheres to [Semantic Versioning][semver].
   Such a program is also checked by the contracts pass, which still allowed
   only String and Int. It now accepts a List of them too, as code generation
   does.
+- A bare word that looks like an integer but is not written the way it
+  prints, such as `0755`, `-0`, `007` or `+1`, was passed as the normalized
+  number: `xargs -0` became `xargs 0` and `chmod 0755` became `chmod 755`.
+  Only a canonically written integer is an `Int` now; other words reach the
+  program as written.
 
 ## [0.20.0] — 2026-11-26
 

@@ -216,3 +216,23 @@ spread ["c", "d"]
         "<a>\n<b>\n[c][d]\n",
     );
 }
+
+#[test]
+fn a_number_like_word_reaches_a_program_as_written() {
+    // Only an integer written the way it prints is an Int: `xargs -0` once
+    // became `xargs 0`, and `chmod 0755` became `chmod 755`.
+    outputs(
+        r#"
+use $bin::*
+
+fn twice(n: Int) -> Int {
+  n + n
+}
+
+printf "<%s>" -0 -00 0755 007 -007 +1 42 -3 0
+printf "\n"
+echo (twice 21)
+"#,
+        "<-0><-00><0755><007><-007><+1><42><-3><0>\n42\n",
+    );
+}
