@@ -151,3 +151,33 @@ fn a_command_cannot_continue_past_the_end_of_the_file() {
         "{error:#}"
     );
 }
+
+#[test]
+fn a_list_argument_gives_each_element_its_own_word() {
+    outputs(
+        r#"
+use $bin::*
+
+let files = ["two words", "star*", ""]
+let counts = [1, 2]
+printf "<%s>\n" first $files middle $counts
+let joined = printf "%s," $files | tr a-z A-Z
+echo $joined
+if printf "%s" $files {
+  echo listed
+}
+"#,
+        "<first>\n<two words>\n<star*>\n<>\n<middle>\n<1>\n<2>\nTWO WORDS,STAR*,,\ntwo wordsstar*listed\n",
+    );
+}
+
+#[test]
+fn a_test_predicate_takes_single_words() {
+    let error = UshCompiler::default()
+        .compile_source("use $bin::*\nlet xs = [\"a\"]\nif test -n $xs {\n  echo x\n}\n")
+        .expect_err("a predicate cannot spread a list");
+    assert!(
+        format!("{error:#}").contains("`test` takes single words, not a List"),
+        "{error:#}"
+    );
+}

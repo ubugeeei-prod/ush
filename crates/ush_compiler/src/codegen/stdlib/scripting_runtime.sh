@@ -50,6 +50,41 @@ ush_fn_std__process__exec() {
   "$__ush_program" "$@"
 }
 
+ush_fn_std__run_words() {
+  # Run a program whose arguments are tagged words: `s value` is one argument,
+  # `l packed` gives every element of a List an argument of its own.
+  __ush_program=$1
+  shift
+  __ush_argv__len=0
+  while [ "$#" -gt 0 ]; do
+    case $1 in
+      s)
+        eval "__ush_argv__${__ush_argv__len}=\$2"
+        __ush_argv__len=$((__ush_argv__len + 1))
+        ;;
+      l)
+        __ush_words__len=0
+        ush_fn_std__unpack __ush_words "$2" || return "$?"
+        __ush_index=0
+        while [ "$__ush_index" -lt "$__ush_words__len" ]; do
+          eval "__ush_argv__${__ush_argv__len}=\${__ush_words__${__ush_index}}"
+          __ush_argv__len=$((__ush_argv__len + 1))
+          __ush_index=$((__ush_index + 1))
+        done
+        ;;
+    esac
+    shift 2
+  done
+  set --
+  __ush_index=0
+  while [ "$__ush_index" -lt "$__ush_argv__len" ]; do
+    eval "__ush_arg=\${__ush_argv__${__ush_index}}"
+    set -- "$@" "$__ush_arg"
+    __ush_index=$((__ush_index + 1))
+  done
+  command "$__ush_program" "$@"
+}
+
 ush_fn_std__process__output() {
   ush_fn_std__process__exec "$@"
 }

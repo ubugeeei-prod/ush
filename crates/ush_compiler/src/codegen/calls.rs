@@ -8,6 +8,7 @@ use super::{
         env::{CodegenState, EnumRegistry, Env},
     },
     call_support::{function_for_call, rendered_args},
+    command_words::{CommandWord, command_line, list_argument},
     compile_primitive_expr,
     functions::FunctionRegistry,
     infer, rendered_call_runtime,
@@ -16,7 +17,7 @@ use super::{
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
-use crate::types::OutputString as String;
+use crate::types::{HeapVec as Vec, OutputString as String};
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn compile_call(
@@ -129,28 +130,32 @@ pub(crate) fn rendered_call(
     }
     if let Some(command) = crate::commands::lookup(&call.name) {
         command.validate(call.args.len())?;
-        let mut words = if command.output == crate::commands::Output::Predicate {
-            String::from("ush_fn_std__test")
-        } else {
-            format!("command {}", command.word)
-        };
+        let predicate = command.output == crate::commands::Output::Predicate;
+        let mut words = Vec::new();
+        let mut spreads = false;
         for arg in &call.args {
             if arg.label.is_some() {
                 bail!("command arguments are positional");
             }
             let ty = infer(&arg.expr, env, functions, impls, enums)?;
-            if !(ty == Type::String || ty == Type::Int) {
-                bail!("command arguments must be String or Int, found {ty:?}");
-            }
             if command.word == "cd" && ty != Type::String {
                 bail!("cd expects a String path");
             }
-            words.push(' ');
-            words.push_str(&compile_primitive_expr(
-                &arg.expr, env, functions, impls, enums,
-            )?);
+            if ty == Type::String || ty == Type::Int {
+                words.push(CommandWord::One(compile_primitive_expr(
+                    &arg.expr, env, functions, impls, enums,
+                )?));
+            } else if let Some(list) = list_argument(&arg.expr, &ty, env) {
+                if predicate {
+                    bail!("`{}` takes single words, not a List", command.word);
+                }
+                spreads = true;
+                words.push(CommandWord::Each(list));
+            } else {
+                bail!("command arguments must be String, Int or a List of them, found {ty:?}");
+            }
         }
-        return Ok(words);
+        return Ok(command_line(command.word, predicate, spreads, &words));
     }
     let def = function_for_call(&call.name, functions)?;
     let args = rendered_args(call, env, functions, impls, enums, def)?;
