@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795661056465,
+  "lastUpdate": 1795661976769,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -5423,6 +5423,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 86452,
             "range": "± 2085",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c1bf17bbe3be69b1f552d7f0b5fe7e4f7c66949d",
+          "message": "refactor(scripts): use CLI-style bare arguments (#184)",
+          "timestamp": "2026-11-26T11:45:35+09:00",
+          "tree_id": "394ce39f058a618b15edc6a74a053d12b65a2502",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/c1bf17bbe3be69b1f552d7f0b5fe7e4f7c66949d"
+        },
+        "date": 1795661975536,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1107,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 174,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 438,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 954,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 917,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 849,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 168,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 103,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 190,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 91,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1011,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 882,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 846,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 561,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2028,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 15,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1445,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 7759,
+            "range": "± 69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 24621,
+            "range": "± 184",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 8467116,
+            "range": "± 317294",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 134066,
+            "range": "± 1794",
             "unit": "ns/iter"
           }
         ]
