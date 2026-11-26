@@ -63,7 +63,9 @@ mod util;
 extern crate alloc;
 
 use anyhow::Result;
-pub use continuation::{Continuation, continuation, continues_command, continues_pipeline};
+pub use continuation::{
+    Continuation, continuation, continues_command, continues_pipeline, open_brackets,
+};
 pub use docs::ScriptDocs;
 pub use effects::{Effect, EffectSet, FunctionEffects};
 pub use scan::{closes_shell_capture, opens_shell_capture};

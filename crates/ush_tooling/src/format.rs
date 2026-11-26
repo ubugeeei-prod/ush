@@ -11,6 +11,8 @@ pub fn format_source(source: &str) -> String {
 
     let mut shell_indent = None;
     let mut continued = None;
+    // The lines of a `[` or `(` that is still open, to know how deep it is.
+    let mut group = String::new();
     let mut after_use = false;
     for raw in source.lines() {
         if let Some(indent) = shell_indent {
@@ -65,16 +67,30 @@ pub fn format_source(source: &str) -> String {
         }
         let dedent = usize::from(line.starts_with('}'));
         indent = indent.saturating_sub(dedent);
+        // Inside an open `[` or `(`, each line sits one level deeper per open
+        // bracket, and the line that closes one sits with its opening line.
+        let brackets = ush_compiler::open_brackets(&group)
+            .saturating_sub(usize::from(line.starts_with([']', ')'])));
         // The lines after a trailing `|` or ` \` sit one level deeper, and
-        // the words that go on after ` \` are left as they are written.
-        out.push_str(&"  ".repeat(indent + usize::from(continued.is_some())));
-        if continued == Some(Continuation::Command) {
+        // the words that go on after ` \` or inside brackets are left as written.
+        out.push_str(&"  ".repeat(indent + brackets + usize::from(continued.is_some())));
+        if continued == Some(Continuation::Command) || !group.is_empty() {
             out.push_str(line);
         } else {
             out.push_str(&normalize_line(line));
         }
         if !line.starts_with('#') {
-            continued = ush_compiler::continuation(line);
+            let how = ush_compiler::continuation(line);
+            continued = how
+                .filter(|how| *how != Continuation::Bracket)
+                .filter(|_| group.is_empty());
+            if !group.is_empty() || how == Some(Continuation::Bracket) {
+                group.push_str(line);
+                group.push('\n');
+                if ush_compiler::open_brackets(&group) == 0 {
+                    group.clear();
+                }
+            }
         }
         out.push('\n');
         // The leading `}` was already paid for by `dedent`; counting

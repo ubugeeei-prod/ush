@@ -23,6 +23,10 @@ project adheres to [Semantic Versioning][semver].
   status never fails the script, it reads `/dev/null`, and its output goes
   only where its own redirections send it, so it can outlive the script
   without keeping a CI step or `$(…)` waiting.
+- A list literal or any other `[` or `(` goes on over several lines until its
+  bracket closes, with comments and blank lines inside skipped and a comma
+  allowed after the last item. `ush format` indents the lines inside one level
+  per open bracket.
 
 ### Fixed
 
