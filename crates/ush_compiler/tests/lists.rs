@@ -188,3 +188,51 @@ fn the_checker_rejects_indexes_it_can_prove_out_of_range() {
         "index -1 is negative",
     );
 }
+
+#[test]
+fn a_list_or_a_grouping_can_span_lines_until_its_bracket_closes() {
+    succeeds(
+        r#"let files = [
+  "a b",
+  # a comment between items is skipped
+
+  ["nested", "list"].join("+"),
+  "[ in a string",
+]
+for word in [
+  "x",
+  "y"
+] {
+  print word
+}
+let sum = (
+  1 + 2
+)
+print files.join("|")
+print $"$sum"
+"#,
+        "x\ny\na b|nested+list|[ in a string\n3\n",
+    );
+}
+
+#[test]
+fn an_unclosed_bracket_is_reported_at_its_line() {
+    let error = UshCompiler::default()
+        .compile_source("let xs = [\n  \"a\",\n")
+        .expect_err("an unclosed list should fail");
+    assert!(
+        format!("{error:#}").contains("line 1: a `[` or `(` is never closed"),
+        "{error:#}"
+    );
+}
+
+#[test]
+fn an_attribute_after_a_comma_does_not_start_a_comment() {
+    // `#[` opens an attribute; were it a comment, the signature's `(`
+    // would stay open and swallow the lines after it.
+    UshCompiler::default()
+        .compile_source(
+            "fn bin(#[alias(\"n\")] name: String, #[default(2)] count: Int) {\n  print name\n}\n",
+        )
+        .expect("attributes after a comma compile");
+}

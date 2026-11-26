@@ -73,6 +73,32 @@ fn indents_command_continuations_and_keeps_their_words() {
 }
 
 #[test]
+fn indents_the_lines_inside_open_brackets() {
+    let formatted = format_source(
+        "fn f() {\nlet files = [\n\"a b\",\n# note\n[\"n1\",\n\"n2\"],\n]\nfor w in [\n\"x\"\n] {\nprint w\n}\n}\n",
+    );
+    assert_eq!(
+        formatted,
+        concat!(
+            "fn f() {\n",
+            "  let files = [\n",
+            "    \"a b\",\n",
+            "    # note\n",
+            "    [\"n1\",\n",
+            "      \"n2\"],\n",
+            "  ]\n",
+            "  for w in [\n",
+            "    \"x\"\n",
+            "  ] {\n",
+            "    print w\n",
+            "  }\n",
+            "}\n",
+        ),
+    );
+    assert_eq!(format_source(&formatted), formatted);
+}
+
+#[test]
 fn leaves_the_export_command_and_its_strings_alone() {
     assert_eq!(format_source("export \"A=b\"\n"), "export \"A=b\"\n");
 }

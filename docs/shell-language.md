@@ -671,6 +671,18 @@ for (i, file) in files.enumerate() {
 echo (files.join(", "))
 ```
 
+A list literal, like any `[` or `(`, can go on over several lines until its
+bracket closes. Comments and blank lines inside are skipped, and a comma may
+follow the last item:
+
+```ush
+let platforms = [
+  "x86_64-unknown-linux-gnu",
+  # Apple silicon runners
+  "aarch64-apple-darwin",
+]
+```
+
 | Operation | Type | Notes |
 | --- | --- | --- |
 | `xs.len()` | `Int` | |

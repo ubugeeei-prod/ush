@@ -1,5 +1,5 @@
 //! Lines that go on to the next one: a pipeline that ends with `|` or `|&`,
-//! and a command that ends with ` \`.
+//! a command that ends with ` \`, and a `[` or `(` that is still open.
 
 use crate::scan::{ScanState, advance, split_pipeline};
 use crate::util::dollar_atom;
@@ -11,11 +11,18 @@ pub enum Continuation {
     Pipeline,
     /// The line ends with ` \`; the next line holds more of its words.
     Command,
+    /// A `[` or `(` is still open; the next line holds more of what it encloses.
+    Bracket,
 }
 
 /// How `line` goes on to the next line, if it does.
 pub fn continuation(line: &str) -> Option<Continuation> {
-    if continues_pipeline(line) {
+    let line_text = line.trim();
+    // A line that ends with `{` opens a block, even with a `(` left open: a
+    // typo such as `fn f( {` stays on its line rather than swallowing the block.
+    if !keeps_its_line(line_text) && !line_text.ends_with('{') && open_brackets(line) > 0 {
+        Some(Continuation::Bracket)
+    } else if continues_pipeline(line) {
         Some(Continuation::Pipeline)
     } else if continues_command(line) {
         Some(Continuation::Command)
@@ -49,6 +56,29 @@ pub fn continues_command(line: &str) -> bool {
         return false;
     };
     words.ends_with([' ', '\t']) && ends_at_top_level(words)
+}
+
+/// How many `[` and `(` are still open at the end of `source`, outside strings
+/// and comments. A list or a call can then go on over several lines.
+pub fn open_brackets(source: &str) -> usize {
+    let mut state = ScanState::default();
+    let mut index = 0usize;
+    let bytes = source.as_bytes();
+    while index < source.len() {
+        // `#[…]` is an attribute, not a comment.
+        let comment = bytes[index] == b'#'
+            && bytes.get(index + 1) != Some(&b'[')
+            && !state.in_string()
+            && (index == 0 || bytes[index - 1].is_ascii_whitespace());
+        if comment {
+            break;
+        }
+        index = advance(source, index, &mut state);
+    }
+    if state.in_string() {
+        return 0;
+    }
+    state.paren + state.bracket
 }
 
 /// `line` without the ` \` that continues it.

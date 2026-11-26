@@ -37,7 +37,7 @@ use bumpalo::{
 };
 
 use super::ast::Statement;
-use crate::continuation::{Continuation, continuation, without_backslash};
+use crate::continuation::{Continuation, continuation, open_brackets, without_backslash};
 use crate::scan::triple_quote_toggles;
 use crate::types::HeapVec as Vec;
 
@@ -141,8 +141,9 @@ fn same_line_else(line: &str) -> Option<&str> {
 }
 
 /// Join a line that goes on to the next one with that line: a pipeline stage
-/// ending in `|` or `|&` with the next stage, and a command ending in ` \`
-/// with the rest of its words. Blank lines and comments in between are skipped.
+/// ending in `|` or `|&` with the next stage, a command ending in ` \` with the
+/// rest of its words, and an open `[` or `(` with what it goes on to enclose.
+/// Blank lines and comments in between are skipped.
 fn join_continued_lines<'a>(
     lines: BumpVec<'a, SourceLine<'a>>,
     arena: &'a Bump,
@@ -150,9 +151,8 @@ fn join_continued_lines<'a>(
     let mut joined = BumpVec::with_capacity_in(lines.len(), arena);
     let mut pending: Option<(usize, BumpString<'a>, Continuation)> = None;
     for (line_no, line) in lines {
-        let next = continuation(line);
         let Some((start, text, how)) = &mut pending else {
-            match next {
+            match continuation(line) {
                 Some(how) => {
                     let mut text = BumpString::new_in(arena);
                     push_part(&mut text, line, how);
@@ -166,36 +166,39 @@ fn join_continued_lines<'a>(
         if trimmed.is_empty() || trimmed.starts_with('#') {
             continue;
         }
-        // A stage starts a line of its own; more words join the command's line.
+        // A stage starts a line of its own; more words join the line before.
         text.push(match how {
             Continuation::Pipeline => '\n',
-            Continuation::Command => ' ',
+            Continuation::Command | Continuation::Bracket => ' ',
         });
-        match next {
-            Some(next) => {
-                push_part(text, trimmed, next);
-                *how = next;
-            }
-            None => {
-                text.push_str(trimmed);
-                joined.push((*start, &*arena.alloc_str(text)));
-                pending = None;
-            }
+        let next = continuation(line);
+        push_part(text, trimmed, next.unwrap_or(Continuation::Bracket));
+        if open_brackets(text) > 0 {
+            *how = Continuation::Bracket;
+        } else if let Some(next) = next.filter(|next| *next != Continuation::Bracket) {
+            *how = next;
+        } else {
+            joined.push((*start, &*arena.alloc_str(text)));
+            pending = None;
         }
     }
     if let Some((start, _, how)) = pending {
-        let what = match how {
-            Continuation::Pipeline => "pipeline",
-            Continuation::Command => "command",
-        };
-        bail!("line {start}: the {what} continues past the end of the file");
+        match how {
+            Continuation::Pipeline => {
+                bail!("line {start}: the pipeline continues past the end of the file")
+            }
+            Continuation::Command => {
+                bail!("line {start}: the command continues past the end of the file")
+            }
+            Continuation::Bracket => bail!("line {start}: a `[` or `(` is never closed"),
+        }
     }
     Ok(joined)
 }
 
 fn push_part(text: &mut BumpString<'_>, line: &str, how: Continuation) {
     match how {
-        Continuation::Pipeline => text.push_str(line),
+        Continuation::Pipeline | Continuation::Bracket => text.push_str(line),
         Continuation::Command => text.push_str(without_backslash(line)),
     }
 }
