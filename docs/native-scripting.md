@@ -91,7 +91,10 @@ At run time the script finds its own directory, follows the recorded
 relative path, and from there resolves `std::path::from_source`,
 `std::path::source_root`, `__ush_source_dir` and relative `extern`
 libraries, so `ci/compiled/check.sh` behaves as if it sat next to
-`ci/check.ush`, from any working directory. [Local modules](shell-language.md#local-modules)
+`ci/check.ush`, from any working directory. `std::path::script` is the
+generated script's own absolute path instead. It follows the file when it is
+copied, as a hook installed elsewhere is, and `std::path::dirname (script)` is
+the directory it runs from. [Local modules](shell-language.md#local-modules)
 are inlined, so the output needs no other `.ush` file; `extern` `.sh`
 libraries must still be shipped at their relative paths. The generated
 text contains no absolute paths, and compiling the same source to the same

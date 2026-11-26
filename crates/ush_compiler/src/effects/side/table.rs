@@ -71,9 +71,8 @@ pub(super) fn builtin_call_effects(name: &str) -> EffectSet {
             .collect(),
             "command::exists" => EffectSet::of(Effect::Exec),
             _ if rest.starts_with("env::") => EffectSet::of(Effect::Env),
-            "path::cwd" | "path::from_cwd" | "path::source_root" | "path::from_source" => {
-                EffectSet::of(Effect::Env)
-            }
+            "path::cwd" | "path::from_cwd" | "path::source_root" | "path::from_source"
+            | "path::script" => EffectSet::of(Effect::Env),
             "path::home" | "path::prepend_env" => EffectSet::of(Effect::Env),
             "path::exists" | "path::is_dir" | "path::is_file" | "path::mkdir_p"
             | "path::tmpfile" | "path::resolve" => EffectSet::of(Effect::Fs),
