@@ -195,6 +195,25 @@ computed values and nested calls, for example `echo (greet $name)`. Integer and
 boolean literals, lists, unit values, quantities, and function references keep
 their types. `label: value` remains named-argument syntax.
 
+A call goes on to the next line when its line ends with a backslash after a
+space, as on a command line. The words of the next line join the call, and
+comments and blank lines between them are skipped:
+
+```ush
+use $bin::{node}
+
+node tools/check-gate.mjs \
+  --input fixtures \
+  # The summary is posted to the pull request.
+  --out summary.md \
+  --json results.json
+```
+
+A backslash inside a string, or right after a word with no space before it,
+is part of that argument. A continued call can end with `|` to go on as a
+pipeline. `ush format` indents the continued lines one level and leaves their
+words as written.
+
 Bindings, conditions, collection elements, and legacy parenthesized calls
 remain expression contexts: `let next = count + 1`, `if count > 0`, and
 `greet(name)` still refer to variables without a sigil. The old `$` application

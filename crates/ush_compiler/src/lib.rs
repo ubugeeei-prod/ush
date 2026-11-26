@@ -31,6 +31,7 @@
 mod ast;
 mod bindings;
 mod commands;
+mod continuation;
 mod contracts;
 pub use commands::command_names;
 mod codegen;
@@ -62,9 +63,10 @@ mod util;
 extern crate alloc;
 
 use anyhow::Result;
+pub use continuation::{Continuation, continuation, continues_command, continues_pipeline};
 pub use docs::ScriptDocs;
 pub use effects::{Effect, EffectSet, FunctionEffects};
-pub use scan::{closes_shell_capture, continues_pipeline, opens_shell_capture};
+pub use scan::{closes_shell_capture, opens_shell_capture};
 pub use sourcemap::{
     CompiledScript, SourceMap, SourceMapLine, SourceMapSection, SourceMapSectionSummary,
     SourceMapSourceLine, SourceMapSummary,

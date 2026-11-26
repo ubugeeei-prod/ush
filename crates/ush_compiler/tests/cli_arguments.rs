@@ -119,3 +119,35 @@ defer echo deferred
         "status\n0\nallowed\ncondition\nyes\nbackground\ndeferred\n",
     );
 }
+
+#[test]
+fn a_backslash_after_a_space_continues_the_command() {
+    outputs(
+        r#"
+use $bin::*
+
+let name = "two words"
+printf "<%s>\n" first \
+    # a comment between words is skipped
+    $name \
+
+  --flag=value |
+  tr a-z A-Z
+printf "<%s>\n" "ends\\" \
+  'raw\' trailing\
+echo done
+"#,
+        "<FIRST>\n<TWO WORDS>\n<--FLAG=VALUE>\n<ends\\>\n<raw\\>\n<trailing\\>\ndone\n",
+    );
+}
+
+#[test]
+fn a_command_cannot_continue_past_the_end_of_the_file() {
+    let error = UshCompiler::default()
+        .compile_source("use $bin::*\necho a \\\n")
+        .expect_err("a trailing backslash needs a next line");
+    assert!(
+        format!("{error:#}").contains("line 2: the command continues past the end of the file"),
+        "{error:#}"
+    );
+}

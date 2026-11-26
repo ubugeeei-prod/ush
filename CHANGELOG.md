@@ -10,6 +10,13 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- A call goes on to the next line after a trailing ` \` (a backslash after a
+  space), as on a command line, so a long list of flags can take one line per
+  flag. Comments and blank lines between the lines are skipped, a continued
+  call can go on as a pipeline, and `ush format` indents the continued lines.
+
 ## [0.18.0] — 2026-11-26
 
 ### Added
