@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795687072235,
+  "lastUpdate": 1795688409144,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -6623,6 +6623,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 134065,
             "range": "± 3485",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "913352c7886aff9928f3ab1d7612329a05d72dcf",
+          "message": "feat(std): name the running script file with `std::path::script` (#193)\n\nvize's apt archive hook is a generated script that apt copies and runs\nfrom the archive directory, and it finds that directory with\n`dirname \"$0\"`. ush had no way to say that: `from_source` and\n`source_root` follow the recorded path to the source, which is wrong for\na copy. `std::path::script` returns the absolute path of the running\nscript file, like `$0` resolved, wherever the file sits.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T19:14:39+09:00",
+          "tree_id": "95803f4e322b962aea4fb85d57de8392d354a255",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/913352c7886aff9928f3ab1d7612329a05d72dcf"
+        },
+        "date": 1795688408196,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1390,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 211,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 519,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1222,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1163,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1130,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 189,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 118,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 215,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 108,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1261,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1111,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1039,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 724,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2336,
+            "range": "± 37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 12,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1647,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 9486,
+            "range": "± 95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 31565,
+            "range": "± 475",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 10302112,
+            "range": "± 214700",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 216347,
+            "range": "± 2568",
             "unit": "ns/iter"
           }
         ]
