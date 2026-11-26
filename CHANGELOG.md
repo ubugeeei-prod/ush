@@ -10,6 +10,14 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Changed
+
+- Use CLI-style bare arguments throughout `scripts/*.ush` and `install.ush`,
+  retaining quotes where strings require them, and regenerate their standalone
+  shell artifacts.
+
+## [0.17.0] — 2026-11-26
+
 ### Added
 
 - `} else {` and `} else if … {` on the closing brace's line. `ush format`
@@ -41,9 +49,6 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
-- Use CLI-style bare arguments throughout `scripts/*.ush` and `install.ush`,
-  retaining quotes where strings require them, and regenerate their standalone
-  shell artifacts.
 - `shell` and `alias` reject an interpolating string, because the value would
   run as shell code.
 - A String `match` lowers to `case` instead of an `if` chain.
@@ -621,7 +626,8 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/ubugeeei-prod/ush/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/ubugeeei-prod/ush/compare/v0.15.0...v0.16.0
 [0.11.1]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.1
 [0.11.0]: https://github.com/ubugeeei-prod/ush/releases/tag/v0.11.0
