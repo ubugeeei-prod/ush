@@ -25,6 +25,8 @@ project adheres to [Semantic Versioning][semver].
   retaining quotes where strings require them, and regenerate their standalone
   shell artifacts.
 - Select installer and installer-test platforms with immutable match bindings.
+- Resolve and rename scalar match-arm bindings in their own lexical scopes;
+  match result bindings become visible only after their initializer finishes.
 
 ## [0.17.0] — 2026-11-26
 
