@@ -230,18 +230,3 @@ pub(crate) fn split_pipeline(source: &str) -> crate::types::HeapVec<(&str, bool)
     pieces.push((&source[start..], false));
     pieces
 }
-
-/// Whether a line ends with a pipe, so the next line holds the next stage.
-/// Comments and inline shell (`$ …`) keep their own line structure.
-pub fn continues_pipeline(line: &str) -> bool {
-    let line = line.trim();
-    let inline_shell = line.starts_with('$') && !line.starts_with("$bin::");
-    if line.starts_with('#') || inline_shell || !line.ends_with(['|', '&']) {
-        return false;
-    }
-    let pieces = split_pipeline(line);
-    pieces.len() > 1
-        && pieces
-            .last()
-            .is_some_and(|(rest, _)| rest.trim().is_empty())
-}

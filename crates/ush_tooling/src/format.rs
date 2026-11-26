@@ -1,6 +1,7 @@
 mod scan;
 
 use scan::{brace_delta, ends_with_brace, triple_quote_toggles};
+use ush_compiler::Continuation;
 
 pub fn format_source(source: &str) -> String {
     let mut out = String::new();
@@ -9,7 +10,7 @@ pub fn format_source(source: &str) -> String {
     let mut in_multiline = false;
 
     let mut shell_indent = None;
-    let mut continued = false;
+    let mut continued = None;
     let mut after_use = false;
     for raw in source.lines() {
         if let Some(indent) = shell_indent {
@@ -64,11 +65,16 @@ pub fn format_source(source: &str) -> String {
         }
         let dedent = usize::from(line.starts_with('}'));
         indent = indent.saturating_sub(dedent);
-        // The stages after a trailing `|` sit one level deeper.
-        out.push_str(&"  ".repeat(indent + usize::from(continued)));
-        out.push_str(&normalize_line(line));
+        // The lines after a trailing `|` or ` \` sit one level deeper, and
+        // the words that go on after ` \` are left as they are written.
+        out.push_str(&"  ".repeat(indent + usize::from(continued.is_some())));
+        if continued == Some(Continuation::Command) {
+            out.push_str(line);
+        } else {
+            out.push_str(&normalize_line(line));
+        }
         if !line.starts_with('#') {
-            continued = ush_compiler::continues_pipeline(line);
+            continued = ush_compiler::continuation(line);
         }
         out.push('\n');
         // The leading `}` was already paid for by `dedent`; counting

@@ -54,6 +54,25 @@ fn indents_pipeline_continuations_and_export_bindings() {
 }
 
 #[test]
+fn indents_command_continuations_and_keeps_their_words() {
+    let formatted = format_source(
+        "if x {\nnode check.mjs \\\n--out=a.md \\\n    # results\n  --json=b.json |\ntee log\n}\n",
+    );
+    assert_eq!(
+        formatted,
+        concat!(
+            "if x {\n",
+            "  node check.mjs \\\n",
+            "    --out=a.md \\\n",
+            "    # results\n",
+            "    --json=b.json |\n",
+            "    tee log\n",
+            "}\n",
+        ),
+    );
+}
+
+#[test]
 fn leaves_the_export_command_and_its_strings_alone() {
     assert_eq!(format_source("export \"A=b\"\n"), "export \"A=b\"\n");
 }

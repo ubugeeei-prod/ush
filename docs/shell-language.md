@@ -243,7 +243,8 @@ and prints its output. `|&` after a stage also sends that stage's stderr into
 the pipe. The pipe binds more loosely than anything else in an expression, so
 `(a | b) == "x"` needs its parentheses. A line that ends with `|` or `|&`
 continues on the next line; blank lines and comments between stages are
-skipped.
+skipped. A stage's own words go on to the next line after a trailing ` \`, as
+[CLI-style arguments](native-scripting.md#cli-style-arguments) describe.
 
 As a statement, a pipeline streams its last stage to the script's stdout. As
 a value, as in `let`, `print (…)` or a condition, it captures the last
