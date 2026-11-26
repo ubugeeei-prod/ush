@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795677337362,
+  "lastUpdate": 1795685499748,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -6323,6 +6323,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 209536,
             "range": "± 2041",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3642206c95e522a8b4ca5912eadcefdbdedd0628",
+          "message": "feat(lang): pass each element of a List argument as its own word (#191)\n\n* feat(lang): pass each element of a List argument as its own word\n\nA program that takes a computed set of files needed `std::process::exec`,\nwhich also kept the program out of its `use $bin` list. An external\ncommand now takes a `List<String>` or `List<Int>` argument and gives\nevery element an argv entry of its own, as `\"${files[@]}\"` does in bash.\nElements stay one word each, even when they are empty or hold spaces or\n`*`, and an empty List adds none. Predicates such as `test` still take\nsingle words.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* fix(lang): build the command words without std\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T18:21:31+09:00",
+          "tree_id": "1b8df0842095f4783219a263fca38b03b60e3d7b",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/3642206c95e522a8b4ca5912eadcefdbdedd0628"
+        },
+        "date": 1795685498504,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1148,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 182,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 424,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 868,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 891,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 825,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 167,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 97,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 180,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 84,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 994,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 861,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 843,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 575,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1981,
+            "range": "± 33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 15,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1418,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 7897,
+            "range": "± 270",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 24823,
+            "range": "± 1969",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 8820094,
+            "range": "± 452159",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 133496,
+            "range": "± 1485",
             "unit": "ns/iter"
           }
         ]
