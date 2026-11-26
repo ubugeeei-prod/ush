@@ -18,6 +18,7 @@ mod enum_registry;
 mod functions;
 mod io;
 pub(crate) mod list;
+mod match_value;
 mod method_fields;
 mod methods;
 mod methods_support;

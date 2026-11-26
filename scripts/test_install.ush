@@ -9,19 +9,15 @@ use std::test::{assert, assert_eq}
 use std::io::eprint
 
 fn target() -> String {
-  let mut os = uname -s
-  let mut arch = uname -m
-  if os == "Linux" {
-    os = "unknown-linux-gnu"
-  } else if os == "Darwin" {
-    os = "apple-darwin"
-  } else {
-    fail 1 ("unsupported test OS: " + os)
+  let os = match uname -s {
+    "Linux" => "unknown-linux-gnu"
+    "Darwin" => "apple-darwin"
+    other => fail 1 ("unsupported test OS: " + other)
   }
-  if arch == "arm64" {
-    arch = "aarch64"
-  } else if arch == "amd64" {
-    arch = "x86_64"
+  let arch = match uname -m {
+    "arm64" => "aarch64"
+    "amd64" => "x86_64"
+    other => other
   }
   arch + "-" + os
 }

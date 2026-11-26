@@ -185,6 +185,13 @@ pub(super) fn expr_effects(expr: &Expr, ctx: Context<'_>) -> EffectSet {
         },
         Expr::ShellCapture(_) => super::table::shell_effects(false),
         Expr::AsyncBlock(body) => EffectSet::of(Effect::Task).union(&block_effects(body, ctx)),
+        Expr::Match(value) => {
+            let mut effects = expr_effects(&value.subject, ctx);
+            for (_, arm) in &value.arms {
+                effects = effects.union(&statement_effects(arm, ctx));
+            }
+            effects
+        }
         Expr::Pipeline(pipeline) => super::shell::pipeline_effects(pipeline, ctx, true),
         Expr::StatusOf(command) => super::shell::status_effects(command, ctx),
     }

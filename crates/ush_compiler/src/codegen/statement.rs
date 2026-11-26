@@ -208,6 +208,7 @@ pub(crate) fn compile_statement(
                 state,
                 return_type,
                 inside_function,
+                None,
                 out,
             )?,
             kind @ (StatementKind::If { .. }

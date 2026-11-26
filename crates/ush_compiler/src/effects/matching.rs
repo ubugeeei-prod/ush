@@ -15,6 +15,26 @@ use super::{
     FunctionErrorRegistry, TaskErrorRegistry, analyze::block_errors, support::expr_errors,
 };
 
+pub(super) fn value_errors(
+    value: &crate::ast::MatchValue,
+    env: &Env,
+    functions: &FunctionRegistry,
+    impls: &TraitImplRegistry,
+    enums: &EnumRegistry,
+    function_errors: &FunctionErrorRegistry,
+) -> Result<ErrorSet> {
+    match_errors(
+        &value.subject,
+        &value.arms,
+        &mut env.clone(),
+        &mut Default::default(),
+        functions,
+        impls,
+        enums,
+        function_errors,
+    )
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn match_errors(
     expr: &Expr,

@@ -133,6 +133,8 @@ pub(crate) enum StatementKind {
 
 #[derive(Debug, Clone)]
 pub(crate) enum Expr {
+    /// A synchronous, value-producing `match` used in a binding.
+    Match(Box<MatchValue>),
     FunctionRef(String),
     Comprehension(Box<Comprehension>),
     ShellCapture(String),
@@ -196,6 +198,12 @@ pub(crate) enum Pattern {
 }
 
 pub(crate) type MatchArm = (Pattern, Box<Statement>);
+
+#[derive(Debug, Clone)]
+pub(crate) struct MatchValue {
+    pub subject: Expr,
+    pub arms: Vec<MatchArm>,
+}
 
 #[derive(Debug, Clone)]
 pub(crate) struct Comprehension {

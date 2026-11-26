@@ -11,6 +11,14 @@ pub(super) fn call(c: &Call, scope: &Scope, globals: &Scope) -> Result<()> {
 
 pub(super) fn expr(e: &Expr, scope: &Scope, globals: &Scope) -> Result<()> {
     match e {
+        Expr::Match(value) => {
+            expr(&value.subject, scope, globals)?;
+            for (pattern, arm) in &value.arms {
+                let mut inner = scope.clone();
+                super::pattern(pattern, &mut inner);
+                super::statement(arm, &mut inner, globals)?;
+            }
+        }
         Expr::AsyncBlock(body) => block(body, &mut scope.clone(), globals)?,
         Expr::Comprehension(c) => {
             let mut inner = scope.clone();

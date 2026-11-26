@@ -1,5 +1,6 @@
 mod analyze;
 mod bindings;
+mod calls;
 mod comprehension;
 mod control;
 mod declared_errors;

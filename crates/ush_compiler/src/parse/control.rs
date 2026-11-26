@@ -77,6 +77,31 @@ pub(super) fn parse_let_binding_block(
             expr,
         });
     }
+    if let Some(subject) = expr.strip_prefix("match ") {
+        let StatementKind::Match { expr, arms, .. } =
+            super::declaration::parse_match(subject, lines, cursor, true)?
+        else {
+            unreachable!()
+        };
+        for (_, arm) in &arms {
+            if !matches!(
+                arm.kind,
+                StatementKind::Expr(_) | StatementKind::Fail { .. } | StatementKind::Raise(_)
+            ) {
+                bail!(
+                    "line {}: a match binding arm must produce a value, fail, or raise",
+                    arm.line
+                );
+            }
+        }
+        return Ok(StatementKind::Let {
+            name: name.into(),
+            expr: Expr::Match(alloc::boxed::Box::new(crate::ast::MatchValue {
+                subject: expr,
+                arms,
+            })),
+        });
+    }
     if expr != "async {" {
         return parse_let_binding(source);
     }

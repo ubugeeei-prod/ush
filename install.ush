@@ -32,19 +32,15 @@ fn need(command: String) -> () {
 }
 
 fn target() -> String {
-  let mut os = uname -s
-  let mut arch = uname -m
-  match os {
-    "Linux" => os = "unknown-linux-gnu"
-    "Darwin" => os = "apple-darwin"
-    _ => fail 1 ("install.sh: unsupported operating system: " + os)
+  let os = match uname -s {
+    "Linux" => "unknown-linux-gnu"
+    "Darwin" => "apple-darwin"
+    other => fail 1 ("install.sh: unsupported operating system: " + other)
   }
-  match arch {
-    "x86_64" => arch = "x86_64"
-    "amd64" => arch = "x86_64"
-    "arm64" => arch = "aarch64"
-    "aarch64" => arch = "aarch64"
-    _ => fail 1 ("install.sh: unsupported architecture: " + arch)
+  let arch = match uname -m {
+    "x86_64" | "amd64" => "x86_64"
+    "arm64" | "aarch64" => "aarch64"
+    other => fail 1 ("install.sh: unsupported architecture: " + other)
   }
   arch + "-" + os
 }

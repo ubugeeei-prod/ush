@@ -139,6 +139,7 @@ fn compile_string_fragment(
             bail!("unsupported string expression before runtime hoisting")
         }
         Expr::AsyncBlock(_) => bail!("async blocks cannot be stringified implicitly"),
+        Expr::Match(_) => bail!("match values must be bound before use"),
         Expr::Variant(_) => bail!("ADT values cannot be stringified implicitly"),
         Expr::Comprehension(_) | Expr::Tuple(_) | Expr::List(_) | Expr::Range { .. } => {
             bail!("structured values cannot be stringified implicitly")

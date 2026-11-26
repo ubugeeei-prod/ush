@@ -18,6 +18,8 @@ test('new language syntax, Unicode and multiline strings', async () => {
     ['echo Hello $name --output=${name}/file', '$name', 'variable.other.ush'],
     ['echo Hello $name --output=${name}/file', '${name}', 'variable.other.ush'],
     ['let output = greet bare', 'bare', 'string.unquoted.ush'],
+    ['let os = match uname -s {', 'match', 'keyword.control.ush'],
+    ['let os = match uname -s {', '-s', 'string.unquoted.ush'],
     ['echo hello | tr a-z A-Z', 'a-z', 'string.unquoted.ush'],
     ['echo (greet $name)', '$name', 'variable.other.ush'],
   ]) {

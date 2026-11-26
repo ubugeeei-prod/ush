@@ -71,6 +71,9 @@ fn expr(e: &Expr) -> bool {
             es.iter().any(expr)
         }
         Expr::AsyncBlock(body) => references(body),
+        Expr::Match(value) => {
+            expr(&value.subject) || value.arms.iter().any(|(_, arm)| statement(arm))
+        }
         Expr::Pipeline(pipeline) => pipeline.exprs().any(expr),
         Expr::Variant(v) => match &v.fields {
             crate::ast::ExprFields::Tuple(es) => es.iter().any(expr),

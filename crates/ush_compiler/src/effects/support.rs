@@ -2,13 +2,14 @@ use anyhow::Result;
 
 use crate::traits::TraitImplRegistry;
 use crate::{
-    ast::{Call, Expr, ExprFields},
+    ast::{Expr, ExprFields},
     codegen::FunctionRegistry,
     env::{Binding, EnumRegistry, Env, Storage},
     errors::{ErrorSet, ErrorType},
 };
 
-use super::{FunctionErrorRegistry, callee_errors};
+use super::FunctionErrorRegistry;
+pub(super) use super::calls::{call_arg_errors, call_errors};
 
 pub(super) fn expr_errors(
     expr: &Expr,
@@ -20,6 +21,16 @@ pub(super) fn expr_errors(
 ) -> Result<ErrorSet> {
     let mut errors = ErrorSet::default();
     match expr {
+        Expr::Match(value) => {
+            return super::matching::value_errors(
+                value,
+                env,
+                functions,
+                impls,
+                enums,
+                function_errors,
+            );
+        }
         Expr::FunctionRef(_)
         | Expr::Quantity(..)
         | Expr::String(_)
@@ -208,41 +219,6 @@ pub(super) fn expr_errors(
                 }
             }
         },
-    }
-    Ok(errors)
-}
-
-pub(super) fn call_errors(
-    call: &Call,
-    env: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-    function_errors: &FunctionErrorRegistry,
-) -> Result<ErrorSet> {
-    let mut errors = call_arg_errors(call, env, functions, impls, enums, function_errors)?;
-    errors.extend(&callee_errors(&call.name, function_errors));
-    Ok(errors)
-}
-
-pub(super) fn call_arg_errors(
-    call: &Call,
-    env: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-    function_errors: &FunctionErrorRegistry,
-) -> Result<ErrorSet> {
-    let mut errors = ErrorSet::default();
-    for arg in &call.args {
-        errors.extend(&expr_errors(
-            &arg.expr,
-            env,
-            functions,
-            impls,
-            enums,
-            function_errors,
-        )?);
     }
     Ok(errors)
 }

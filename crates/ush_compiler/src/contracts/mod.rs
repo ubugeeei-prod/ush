@@ -7,6 +7,7 @@ mod detect;
 mod expressions;
 mod instance;
 mod instantiate;
+mod match_value;
 mod refine;
 mod returns;
 pub(crate) use returns::completes;

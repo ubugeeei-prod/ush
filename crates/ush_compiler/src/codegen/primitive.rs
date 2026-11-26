@@ -24,6 +24,7 @@ pub(crate) fn infer(
     enums: &EnumRegistry,
 ) -> Result<Type> {
     match expr {
+        Expr::Match(value) => super::match_value::infer_value(value, env, functions, impls, enums),
         Expr::ShellCapture(_) | Expr::String(_) => Ok(Type::String),
         Expr::FunctionRef(_) => bail!("function reference must be checked before lowering"),
         Expr::Comprehension(c) => super::comprehension::infer(c, env, functions, impls, enums),

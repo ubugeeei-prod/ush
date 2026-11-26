@@ -103,6 +103,9 @@ impl Walker<'_> {
     fn expr(&mut self, e: &Expr) -> bool {
         match e {
             Expr::AsyncBlock(_) => true,
+            Expr::Match(value) => {
+                self.expr(&value.subject) || value.arms.iter().any(|(_, arm)| self.statement(arm))
+            }
             Expr::FunctionRef(name) => self.call(name),
             Expr::Comprehension(c) => {
                 self.expr(&c.value)

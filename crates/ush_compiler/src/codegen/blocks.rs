@@ -1,3 +1,5 @@
+mod arm;
+
 use alloc::boxed::Box;
 
 use anyhow::{Result, bail};
@@ -33,6 +35,26 @@ pub(crate) fn compile_let(
     inside_function: bool,
     out: &mut OutputBuffer,
 ) -> Result<()> {
+    if let Expr::Match(value) = expr {
+        compile_match(
+            &value.subject,
+            &value.arms,
+            false,
+            env,
+            globals,
+            functions,
+            impls,
+            enums,
+            function_errors,
+            state,
+            None,
+            inside_function,
+            Some((name, ty)),
+            out,
+        )?;
+        env.insert(name.into(), binding_for_name(name, ty.clone()));
+        return Ok(());
+    }
     if let Expr::AsyncBlock(body) = expr {
         let binding = compile_async_block(
             body,
@@ -111,6 +133,7 @@ pub(crate) fn compile_match(
     state: &mut CodegenState,
     return_type: Option<&Type>,
     inside_function: bool,
+    destination: Option<(&str, &Type)>,
     out: &mut OutputBuffer,
 ) -> Result<()> {
     if arms.is_empty() {
@@ -145,7 +168,7 @@ pub(crate) fn compile_match(
             push_line(out, line, indent);
         }
         let mut arm_env = plan.env;
-        let body = compile_one(
+        let body = arm::compile_one(
             arm,
             returns_value,
             &mut arm_env,
@@ -157,6 +180,7 @@ pub(crate) fn compile_match(
             state,
             return_type,
             inside_function,
+            destination,
         )?;
         push_output(out, &body, indent);
         if words.is_some() {
@@ -187,39 +211,4 @@ fn case_words(
     }
     out.push_str(&format!("case \"${{{var}}}\" in\n"));
     Ok(Some(words))
-}
-
-#[allow(clippy::too_many_arguments)]
-fn compile_one(
-    statement: &Statement,
-    tail_position: bool,
-    env: &mut Env,
-    globals: &Env,
-    functions: &FunctionRegistry,
-    impls: &TraitImplRegistry,
-    enums: &EnumRegistry,
-    function_errors: &FunctionErrorRegistry,
-    state: &mut CodegenState,
-    return_type: Option<&Type>,
-    inside_function: bool,
-) -> Result<OutputBuffer> {
-    let mut buffer = OutputBuffer::new(state.mapped);
-    compile_statement(
-        statement,
-        env,
-        globals,
-        functions,
-        impls,
-        enums,
-        function_errors,
-        state,
-        return_type,
-        inside_function,
-        tail_position,
-        &mut buffer,
-    )?;
-    if buffer.is_empty() {
-        buffer.push_str(":\n");
-    }
-    Ok(buffer)
 }

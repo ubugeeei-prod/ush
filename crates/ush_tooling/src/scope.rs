@@ -1,4 +1,5 @@
 //! A tolerant lexical index, shared by navigation and rename. Never parses strings as code.
+mod binding;
 use crate::{
     semantic::semantic_tokens,
     token::{SemanticToken, SemanticTokenKind},
@@ -80,6 +81,7 @@ impl<'a> Index<'a> {
                 let after = (i + 2..tokens.len())
                     .find(|&j| tokens[j].line > tokens[i].line)
                     .unwrap_or(tokens.len());
+                let after = binding::after_initializer(i, after, &names, &opens, &ends);
                 declarations.push((binding_name, scopes[i], after));
             }
             if names[i] == "fn"

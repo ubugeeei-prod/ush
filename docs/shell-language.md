@@ -30,6 +30,28 @@ and remove `let` from each intended reassignment. Leave new declarations as
 `let`. Imports are separated from the following body by one blank line;
 `ush format` and editor formatting insert that separator.
 
+Bind a choice directly instead of initializing a mutable variable and assigning
+to it in every branch:
+
+```ush
+use $bin::*
+
+let os = match uname -s {
+  "Linux" => "unknown-linux-gnu"
+  "Darwin" => "apple-darwin"
+  other => fail 1 ("unsupported OS: " + other)
+}
+echo $os
+```
+
+The subject runs once and only the selected arm runs. Each arm contains a value
+expression or terminates with `fail`/`raise`. Value-producing arms must have the
+same type, including lists, tuples and records, and patterns must be exhaustive.
+The binding becomes visible after the closing brace; a shadowed name in the
+subject or an arm still refers to the old binding. `let mut` and reassignment
+can also take a match value. Literal selections compile directly to shell
+branches; they do not capture stdout or start an asynchronous task.
+
 ## Imports and calls
 
 ```ush
