@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795685499748,
+  "lastUpdate": 1795687072235,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -6473,6 +6473,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 133496,
             "range": "± 1485",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "57849327135cb3dd082bb4e62ab4ce6bcdee0849",
+          "message": "fix(parse): unwrap only parentheses that enclose the whole expression (#192)\n\n`(x != \"y\") && (x == \"y\")` lost its first `(` and last `)` as if they\nwere one pair, and compiled as `x` compared with the text\n`y\") && (x == \"y`. A silent wrong value: `let b = …` with `x = \"x\"` gave\ntrue. The expression parser now shares the condition parser's check that\none pair wraps the whole source. `&&` and `||` in a value are a compile\nerror that points at `if` and `while`, where they belong.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T18:52:16+09:00",
+          "tree_id": "54f5af92d17a82c40a9ea9d2d677292014568c7f",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/57849327135cb3dd082bb4e62ab4ce6bcdee0849"
+        },
+        "date": 1795687071349,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1110,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 181,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 421,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 857,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 895,
+            "range": "± 65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 842,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 167,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 97,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 189,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 84,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 993,
+            "range": "± 33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 858,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 826,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 565,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1960,
+            "range": "± 45",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 15,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1438,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 7903,
+            "range": "± 73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 24732,
+            "range": "± 79",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 8690623,
+            "range": "± 233839",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 134065,
+            "range": "± 3485",
             "unit": "ns/iter"
           }
         ]
