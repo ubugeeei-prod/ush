@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795690189455,
+  "lastUpdate": 1795690397224,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -6923,6 +6923,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 212064,
             "range": "± 1457",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f6172ff8dc2ea4a6ea78e98f0b436c97c6431fe0",
+          "message": "fix(lang): pass a word that reads as a quantity to a program as written (#195)\n\n* feat(lang): start a command that outlives the script with `detach`\n\nvize starts a test prebuild with `nohup … > log 2>&1 &` so that it keeps\nrunning after its step, overlapping the next one. A `spawn` handle cannot\ndo that: the scope waits for its tasks, and the task's wrapper keeps the\nscript's stdout and stderr open, so a reader such as a CI step waits for\nthe task anyway.\n\n`detach command` starts a command, a pipeline or a `()` function call in\na background subshell with stdin, stdout and stderr on `/dev/null`. The\ncommand's own redirections still send its output to a file. The scope\nnever joins it and its status never fails the script. It shares\n`allow_fail`'s operand rules, without `.await`. The editor grammar,\ncompletion, hover and highlighting know the keyword.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* fix(lang): pass a word that reads as a quantity to a program as written\n\n`timeout 300s vp …` failed to compile with \"unit literal must be checked\nbefore lowering\": the bare word parsed as the quantity 300 s, which only a\nush parameter of that unit can take. Once a call resolves to a `$bin`\nprogram, its quantity arguments are the words they were written as.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T19:40:24+09:00",
+          "tree_id": "c0fe794fc7a1efab554107603c9377620b9f0495",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/f6172ff8dc2ea4a6ea78e98f0b436c97c6431fe0"
+        },
+        "date": 1795690396626,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 732,
+            "range": "± 76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 122,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 263,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 599,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 589,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 552,
+            "range": "± 57",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 95,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 58,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 108,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 51,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 602,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 629,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 592,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 349,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 1274,
+            "range": "± 87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 11,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 931,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 5292,
+            "range": "± 61",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 16851,
+            "range": "± 1040",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 5994909,
+            "range": "± 261486",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 85293,
+            "range": "± 828",
             "unit": "ns/iter"
           }
         ]
