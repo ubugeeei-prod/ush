@@ -27,9 +27,9 @@ for name in ["RUSTC_BOOTSTRAP", "USH_KACHE", "USH_RUSTC_FRONTEND_JOBS", "CARGO_M
 let member = work + "/crates/ush_shell"
 
 # A crate of this checkout gets the parallel frontend, and unstable options for itself only.
-set "USH_RUSTC_FRONTEND_JOBS" "8"
-set "CARGO_MANIFEST_DIR" $member
-set "CARGO_CRATE_NAME" "ush_shell"
+set USH_RUSTC_FRONTEND_JOBS "8"
+set CARGO_MANIFEST_DIR $member
+set CARGO_CRATE_NAME ush_shell
 assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "--edition=2024", "src/lib.rs"]) (join ["bootstrap=ush_shell", "--crate-name", "ush_shell", "--edition=2024", "src/lib.rs", "-Zunstable-options", "--jobs-frontend=8"] "\n")
 # clippy-driver: Cargo passes the workspace wrapper first, then rustc.
 assert_eq (output $wrapper [rustc, "rustc", "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=ush_shell", "rustc", "--crate-name", "ush_shell", "src/lib.rs", "-Zunstable-options", "--jobs-frontend=8"] "\n")
@@ -39,35 +39,35 @@ echo "rustc wrapper: checkout crate passed"
 assert_eq (output $wrapper [rustc, "-vV"]) (join ["bootstrap=", "-vV"] "\n")
 
 # A build-script probe inherits its package's environment but names another crate.
-set "CARGO_CRATE_NAME" "build_script_build"
+set CARGO_CRATE_NAME build_script_build
 assert_eq (output $wrapper [rustc, "--crate-name", "probe", "--crate-type=lib", "-"]) (join ["bootstrap=", "--crate-name", "probe", "--crate-type=lib", "-"] "\n")
 echo "rustc wrapper: build-script probe passed"
 
 # A registry dependency compiles exactly as Cargo asked.
-set "CARGO_MANIFEST_DIR" "/home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6"
-set "CARGO_CRATE_NAME" "memchr"
+set CARGO_MANIFEST_DIR /home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6
+set CARGO_CRATE_NAME memchr
 assert_eq (output $wrapper [rustc, "--crate-name", "memchr", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "memchr", "src/lib.rs"] "\n")
 # So does a sibling checkout whose path extends this one's.
-set "CARGO_MANIFEST_DIR" (work + "-base/crates/ush_shell")
-set "CARGO_CRATE_NAME" "ush_shell"
+set CARGO_MANIFEST_DIR (work + "-base/crates/ush_shell")
+set CARGO_CRATE_NAME ush_shell
 assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")
 echo "rustc wrapper: dependencies passed"
 
 # One frontend thread, or none configured, leaves every call unchanged.
-set "CARGO_MANIFEST_DIR" $member
+set CARGO_MANIFEST_DIR $member
 for jobs in ["1", "0", ""] {
-  set "USH_RUSTC_FRONTEND_JOBS" $jobs
+  set USH_RUSTC_FRONTEND_JOBS $jobs
   assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")
 }
-unset "USH_RUSTC_FRONTEND_JOBS"
+unset USH_RUSTC_FRONTEND_JOBS
 assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")
 echo "rustc wrapper: frontend off passed"
 
 # Every call goes through kache when the shell provides it.
-set "USH_KACHE" $kache
-set "USH_RUSTC_FRONTEND_JOBS" "4"
+set USH_KACHE $kache
+set USH_RUSTC_FRONTEND_JOBS "4"
 assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["via-kache", "bootstrap=ush_shell", "--crate-name", "ush_shell", "src/lib.rs", "-Zunstable-options", "--jobs-frontend=4"] "\n")
 assert_eq (output $wrapper [rustc, "-vV"]) (join ["via-kache", "bootstrap=", "-vV"] "\n")
-set "USH_KACHE" ""
+set USH_KACHE ""
 assert_eq (output $wrapper [rustc, "-vV"]) (join ["bootstrap=", "-vV"] "\n")
 echo "rustc wrapper: kache passed"

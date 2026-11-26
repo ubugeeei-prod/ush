@@ -32,8 +32,8 @@ fn need(command: String) -> () {
 }
 
 fn target() -> String {
-  let mut os = uname "-s"
-  let mut arch = uname "-m"
+  let mut os = uname -s
+  let mut arch = uname -m
   match os {
     "Linux" => os = "unknown-linux-gnu"
     "Darwin" => os = "apple-darwin"
@@ -50,7 +50,7 @@ fn target() -> String {
 }
 
 fn path_contains(directory: String) -> Bool {
-  contains (":" + get "PATH" + ":") (":" + directory + ":")
+  contains (":" + get PATH + ":") (":" + directory + ":")
 }
 
 fn bin_directory(explicit: String, prefix: String) -> String {
@@ -60,14 +60,14 @@ fn bin_directory(explicit: String, prefix: String) -> String {
   if prefix != "" {
     return prefix + "/bin"
   }
-  let home = get "HOME"
+  let home = get HOME
   for candidate in [home + "/.local/bin", home + "/bin"] {
     if path_contains $candidate {
       return candidate
     }
   }
-  for candidate in split (get "PATH") ":" {
-    if starts_with $candidate (home + "/") && test "-d" $candidate && test "-w" $candidate {
+  for candidate in split (get PATH) ":" {
+    if starts_with $candidate (home + "/") && test -d $candidate && test -w $candidate {
       return candidate
     }
   }
@@ -75,8 +75,8 @@ fn bin_directory(explicit: String, prefix: String) -> String {
 }
 
 fn profile() -> String {
-  let home = get "HOME"
-  let name = std::path::basename (get "SHELL")
+  let home = get HOME
+  let name = std::path::basename (get SHELL)
   if name == "zsh" {
     return home + "/.zshrc"
   }
@@ -104,7 +104,7 @@ fn escaped(value: String) -> String {
 }
 
 fn path_line(directory: String) -> String {
-  let home = get "HOME"
+  let home = get HOME
   if starts_with $directory (home + "/") {
     return "export PATH=\"$HOME/" + escaped (trim_prefix $directory (home + "/")) + ":$PATH\""
   }
@@ -134,23 +134,23 @@ fn ensure_path(directory: String, automatic: Bool) -> String {
 }
 
 fn fetch(url: String, output: String) -> () {
-  if starts_with $url "file://" {
-    if exists "curl" {
-      curl "-fsSL" "--proto" "=file" $url "-o" $output
+  if starts_with $url file:// {
+    if exists curl {
+      curl -fsSL --proto "=file" $url -o $output
     } else {
-      let mut local_path = trim_prefix $url "file://"
-      if starts_with $local_path "localhost/" {
-        local_path = trim_prefix $local_path "localhost"
+      let mut local_path = trim_prefix $url file://
+      if starts_with $local_path localhost/ {
+        local_path = trim_prefix $local_path localhost
       }
-      if starts_with $local_path "/" == false || contains $local_path "%" {
+      if starts_with $local_path / == false || contains $local_path "%" {
         fail 1 "install.sh: encoded or nonlocal file URLs require curl"
       }
       cp $local_path $output
     }
-  } else if exists "curl" {
-    curl "-fsSL" "--proto" "=https" "--tlsv1.2" "--retry" "3" "--retry-delay" "2" $url "-o" $output
-  } else if exists "wget" {
-    wget "-q" "--https-only" "--secure-protocol=TLSv1_2" "--tries=3" "-O" $output $url
+  } else if exists curl {
+    curl -fsSL --proto "=https" --tlsv1.2 --retry "3" --retry-delay "2" $url -o $output
+  } else if exists wget {
+    wget -q --https-only --secure-protocol=TLSv1_2 --tries=3 -O $output $url
   } else {
     fail 1 "install.sh: curl or wget is required"
   }
@@ -172,7 +172,7 @@ fn expected_checksum(file: String, asset: String) -> String {
       if word != "" {
         if field == 0 {
           digest = word
-        } else if field == 1 && trim_prefix $word "*" == asset {
+        } else if field == 1 && trim_prefix $word * == asset {
           return digest
         }
         field = field + 1
@@ -182,14 +182,14 @@ fn expected_checksum(file: String, asset: String) -> String {
   fail 1 ("install.sh: could not find checksum for " + asset)
 }
 
-let mut repo = option "USH_REPO" "UBSH_REPO" "ubugeeei/ush"
-repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix $repo "https://github.com/") "http://github.com/") "git@github.com:") ".git"
-let mut version = option "USH_VERSION" "UBSH_VERSION" "latest"
-let mut prefix = option "USH_PREFIX" "UBSH_PREFIX" ""
-let mut directory = option "USH_BIN_DIR" "UBSH_BIN_DIR" ""
-let mut download_url = option "USH_DOWNLOAD_URL" "UBSH_DOWNLOAD_URL" ""
-let mut checksum_url = option "USH_CHECKSUM_URL" "UBSH_CHECKSUM_URL" ""
-let mut automatic = option "USH_AUTO_PATH" "UBSH_AUTO_PATH" "1"
+let mut repo = option USH_REPO UBSH_REPO ubugeeei/ush
+repo = trim_suffix (trim_prefix (trim_prefix (trim_prefix $repo https://github.com/) http://github.com/) "git@github.com:") .git
+let mut version = option USH_VERSION UBSH_VERSION latest
+let mut prefix = option USH_PREFIX UBSH_PREFIX ""
+let mut directory = option USH_BIN_DIR UBSH_BIN_DIR ""
+let mut download_url = option USH_DOWNLOAD_URL UBSH_DOWNLOAD_URL ""
+let mut checksum_url = option USH_CHECKSUM_URL UBSH_CHECKSUM_URL ""
+let mut automatic = option USH_AUTO_PATH UBSH_AUTO_PATH "1"
 let mut pending = ""
 for value in args {
   if pending != "" {
@@ -218,14 +218,14 @@ for value in args {
 if pending != "" {
   fail 1 ("install.sh: " + pending + " requires a value")
 }
-if std::env::contains "USH_BRANCH" || std::env::contains "UBSH_BRANCH" {
+if std::env::contains USH_BRANCH || std::env::contains UBSH_BRANCH {
   fail 1 "install.sh: USH_BRANCH/UBSH_BRANCH is no longer supported; use USH_VERSION or build from source"
 }
-need "tar"
-need "install"
+need tar
+need install
 let target = target
 directory = bin_directory $directory $prefix
-if starts_with $directory "/" == false {
+if starts_with $directory / == false {
   directory = std::path::cwd + "/" + directory
 }
 let asset = "ush-" + target + ".tar.gz"
@@ -233,7 +233,7 @@ if download_url == "" {
   download_url = release_url $repo $version $asset
 }
 if checksum_url == "" {
-  checksum_url = release_url $repo $version "sha256sums.txt"
+  checksum_url = release_url $repo $version sha256sums.txt
 }
 let work = temp_dir
 let archive = work + "/ush.tar.gz"
@@ -250,7 +250,7 @@ if actual != expected {
 eprint ("install.sh: verified checksum for " + asset)
 let unpack = work + "/unpack"
 mkdir_p $unpack
-tar "-xzf" $archive "-C" $unpack
+tar -xzf $archive -C $unpack
 let mut package = unpack + "/ush-" + target
 if is_file (package + "/ush") == false && is_file (unpack + "/ush") {
   package = unpack
@@ -259,9 +259,9 @@ if is_file (package + "/ush") == false {
   fail 1 "install.sh: release archive did not contain ush"
 }
 mkdir_p $directory
-install "-m" "755" (package + "/ush") (directory + "/ush")
+install -m "755" (package + "/ush") (directory + "/ush")
 if is_file (package + "/ush_lsp") {
-  install "-m" "755" (package + "/ush_lsp") (directory + "/ush_lsp")
+  install -m "755" (package + "/ush_lsp") (directory + "/ush_lsp")
   echo ("ush_lsp installed to " + directory + "/ush_lsp")
 }
 let path_status = ensure_path $directory (automatic != "0")?

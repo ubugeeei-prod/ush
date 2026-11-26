@@ -226,7 +226,7 @@ ush_fn_std__process__status() {
   if (ush_fn_std__process__exec "$@") >/dev/null 2>&1; then printf 0; else printf '%s' "$?"; fi
 }
 
-__ush_at 6 'let compiler = get_or "TYNIX" "tynix"'
+__ush_at 6 'let compiler = get_or TYNIX tynix'
 __ush_value_0="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get_or 'TYNIX' 'tynix')" || exit "$?"
 __ush_binding_6_compiler="${__ush_value_0}"
 # shellcheck disable=SC2034
@@ -256,7 +256,7 @@ __ush_match_4__2='-o'
 # shellcheck disable=SC2034
 __ush_match_4__3="${__ush_binding_7_work}"'/flake.nix'
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__process__exec "${__ush_binding_6_compiler}" "$(ush_fn_std__pack __ush_match_4)" )
-__ush_at 10 'if status "cmp" ["-s", "flake.nix", work + "/flake.nix"] != 0 {'
+__ush_at 10 'if status cmp ["-s", "flake.nix", work + "/flake.nix"] != 0 {'
 if {
 __ush_match_6__len='3'
 # shellcheck disable=SC2034

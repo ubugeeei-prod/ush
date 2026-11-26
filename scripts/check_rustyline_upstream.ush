@@ -18,29 +18,29 @@ fn first(text: String, separator: String) -> String {
   }
   ""
 }
-let pinned = trim_prefix (value "vendor/rustyline/UPSTREAM" "tag:") "v"
-let vendored = std::string::trim_suffix (trim_prefix (value "vendor/rustyline/Cargo.toml" "version =") "\"") "\""
+let pinned = trim_prefix (value vendor/rustyline/UPSTREAM "tag:") v
+let vendored = std::string::trim_suffix (trim_prefix (value vendor/rustyline/Cargo.toml "version =") "\"") "\""
 if pinned == "" || vendored != pinned {
   fail 1 "check_rustyline_upstream: UPSTREAM tag and vendored Cargo.toml version must agree"
 }
 let work = temp_dir
 let index = work + "/index.jsonl"
-curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" $index
+curl -fsSL --retry "3" https://index.crates.io/ru/st/rustyline -o $index
 # jq performs JSON decoding and numeric version ordering; policy stays in ush.
-let versions = output "jq" ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]
+let versions = output jq ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]
 let mut latest = ""
 let mut patch = ""
-let major = first $pinned "."
+let major = first $pinned .
 for version in lines $versions {
   latest = version
-  if first $version "." == major {
+  if first $version . == major {
     patch = version
   }
 }
 if latest == "" || patch == "" {
   fail 1 "check_rustyline_upstream: registry returned no stable versions"
 }
-let reviewed = value "vendor/rustyline/UPSTREAM" "reviewed:"
+let reviewed = value vendor/rustyline/UPSTREAM "reviewed:"
 echo ("pinned: " + pinned + ", latest in major: " + patch + ", latest overall: " + latest)
 if pinned != patch || pinned != latest && reviewed != "v" + latest {
   fail 1 ("vendored rustyline is behind upstream; review https://github.com/kkawakam/rustyline/releases/tag/v" + latest + " and update vendor/rustyline/UPSTREAM")

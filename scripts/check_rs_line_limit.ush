@@ -5,9 +5,9 @@ use std::io::eprint
 use std::process::exit
 
 let mut failed = 0
-for file in lines (find "apps" "crates" "-type" "f" "-name" "*.rs") {
+for file in lines (find apps crates -type f -name *.rs) {
   let mut count = ""
-  for word in split (trim (wc "-l" $file)) " " {
+  for word in split (trim (wc -l $file)) " " {
     count = word
     break
   }

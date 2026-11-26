@@ -385,7 +385,7 @@ ush_fn_build() {
   work="${__ush_fn_build_arg_5}"
   __ush_at 19 'cd $checkout'
   command cd "${__ush_fn_build_arg_0}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
-  __ush_at 20 'set "CARGO_TARGET_DIR" $target'
+  __ush_at 20 'set CARGO_TARGET_DIR $target'
   ush_fn_std__env__set 'CARGO_TARGET_DIR' "${__ush_fn_build_arg_4}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 21 'let log = work + "/cargo.jsonl"'
   __ush_binding_21_log="${__ush_fn_build_arg_5}"'/cargo.jsonl'
@@ -395,7 +395,7 @@ ush_fn_build() {
   __ush_binding_22_error_log="${__ush_fn_build_arg_5}"'/cargo.err'
   # shellcheck disable=SC2034
   error_log="${__ush_binding_22_error_log}"
-  __ush_at 23 'let code = redirect "cargo" ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] $log $error_log'
+  __ush_at 23 'let code = redirect cargo ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] $log $error_log'
   __ush_match_0__len='8'
   # shellcheck disable=SC2034
   __ush_match_0__0='bench'
@@ -430,7 +430,7 @@ ush_fn_build() {
     __ush_report "$__ush_status" 'benchmark build failed in '"${__ush_fn_build_arg_0}"
     return "$__ush_status"
   fi
-  __ush_at 28 'let binary = output "jq" ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?'
+  __ush_at 28 'let binary = output jq ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?'
   __ush_match_4__len='6'
   # shellcheck disable=SC2034
   __ush_match_4__0='-ser'
@@ -526,7 +526,7 @@ ush_fn_measure() {
   __ush_binding_47_run="${__ush_value_16}"
   # shellcheck disable=SC2034
   run="${__ush_binding_47_run}"
-  __ush_at 48 'set "CRITERION_HOME" $run'
+  __ush_at 48 'set CRITERION_HOME $run'
   ush_fn_std__env__set 'CRITERION_HOME' "${__ush_binding_47_run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 49 'let code = redirect $binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")'
   __ush_match_17__len='12'
@@ -582,7 +582,7 @@ ush_fn_measure() {
   __ush_binding_56_count=0
   # shellcheck disable=SC2034
   count="${__ush_binding_56_count}"
-  __ush_at 57 'for file in lines (find $run "-path" "*/new/estimates.json") {'
+  __ush_at 57 'for file in lines (find $run -path */new/estimates.json) {'
   __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' command find "${__ush_binding_47_run}" '-path' '*/new/estimates.json')" || return "$?"
   __ush_packed_24="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_23}")" || return "$?"
   __ush_match_22__len=0
@@ -612,7 +612,7 @@ ush_fn_measure() {
     __ush_report "$__ush_status" 'expected one Criterion estimate for '"${__ush_fn_measure_arg_1}"
     return "$__ush_status"
   fi
-  __ush_at 64 'let value = output "jq" ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?'
+  __ush_at 64 'let value = output jq ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?'
   __ush_match_27__len='3'
   # shellcheck disable=SC2034
   __ush_match_27__0='-er'
@@ -624,7 +624,7 @@ ush_fn_measure() {
   __ush_binding_64_value="${__ush_value_29}"
   # shellcheck disable=SC2034
   value="${__ush_binding_64_value}"
-  __ush_at 65 'rm "-rf" $run'
+  __ush_at 65 'rm -rf $run'
   command rm '-rf' "${__ush_binding_47_run}" || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
   __ush_at 66 'value'
   if [ -n "${__ush_return_path:-}" ]; then
@@ -643,7 +643,7 @@ ush_fn_geometric() {
   __ush_fn_geometric_arg_1="${2}"
   # shellcheck disable=SC2034
   second="${__ush_fn_geometric_arg_1}"
-  __ush_at 70 'output "jq" ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]'
+  __ush_at 70 'output jq ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]'
   __ush_match_30__len='8'
   # shellcheck disable=SC2034
   __ush_match_30__0='-nr'
@@ -770,7 +770,7 @@ ush_fn_compare() {
         __ush_binding_91_after="${__ush_value_47}"
         # shellcheck disable=SC2034
         after="${__ush_binding_91_after}"
-        __ush_at 92 'let ratio = output "jq" ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]'
+        __ush_at 92 'let ratio = output jq ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]'
         __ush_match_48__len='8'
         # shellcheck disable=SC2034
         __ush_match_48__0='-nr'
@@ -799,7 +799,7 @@ ush_fn_compare() {
         row="${__ush_binding_93_row}"
         __ush_at 94 'report $row $summary'
         ( __ush_capture_return='0' __ush_return_path=''; ush_fn_report "${__ush_binding_93_row}" "${__ush_fn_compare_arg_2}" ) || { __ush_status=$?; __ush_report "$__ush_status"; return "$__ush_status"; }
-        __ush_at 95 'if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {'
+        __ush_at 95 'if status jq ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {'
         if {
         __ush_match_52__len='5'
         # shellcheck disable=SC2034
@@ -881,7 +881,7 @@ __ush_value_62="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__path
 __ush_binding_115_base="${__ush_value_62}"
 # shellcheck disable=SC2034
 base="${__ush_binding_115_base}"
-__ush_at 116 'let summary = get "GITHUB_STEP_SUMMARY"'
+__ush_at 116 'let summary = get GITHUB_STEP_SUMMARY'
 __ush_value_63="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__env__get 'GITHUB_STEP_SUMMARY')" || exit "$?"
 __ush_binding_116_summary="${__ush_value_63}"
 # shellcheck disable=SC2034

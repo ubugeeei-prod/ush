@@ -3,10 +3,10 @@ use std::env::get_or
 use std::fs::temp_dir
 use std::process::{exec, status}
 
-let compiler = get_or "TYNIX" "tynix"
+let compiler = get_or TYNIX tynix
 let work = temp_dir
 exec $compiler ["check", "flake.tynix"]
 exec $compiler ["compile", "flake.tynix", "-o", work + "/flake.nix"]
-if status "cmp" ["-s", "flake.nix", work + "/flake.nix"] != 0 {
+if status cmp ["-s", "flake.nix", work + "/flake.nix"] != 0 {
   fail 1 "flake.nix is stale; run tynix compile flake.tynix -o flake.nix"
 }

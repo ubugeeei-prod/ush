@@ -6,7 +6,7 @@ use std::test::{assert_eq, assert}
 
 fn compile(compiler: String, target: String, work: String) -> () {
   exec $compiler ["compile", work + "/job.ush", "--target", target, "--checked-in", "-o", work + "/job.sh"]
-  chmod "+x" (work + "/job.sh")
+  chmod +x (work + "/job.sh")
   remove (work + "/job.ush")
 }
 
@@ -28,7 +28,7 @@ print job.await
 """
 compile $compiler $target $work
 assert_eq (redirect $target [work + "/job.sh"] (work + "/out") (work + "/err")) 23
-assert_eq (test "-s" (work + "/out")) false
+assert_eq (test -s (work + "/out")) false
 assert_eq (read_text (work + "/err")) """
 job.ush:2: missing input (exit 23)
   fail 23 "missing input"
@@ -59,7 +59,7 @@ print job.await
 compile $compiler $target $work
 assert_eq (redirect $target [work + "/job.sh"] (work + "/out") (work + "/err")) 0
 assert_eq (read_text (work + "/out")) "42\n43\n41\n41"
-assert_eq (test "-s" (work + "/err")) false
+assert_eq (test -s (work + "/err")) false
 
 write_text (work + "/job.ush") """
 fn build() -> Int {
@@ -74,7 +74,7 @@ print sibling.await
 """
 compile $compiler $target $work
 assert_eq (redirect $target [work + "/job.sh"] (work + "/out") (work + "/err")) 23
-assert_eq (test "-s" (work + "/out")) false
+assert_eq (test -s (work + "/out")) false
 assert_eq (read_text (work + "/err")) """
 job.ush:2: missing input (exit 23)
   fail 23 "missing input"

@@ -10,6 +10,12 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Changed
+
+- Use CLI-style bare arguments throughout `scripts/*.ush` and `install.ush`,
+  retaining quotes where strings require them, and regenerate their standalone
+  shell artifacts.
+
 ## [0.17.0] — 2026-11-26
 
 ### Added

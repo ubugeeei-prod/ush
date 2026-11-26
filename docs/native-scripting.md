@@ -5,7 +5,7 @@ conditions and explicit imports. Their adjacent `.sh` files are generated with
 `ush compile --checked-in`, so an initial install does not require ush.
 
 ```ush
-use std::process::{args, output, status}
+use std::process::{args, status}
 use std::fs::{temp_dir, write_text}
 use std::string::lines
 use $bin::*
@@ -14,12 +14,12 @@ let work = temp_dir
 for argument in args {
   echo $argument
 }
-let files = output "git" ["ls-files", "--", "*.ush"]
+let files = git ls-files -- *.ush
 for file in lines $files {
   echo $file
 }
 write_text (work + "/message") "hello\n"
-if status "test" ["-s", work + "/message"] != 0 {
+if status test ["-s", work + "/message"] != 0 {
   fail 1 "missing output"
 }
 ```
@@ -143,9 +143,9 @@ argument must implement `Display`; numbers, booleans and custom implementations
 work alongside strings.
 
 ```ush
-echo "hello" "world" 42
+echo hello world 42
 echo
-let text = echo "captured" "output"
+let text = echo captured output
 echo $text
 ```
 
@@ -173,6 +173,13 @@ cp ./README.md ./dist/
 echo --output=./dist/${name}.txt
 echo "count:" (count + 1)
 ```
+
+Repository scripts and `install.ush` follow this style: `cargo test --locked
+--workspace`, `get PATH`, and `find examples -name *.ush -type f` need no quotes.
+The `*.ush` argument reaches `find` literally; ush does not expand it. Keep
+quotes for empty strings, spaces, escapes, and values that must remain strings
+such as `set USH_AUTO_PATH "1"`. List elements, bindings and comparisons remain
+expression contexts, so their string literals still need quotes.
 
 This rule applies to ush functions and imported commands alike. An unquoted
 word never changes meaning when a variable with that name is introduced.

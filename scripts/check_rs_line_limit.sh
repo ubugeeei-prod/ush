@@ -163,7 +163,7 @@ __ush_at 7 'let mut failed = 0'
 __ush_binding_7_failed=0
 # shellcheck disable=SC2034
 failed="${__ush_binding_7_failed}"
-__ush_at 8 'for file in lines (find "apps" "crates" "-type" "f" "-name" "*.rs") {'
+__ush_at 8 'for file in lines (find apps crates -type f -name *.rs) {'
 __ush_value_1="$(__ush_return_path='' __ush_capture_return='1' command find 'apps' 'crates' '-type' 'f' '-name' '*.rs')" || exit "$?"
 __ush_packed_2="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__lines "${__ush_value_1}")" || exit "$?"
 __ush_match_0__len=0
@@ -178,7 +178,7 @@ while [ "${__ush_for_list_index_3}" -lt "${__ush_match_0__len}" ]; do
   __ush_binding_9_count=''
   # shellcheck disable=SC2034
   count="${__ush_binding_9_count}"
-  __ush_at 10 'for word in split (trim (wc "-l" $file)) " " {'
+  __ush_at 10 'for word in split (trim (wc -l $file)) " " {'
   __ush_value_6="$(__ush_return_path='' __ush_capture_return='1' command wc '-l' "${file}")" || exit "$?"
   __ush_value_7="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim "${__ush_value_6}")" || exit "$?"
   __ush_packed_8="$(__ush_return_path='' __ush_capture_return=1 ush_fn_std__string__split "${__ush_value_7}" ' ')" || exit "$?"
