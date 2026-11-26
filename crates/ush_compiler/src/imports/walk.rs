@@ -92,7 +92,12 @@ impl Resolver<'_> {
         if !scope.contains(&call.name) {
             self.name(&mut call.name);
         }
+        let program = call.name.starts_with("$bin::");
         for arg in &mut call.args {
+            // A program reads `timeout 300s` as the word written, not a quantity.
+            if let (true, Expr::Quantity(amount, unit)) = (program, &arg.expr) {
+                arg.expr = Expr::String(format!("{amount}{unit}").into());
+            }
             self.expr(&mut arg.expr, scope);
         }
     }

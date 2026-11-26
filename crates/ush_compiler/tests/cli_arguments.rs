@@ -181,3 +181,17 @@ fn a_test_predicate_takes_single_words() {
         "{error:#}"
     );
 }
+
+#[test]
+fn a_word_that_reads_as_a_quantity_reaches_a_program_as_written() {
+    // `timeout 300s …`: a quantity has a meaning only for a ush parameter
+    // of that unit, never for a program's argument.
+    outputs(
+        r#"
+use $bin::*
+
+printf "<%s>\n" 300s 5m 10ms
+"#,
+        "<300s>\n<5m>\n<10ms>\n",
+    );
+}

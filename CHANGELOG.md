@@ -26,6 +26,10 @@ project adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
+- A program's argument that reads as a quantity, such as `timeout 300s …`,
+  failed to compile with "unit literal must be checked before lowering". A
+  quantity has a meaning only for a ush parameter of that unit, so a
+  program now receives the word as written.
 - `let b = (x != "y") && (x == "y")` compiled silently to the wrong value:
   the outer parentheses were removed as if one pair wrapped the whole
   expression, which left `x` compared with the text `y") && (x == "y`. Only a
