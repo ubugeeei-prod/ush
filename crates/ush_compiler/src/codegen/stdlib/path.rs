@@ -8,6 +8,7 @@ pub(super) fn definitions() -> Vec<FunctionDef> {
         builtin("std::path::cwd", Vec::new(), Some(Type::String)),
         builtin("std::path::home", Vec::new(), Some(Type::String)),
         builtin("std::path::source_root", Vec::new(), Some(Type::String)),
+        builtin("std::path::script", Vec::new(), Some(Type::String)),
         builtin("std::path::tmpfile", Vec::new(), Some(Type::String)),
         builtin(
             "std::path::from_cwd",

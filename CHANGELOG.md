@@ -15,6 +15,9 @@ project adheres to [Semantic Versioning][semver].
 - A `List<String>` or `List<Int>` argument of an external command passes each
   element as an argument of its own, as `"${files[@]}"` does in bash. An empty
   List adds no words, and predicates such as `test` still take single words.
+- `std::path::script` returns the absolute path of the running script file,
+  like `$0` resolved. It follows the generated script when it is copied, for
+  example as a hook, where `std::path::from_source` still names the source.
 
 ### Fixed
 

@@ -258,6 +258,18 @@ ush_fn_std__path__source_root() {
   fi
 }
 
+ush_fn_std__path__script() {
+  # The running script file itself, wherever it was copied: `from_source`
+  # names the ush source instead.
+  __ush_script=${__ush_entrypoint:-$0}
+  case $__ush_script in
+    */*) ;;
+    *) [ -f "$__ush_script" ] || __ush_script=$(command -v -- "$__ush_script") || return 1 ;;
+  esac
+  __ush_script_dir=$(CDPATH='' cd -P "$(dirname "$__ush_script")" && pwd -P) || return 1
+  printf '%s/%s' "$__ush_script_dir" "$(basename "$__ush_script")"
+}
+
 ush_fn_std__path__tmpfile() {
   ush_fn_std__fs__tmpfile
 }

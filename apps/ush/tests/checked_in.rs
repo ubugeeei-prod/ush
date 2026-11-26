@@ -187,3 +187,44 @@ fn a_source_relative_path_reaches_external_programs_as_a_real_path() {
         format!("payload\n{}\n", payload.display())
     );
 }
+
+#[test]
+fn script_names_the_running_file_even_after_a_copy() {
+    let directory = tempdir().expect("tempdir");
+    let root = fs::canonicalize(directory.path()).unwrap();
+    let source = root.join("scripts/where.ush");
+    let output = root.join("scripts/compiled/where.sh");
+    fs::create_dir_all(output.parent().unwrap()).unwrap();
+    fs::create_dir_all(root.join("hooks")).unwrap();
+    fs::write(
+        &source,
+        "use std::path::{dirname, script}\nprint (script)\nprint (dirname (script))\n",
+    )
+    .unwrap();
+    let result = compile(&source, &output);
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    let copy = root.join("hooks/where-hook");
+    fs::copy(&output, &copy).unwrap();
+
+    let other = tempdir().unwrap();
+    for (script, directory) in [(&output, "scripts/compiled"), (&copy, "hooks")] {
+        let run = Command::new("sh")
+            .arg(script)
+            .current_dir(other.path())
+            .output()
+            .unwrap();
+        assert!(
+            run.status.success(),
+            "{}",
+            String::from_utf8_lossy(&run.stderr)
+        );
+        assert_eq!(
+            String::from_utf8_lossy(&run.stdout),
+            format!("{}\n{}\n", script.display(), root.join(directory).display())
+        );
+    }
+}
