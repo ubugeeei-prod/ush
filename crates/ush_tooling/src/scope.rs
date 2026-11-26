@@ -1,4 +1,6 @@
 //! A tolerant lexical index, shared by navigation and rename. Never parses strings as code.
+mod binding;
+mod patterns;
 use crate::{
     semantic::semantic_tokens,
     token::{SemanticToken, SemanticTokenKind},
@@ -9,6 +11,7 @@ pub(crate) struct Index<'a> {
     pub names: Vec<&'a str>,
     pub resolved: Vec<Option<usize>>,
     pub external: Vec<bool>,
+    pub unsupported_patterns: bool,
 }
 
 impl<'a> Index<'a> {
@@ -80,6 +83,7 @@ impl<'a> Index<'a> {
                 let after = (i + 2..tokens.len())
                     .find(|&j| tokens[j].line > tokens[i].line)
                     .unwrap_or(tokens.len());
+                let after = binding::after_initializer(i, after, &names, &opens, &ends);
                 declarations.push((binding_name, scopes[i], after));
             }
             if names[i] == "fn"
@@ -122,6 +126,15 @@ impl<'a> Index<'a> {
                 }
             }
         }
+        let unsupported_patterns = patterns::index(
+            &tokens,
+            &names,
+            &opens,
+            &mut parents,
+            &mut ends,
+            &mut scopes,
+            &mut declarations,
+        );
         let mut modules = std::collections::HashMap::new();
         for i in 0..names.len().saturating_sub(4) {
             if names[i] == "extern" && names[i + 2] == "as" && names[i + 4] == "{" {
@@ -193,6 +206,7 @@ impl<'a> Index<'a> {
             names,
             resolved,
             external,
+            unsupported_patterns,
         }
     }
 

@@ -1,0 +1,21 @@
+use std::test::assert_eq
+
+fn target(os: String, arch: String) -> String {
+  let os = match os {
+    "Linux" => "unknown-linux-gnu"
+    "Darwin" => "apple-darwin"
+    other => fail 1 ("unsupported OS: " + other)
+  }
+  let arch = match arch {
+    "arm64" | "aarch64" => "aarch64"
+    "amd64" => "x86_64"
+    other => other
+  }
+  arch + "-" + os
+}
+
+test "immutable platform selection" {
+  assert_eq (target Linux amd64) x86_64-unknown-linux-gnu
+  assert_eq (target Darwin arm64) aarch64-apple-darwin
+  assert_eq (target Linux riscv64) riscv64-unknown-linux-gnu
+}

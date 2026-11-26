@@ -18,6 +18,7 @@ impl Checker {
             return Ok(ty);
         }
         Ok(match expr {
+            Expr::Match(value) => self.match_value(value, locals)?,
             Expr::FunctionRef(_) => unreachable!(),
             Expr::Comprehension(c) => self.comprehension(c, locals)?,
             Expr::Int(n) => Ty::integer(*n),

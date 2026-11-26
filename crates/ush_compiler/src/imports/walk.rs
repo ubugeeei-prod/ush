@@ -99,6 +99,14 @@ impl Resolver<'_> {
     pub(super) fn expr(&self, expr: &mut Expr, scope: &Set<Name>) {
         self.qualified_call(expr);
         match expr {
+            Expr::Match(value) => {
+                self.expr(&mut value.subject, scope);
+                for (pattern, arm) in &mut value.arms {
+                    let mut inner = scope.clone();
+                    bind_pattern(pattern, &mut inner);
+                    self.statement(arm, &mut inner);
+                }
+            }
             Expr::Var(name) if name.starts_with('$') => {
                 let variable: Name = name[1..].into();
                 if !scope.contains(&variable) {

@@ -205,7 +205,7 @@ impl Checker {
         }
         Ok(())
     }
-    fn pattern(&self, p: &Pattern, t: &Ty, env: &mut Locals) -> Result<()> {
+    pub(super) fn pattern(&self, p: &Pattern, t: &Ty, env: &mut Locals) -> Result<()> {
         use crate::ast::PatternFields;
         match p {
             Pattern::Binding(n) => {

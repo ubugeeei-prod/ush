@@ -194,6 +194,13 @@ pub(crate) fn walk_expr<V: VisitMut + ?Sized>(v: &mut V, expr: &mut Expr) {
         }
         Expr::Try(inner) | Expr::Field { base: inner, .. } | Expr::StatusOf(inner) => v.expr(inner),
         Expr::AsyncBlock(body) => walk_block(v, body),
+        Expr::Match(value) => {
+            v.expr(&mut value.subject);
+            for (pattern, arm) in &mut value.arms {
+                v.pattern(pattern);
+                v.statement(arm);
+            }
+        }
         Expr::Pipeline(pipeline) => pipeline.exprs_mut().for_each(|e| v.expr(e)),
         Expr::Variant(variant) => match &mut variant.fields {
             ExprFields::Unit => {}

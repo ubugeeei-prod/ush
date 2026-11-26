@@ -11,13 +11,13 @@
       "patterns": [
         {
           "name": "meta.command.ush",
-          "begin": "(?:^\\s*|(?<=[=|(])\\s*)(?!(?:alias|allow_fail|as|async|await|break|const|continue|defer|do|effect|else|enum|export|extern|fail|fn|for|glob|if|impl|in|let|loop|match|mod|mut|print|pub|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b)(\\$bin::[A-Za-z_][A-Za-z0-9_:]*|[A-Za-z_][A-Za-z0-9_:]*)(?=\\s+[^\\s=+<>{|])",
+          "begin": "(?:^\\s*|(?<=[=|(])\\s*|(?<=\\bmatch)\\s+)(?!(?:alias|allow_fail|as|async|await|break|const|continue|defer|do|effect|else|enum|export|extern|fail|fn|for|glob|if|impl|in|let|loop|match|mod|mut|print|pub|raise|return|shell|spawn|status_of|test|trait|try|type|unit|use|using|where|while|with)\\b)(\\$bin::[A-Za-z_][A-Za-z0-9_:]*|[A-Za-z_][A-Za-z0-9_:]*)(?=\\s+[^\\s=+<>{|])",
           "beginCaptures": {
             "1": {
               "name": "entity.name.function.ush"
             }
           },
-          "end": "(?=$|[|)])",
+          "end": "(?=$|[|)]|\\s+\\{\\s*$)",
           "patterns": [
             {
               "include": "#interpolated-string"

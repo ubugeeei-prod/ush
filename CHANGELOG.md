@@ -10,11 +10,21 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Bind the result of `match` directly with `let name = match value { ... }`.
+  Arms produce a common type, or terminate with `fail`/`raise`; matches must be
+  exhaustive. Values retain lexical scope and immutable bindings, and literal
+  selection lowers directly to shell branches without a task or subprocess.
+
 ### Changed
 
 - Use CLI-style bare arguments throughout `scripts/*.ush` and `install.ush`,
   retaining quotes where strings require them, and regenerate their standalone
   shell artifacts.
+- Select installer and installer-test platforms with immutable match bindings.
+- Resolve and rename scalar match-arm bindings in their own lexical scopes;
+  match result bindings become visible only after their initializer finishes.
 
 ## [0.17.0] — 2026-11-26
 

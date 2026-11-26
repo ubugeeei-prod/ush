@@ -236,7 +236,7 @@ fn is_block_statement(statement: &Statement) -> bool {
             | StatementKind::Scoped { .. }
             | StatementKind::Defer(_)
             | StatementKind::Let {
-                expr: Expr::AsyncBlock(_),
+                expr: Expr::AsyncBlock(_) | Expr::Match(_),
                 ..
             }
     )
