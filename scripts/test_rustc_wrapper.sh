@@ -389,11 +389,11 @@ __ush_at 27 'let member = work + "/crates/ush_shell"'
 __ush_binding_27_member="${__ush_binding_10_work}"'/crates/ush_shell'
 # shellcheck disable=SC2034
 member="${__ush_binding_27_member}"
-__ush_at 30 'set "USH_RUSTC_FRONTEND_JOBS" "8"'
+__ush_at 30 'set USH_RUSTC_FRONTEND_JOBS "8"'
 ush_fn_std__env__set 'USH_RUSTC_FRONTEND_JOBS' '8'
-__ush_at 31 'set "CARGO_MANIFEST_DIR" $member'
+__ush_at 31 'set CARGO_MANIFEST_DIR $member'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' "${__ush_binding_27_member}"
-__ush_at 32 'set "CARGO_CRATE_NAME" "ush_shell"'
+__ush_at 32 'set CARGO_CRATE_NAME ush_shell'
 ush_fn_std__env__set 'CARGO_CRATE_NAME' 'ush_shell'
 __ush_at 33 'assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "--edition=2024", "src/lib.rs"]) (join ["bootstrap=ush_shell", "--crate-name", "ush_shell", "--edition=2024", "src/lib.rs", "-Zunstable-options", "--jobs-frontend=8"] "\n")'
 __ush_match_6__len='5'
@@ -471,7 +471,7 @@ __ush_match_21__0='bootstrap='
 __ush_match_21__1='-vV'
 __ush_value_23="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_21)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_20}" "${__ush_value_23}" )
-__ush_at 42 'set "CARGO_CRATE_NAME" "build_script_build"'
+__ush_at 42 'set CARGO_CRATE_NAME build_script_build'
 ush_fn_std__env__set 'CARGO_CRATE_NAME' 'build_script_build'
 __ush_at 43 'assert_eq (output $wrapper [rustc, "--crate-name", "probe", "--crate-type=lib", "-"]) (join ["bootstrap=", "--crate-name", "probe", "--crate-type=lib", "-"] "\n")'
 __ush_match_24__len='5'
@@ -501,9 +501,9 @@ __ush_value_29="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__stri
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_26}" "${__ush_value_29}" )
 __ush_at 44 'echo "rustc wrapper: build-script probe passed"'
 printf '%s\n' 'rustc wrapper: build-script probe passed'
-__ush_at 47 'set "CARGO_MANIFEST_DIR" "/home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6"'
+__ush_at 47 'set CARGO_MANIFEST_DIR /home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' '/home/runner/.cargo/registry/src/index.crates.io-0000/memchr-2.7.6'
-__ush_at 48 'set "CARGO_CRATE_NAME" "memchr"'
+__ush_at 48 'set CARGO_CRATE_NAME memchr'
 ush_fn_std__env__set 'CARGO_CRATE_NAME' 'memchr'
 __ush_at 49 'assert_eq (output $wrapper [rustc, "--crate-name", "memchr", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "memchr", "src/lib.rs"] "\n")'
 __ush_match_30__len='4'
@@ -527,9 +527,9 @@ __ush_match_33__2='memchr'
 __ush_match_33__3='src/lib.rs'
 __ush_value_35="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_33)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_32}" "${__ush_value_35}" )
-__ush_at 51 'set "CARGO_MANIFEST_DIR" (work + "-base/crates/ush_shell")'
+__ush_at 51 'set CARGO_MANIFEST_DIR (work + "-base/crates/ush_shell")'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' "${__ush_binding_10_work}"'-base/crates/ush_shell'
-__ush_at 52 'set "CARGO_CRATE_NAME" "ush_shell"'
+__ush_at 52 'set CARGO_CRATE_NAME ush_shell'
 ush_fn_std__env__set 'CARGO_CRATE_NAME' 'ush_shell'
 __ush_at 53 'assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")'
 __ush_match_36__len='4'
@@ -555,7 +555,7 @@ __ush_value_41="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__stri
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_38}" "${__ush_value_41}" )
 __ush_at 54 'echo "rustc wrapper: dependencies passed"'
 printf '%s\n' 'rustc wrapper: dependencies passed'
-__ush_at 57 'set "CARGO_MANIFEST_DIR" $member'
+__ush_at 57 'set CARGO_MANIFEST_DIR $member'
 ush_fn_std__env__set 'CARGO_MANIFEST_DIR' "${__ush_binding_27_member}"
 __ush_at 58 'for jobs in ["1", "0", ""] {'
 __ush_match_42__len='3'
@@ -571,7 +571,7 @@ while [ "${__ush_for_list_index_43}" -lt "${__ush_match_42__len}" ]; do
   eval "__ush_for_value_44=\"\${__ush_match_42__${__ush_for_list_index_43}}\""
   jobs="${__ush_for_value_44}"
   __ush_for_list_index_43=$((__ush_for_list_index_43 + 1))
-  __ush_at 59 'set "USH_RUSTC_FRONTEND_JOBS" $jobs'
+  __ush_at 59 'set USH_RUSTC_FRONTEND_JOBS $jobs'
   ush_fn_std__env__set 'USH_RUSTC_FRONTEND_JOBS' "${jobs}"
   __ush_at 60 'assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")'
   __ush_match_45__len='4'
@@ -596,7 +596,7 @@ while [ "${__ush_for_list_index_43}" -lt "${__ush_match_42__len}" ]; do
   __ush_value_50="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_48)" ''"${__ush_lf}"'')" || exit "$?"
   ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_47}" "${__ush_value_50}" )
 done
-__ush_at 62 'unset "USH_RUSTC_FRONTEND_JOBS"'
+__ush_at 62 'unset USH_RUSTC_FRONTEND_JOBS'
 ush_fn_std__env__unset 'USH_RUSTC_FRONTEND_JOBS'
 __ush_at 63 'assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["bootstrap=", "--crate-name", "ush_shell", "src/lib.rs"] "\n")'
 __ush_match_51__len='4'
@@ -622,9 +622,9 @@ __ush_value_56="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__stri
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_53}" "${__ush_value_56}" )
 __ush_at 64 'echo "rustc wrapper: frontend off passed"'
 printf '%s\n' 'rustc wrapper: frontend off passed'
-__ush_at 67 'set "USH_KACHE" $kache'
+__ush_at 67 'set USH_KACHE $kache'
 ush_fn_std__env__set 'USH_KACHE' "${__ush_binding_20_kache}"
-__ush_at 68 'set "USH_RUSTC_FRONTEND_JOBS" "4"'
+__ush_at 68 'set USH_RUSTC_FRONTEND_JOBS "4"'
 ush_fn_std__env__set 'USH_RUSTC_FRONTEND_JOBS' '4'
 __ush_at 69 'assert_eq (output $wrapper [rustc, "--crate-name", "ush_shell", "src/lib.rs"]) (join ["via-kache", "bootstrap=ush_shell", "--crate-name", "ush_shell", "src/lib.rs", "-Zunstable-options", "--jobs-frontend=4"] "\n")'
 __ush_match_57__len='4'
@@ -670,7 +670,7 @@ __ush_match_66__1='bootstrap='
 __ush_match_66__2='-vV'
 __ush_value_68="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__join "$(ush_fn_std__pack __ush_match_66)" ''"${__ush_lf}"'')" || exit "$?"
 ( __ush_capture_return='0' __ush_return_path=''; ush_fn_std__test__assert_eq "${__ush_value_65}" "${__ush_value_68}" )
-__ush_at 71 'set "USH_KACHE" ""'
+__ush_at 71 'set USH_KACHE ""'
 ush_fn_std__env__set 'USH_KACHE' ''
 __ush_at 72 'assert_eq (output $wrapper [rustc, "-vV"]) (join ["bootstrap=", "-vV"] "\n")'
 __ush_match_69__len='2'

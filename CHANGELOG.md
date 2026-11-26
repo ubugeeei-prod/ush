@@ -41,6 +41,9 @@ project adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+- Use CLI-style bare arguments throughout `scripts/*.ush` and `install.ush`,
+  retaining quotes where strings require them, and regenerate their standalone
+  shell artifacts.
 - `shell` and `alias` reject an interpolating string, because the value would
   run as shell code.
 - A String `match` lowers to `case` instead of an `if` chain.

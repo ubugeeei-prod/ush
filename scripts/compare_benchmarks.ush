@@ -17,15 +17,15 @@ fn report(text: String, summary: String) -> () {
 
 fn build(checkout: String, package: String, suite: String, destination: String, target: String, work: String) -> String {
   cd $checkout
-  set "CARGO_TARGET_DIR" $target
+  set CARGO_TARGET_DIR $target
   let log = work + "/cargo.jsonl"
   let error_log = work + "/cargo.err"
-  let code = redirect "cargo" ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] $log $error_log
+  let code = redirect cargo ["bench", "--locked", "--no-run", "-p", package, "--bench", suite, "--message-format=json"] $log $error_log
   eprint (read_text $error_log)
   if code != 0 {
     fail $code ("benchmark build failed in " + checkout)
   }
-  let binary = output "jq" ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?
+  let binary = output jq ["-ser", "--arg", "suite", suite, "[.[] | select(.reason == \"compiler-artifact\" and .executable != null and .target.name == $suite) | .executable] | if length == 1 then .[0] else error(\"expected one benchmark executable\") end", log]?
   cp $binary $destination
   destination
 }
@@ -45,7 +45,7 @@ fn cases(binary: String) -> String {
 
 fn measure(binary: String, name: String) -> String {
   let run = temp_dir
-  set "CRITERION_HOME" $run
+  set CRITERION_HOME $run
   let code = redirect $binary ["--bench", "--exact", name, "--noplot", "--sample-size", "50", "--warm-up-time", "1.5", "--measurement-time", "2.5", "--nresamples", "10000"] (run + "/out") (run + "/err")
   if code != 0 {
     eprint (read_text (run + "/out"))
@@ -54,20 +54,20 @@ fn measure(binary: String, name: String) -> String {
   }
   let mut estimate = ""
   let mut count = 0
-  for file in lines (find $run "-path" "*/new/estimates.json") {
+  for file in lines (find $run -path */new/estimates.json) {
     estimate = file
     count = count + 1
   }
   if count != 1 {
     fail 1 ("expected one Criterion estimate for " + name)
   }
-  let value = output "jq" ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?
-  rm "-rf" $run
+  let value = output jq ["-er", "(.slope // .mean).point_estimate | if type == \"number\" and . > 0 and isfinite then . else error(\"invalid timing estimate\") end", estimate]?
+  rm -rf $run
   value
 }
 
 fn geometric(first: String, second: String) -> String {
-  output "jq" ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]
+  output jq ["-nr", "--argjson", "a", first, "--argjson", "b", second, "($a * $b) | sqrt"]
 }
 
 fn compare(base: String, head: String, summary: String) -> Int {
@@ -89,10 +89,10 @@ fn compare(base: String, head: String, summary: String) -> Int {
         let b2 = measure $base $name
         let before = geometric $b1 $b2
         let after = geometric $h1 $h2
-        let ratio = output "jq" ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]
+        let ratio = output jq ["-nr", "--argjson", "a", after, "--argjson", "b", before, "$a / $b"]
         let row = printf "| %s | %.2f | %.2f | %.3f× |" $name $before $after $ratio
         report $row $summary
-        if status "jq" ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {
+        if status jq ["-ne", "--argjson", "ratio", ratio, "$ratio > 1.25"] == 0 {
           failures = failures + 1
         }
       } else if in_head {
@@ -113,7 +113,7 @@ if base_arg == "" {
 }
 let head = cwd
 let base = resolve (from_cwd $base_arg)
-let summary = get "GITHUB_STEP_SUMMARY"
+let summary = get GITHUB_STEP_SUMMARY
 report "## Paired Criterion measurements" $summary
 report "" $summary
 report "Base and PR binaries run on the same runner. The regression threshold is 1.25×." $summary

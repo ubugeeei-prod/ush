@@ -398,13 +398,13 @@ ush_fn_first() {
   return 0
 }
 
-__ush_at 21 'let pinned = trim_prefix (value "vendor/rustyline/UPSTREAM" "tag:") "v"'
+__ush_at 21 'let pinned = trim_prefix (value vendor/rustyline/UPSTREAM "tag:") v'
 __ush_value_12="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'tag:' 4>&1 >&3)" || exit "$?"
 __ush_value_13="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_12}" 'v')" || exit "$?"
 __ush_binding_21_pinned="${__ush_value_13}"
 # shellcheck disable=SC2034
 pinned="${__ush_binding_21_pinned}"
-__ush_at 22 'let vendored = std::string::trim_suffix (trim_prefix (value "vendor/rustyline/Cargo.toml" "version =") "\"") "\""'
+__ush_at 22 'let vendored = std::string::trim_suffix (trim_prefix (value vendor/rustyline/Cargo.toml "version =") "\"") "\""'
 __ush_value_14="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/Cargo.toml' 'version =' 4>&1 >&3)" || exit "$?"
 __ush_value_15="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_prefix "${__ush_value_14}" '"')" || exit "$?"
 __ush_value_16="$(__ush_return_path='' __ush_capture_return='1' ush_fn_std__string__trim_suffix "${__ush_value_15}" '"')" || exit "$?"
@@ -436,9 +436,9 @@ __ush_at 27 'let index = work + "/index.jsonl"'
 __ush_binding_27_index="${__ush_binding_26_work}"'/index.jsonl'
 # shellcheck disable=SC2034
 index="${__ush_binding_27_index}"
-__ush_at 28 'curl "-fsSL" "--retry" "3" "https://index.crates.io/ru/st/rustyline" "-o" $index'
+__ush_at 28 'curl -fsSL --retry "3" https://index.crates.io/ru/st/rustyline -o $index'
 command curl '-fsSL' '--retry' '3' 'https://index.crates.io/ru/st/rustyline' '-o' "${__ush_binding_27_index}"
-__ush_at 30 'let versions = output "jq" ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]'
+__ush_at 30 'let versions = output jq ["-sr", "[.[] | select(.yanked == false) | .vers | select(test(\"^[0-9]+[.][0-9]+[.][0-9]+$\")) | split(\".\") | map(tonumber)] | sort | .[] | map(tostring) | join(\".\")", index]'
 __ush_match_18__len='3'
 # shellcheck disable=SC2034
 __ush_match_18__0='-sr'
@@ -458,7 +458,7 @@ __ush_at 32 'let mut patch = ""'
 __ush_binding_32_patch=''
 # shellcheck disable=SC2034
 patch="${__ush_binding_32_patch}"
-__ush_at 33 'let major = first $pinned "."'
+__ush_at 33 'let major = first $pinned .'
 __ush_value_21="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${__ush_binding_21_pinned}" '.' 4>&1 >&3)" || exit "$?"
 __ush_binding_33_major="${__ush_value_21}"
 # shellcheck disable=SC2034
@@ -477,7 +477,7 @@ while [ "${__ush_for_list_index_24}" -lt "${__ush_match_22__len}" ]; do
   __ush_binding_31_latest="${version}"
   # shellcheck disable=SC2034
   latest="${__ush_binding_31_latest}"
-  __ush_at 36 'if first $version "." == major {'
+  __ush_at 36 'if first $version . == major {'
   if {
   __ush_value_26="$(__ush_return_path='' __ush_capture_return='1' ush_fn_first "${version}" '.' 4>&1 >&3)" || exit "$?"
   [ "$(if [ "${__ush_value_26}" = "${__ush_binding_33_major}" ]; then printf '%s' true; else printf '%s' false; fi)" = 'true' ]
@@ -502,7 +502,7 @@ if {
   __ush_report "$__ush_status" 'check_rustyline_upstream: registry returned no stable versions'
   exit "$__ush_status"
 fi
-__ush_at 43 'let reviewed = value "vendor/rustyline/UPSTREAM" "reviewed:"'
+__ush_at 43 'let reviewed = value vendor/rustyline/UPSTREAM "reviewed:"'
 __ush_value_27="$(__ush_return_path='' __ush_capture_return='1' ush_fn_value 'vendor/rustyline/UPSTREAM' 'reviewed:' 4>&1 >&3)" || exit "$?"
 __ush_binding_43_reviewed="${__ush_value_27}"
 # shellcheck disable=SC2034

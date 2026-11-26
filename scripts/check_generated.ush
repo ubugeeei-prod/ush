@@ -6,19 +6,19 @@ use std::process::{exec, status}
 use std::string::{lines, trim_suffix}
 use std::path::basename
 
-let mut compiler = get_or "USH_COMPILER" ""
+let mut compiler = get_or USH_COMPILER ""
 if compiler == "" {
-  cargo "build" "--locked" "-p" "ush"
+  cargo build --locked -p ush
   compiler = "target/debug/ush"
 }
 let work = temp_dir
-for source in lines (find "install.ush" "scripts" "-name" "*.ush" "-type" "f") {
+for source in lines (find install.ush scripts -name *.ush -type f) {
   let name = basename $source
-  let artifact = trim_suffix $source ".ush" + ".sh"
-  let generated = work + "/" + trim_suffix $name ".ush" + ".sh"
+  let artifact = trim_suffix $source .ush + ".sh"
+  let generated = work + "/" + trim_suffix $name .ush + ".sh"
   cp $source (work + "/" + name)
   exec $compiler ["compile", work + "/" + name, "--checked-in", "-o", generated]
-  if status "cmp" ["-s", artifact, generated] != 0 {
+  if status cmp ["-s", artifact, generated] != 0 {
     fail 1 ("stale artifact: " + artifact + "; regenerate from " + source)
   }
 }

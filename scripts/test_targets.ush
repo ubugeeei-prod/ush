@@ -13,32 +13,32 @@ fn run_fixture(compiler: String, target: String, source: String, directory: Stri
 }
 
 let root = pwd
-let mut compiler = get_or "USH_BIN" "target/debug/ush"
+let mut compiler = get_or USH_BIN target/debug/ush
 if std::path::is_absolute $compiler == false {
   compiler = root + "/" + compiler
 }
 let work = temp_dir
 let mut targets = ["sh", "bash", "zsh"]
-if exists "busybox" {
-  let busybox = output "command" ["-v", "busybox"]
-  ln "-s" $busybox (work + "/ash")
-  set "PATH" (work + ":" + get "PATH")
+if exists busybox {
+  let busybox = output command ["-v", "busybox"]
+  ln -s $busybox (work + "/ash")
+  set PATH (work + ":" + get PATH)
   targets = ["sh", "bash", "zsh", "ash"]
-} else if uname "-s" == "Linux" {
+} else if uname -s == "Linux" {
   fail 1 "BusyBox is required to check the ash target on Linux"
 }
 for target in targets {
-  sh "scripts/test_task_await.sh" $compiler $target
+  sh scripts/test_task_await.sh $compiler $target
   for name in ["strings", "filesystem", "paths"] {
     let source = root + "/crates/ush_compiler/tests/fixtures/portable/" + name + ".ush"
     assert (contains (run_fixture $compiler $target $source $work) "1 passed; 0 failed")
   }
-  for source in lines (find "examples" "-name" "*.ush" "-type" "f") {
+  for source in lines (find examples -name *.ush -type f) {
     exec $compiler ["compile", source, "--target", target, "-o", work + "/script"]
     exec $target ["-n", work + "/script"]
   }
   exec $compiler ["compile", "examples/contracts.ush", "--target", target, "-o", work + "/script"]
-  chmod "+x" (work + "/script")
+  chmod +x (work + "/script")
   assert_eq (output $target [work + "/script"]) "2\n20\nready\ndone"
   exec $compiler ["compile", "examples/collections.ush", "--target", target, "-o", work + "/script"]
   assert_eq (output $target [work + "/script"]) "2\n3\n4\n3"
@@ -60,7 +60,7 @@ for target in targets {
   assert (contains (read_text (work + "/err")) "error_streams.ush:6: Problem::MissingConfig")
 }
 exec $compiler ["compile", "examples/contracts.ush", "-o", work + "/script"]
-if exists "dash" {
-  exec "dash" [work + "/script"]
+if exists dash {
+  exec dash [work + "/script"]
 }
-exec "shellcheck" ["-s", "sh", "--severity=error", work + "/script"]
+exec shellcheck ["-s", "sh", "--severity=error", work + "/script"]

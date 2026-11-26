@@ -9,49 +9,49 @@ use std::process::exec
 fn banner(name: String) -> () {
   echo ("=== " + name + " ===")
 }
-banner "rustfmt"
-cargo "fmt" "--all" "--check"
-banner "clippy"
-cargo "clippy" "--locked" "--workspace" "--all-targets" "--no-deps" "--" "-D" "warnings"
+banner rustfmt
+cargo fmt --all --check
+banner clippy
+cargo clippy --locked --workspace --all-targets --no-deps -- -D warnings
 banner "workspace tests"
-cargo "test" "--locked" "--workspace"
+cargo test --locked --workspace
 banner "release tests"
-cargo "test" "--locked" "--workspace" "--release"
-banner "no_std"
-cargo "check" "--locked" "-p" "ush_compiler" "--no-default-features"
-cargo "test" "--locked" "-p" "ush_compiler" "--no-default-features" "--lib"
-cargo "clippy" "--locked" "-p" "ush_compiler" "--no-default-features" "--lib" "--no-deps" "--" "-D" "warnings"
+cargo test --locked --workspace --release
+banner no_std
+cargo check --locked -p ush_compiler --no-default-features
+cargo test --locked -p ush_compiler --no-default-features --lib
+cargo clippy --locked -p ush_compiler --no-default-features --lib --no-deps -- -D warnings
 banner "generated artifacts"
-sh "scripts/check_generated.sh"
+sh scripts/check_generated.sh
 banner "line limit"
-sh "scripts/check_rs_line_limit.sh"
-banner "installer"
-sh "scripts/test_install.sh"
-banner "rustdoc"
-set "RUSTDOCFLAGS" "-D warnings"
-cargo "doc" "--locked" "--workspace" "--no-deps" "--document-private-items"
+sh scripts/check_rs_line_limit.sh
+banner installer
+sh scripts/test_install.sh
+banner rustdoc
+set RUSTDOCFLAGS "-D warnings"
+cargo doc --locked --workspace --no-deps --document-private-items
 banner "shell targets"
-sh "scripts/test_targets.sh"
-banner "editor"
+sh scripts/test_targets.sh
+banner editor
 let root = cwd
-cd "editors/vscode"
-npm "ci" "--ignore-scripts"
-npm "test"
-npm "run" "build"
+cd editors/vscode
+npm ci --ignore-scripts
+npm test
+npm run build
 cd $root
 banner "bench builds"
-cargo "bench" "--locked" "-p" "ush_shell" "--no-run"
-cargo "bench" "--locked" "-p" "ush_compiler" "--no-run"
+cargo bench --locked -p ush_shell --no-run
+cargo bench --locked -p ush_compiler --no-run
 banner "vendored dependency"
-sh "scripts/check_rustyline_upstream.sh"
+sh scripts/check_rustyline_upstream.sh
 banner "examples and shellcheck"
-for example in lines (find "examples" "-name" "*.ush" "-type" "f") {
-  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "check" $example
-  cargo "run" "--locked" "-p" "ush" "--quiet" "--" "format" "--check" $example
+for example in lines (find examples -name *.ush -type f) {
+  cargo run --locked -p ush --quiet -- check $example
+  cargo run --locked -p ush --quiet -- format --check $example
 }
-if exists "shellcheck" {
-  for artifact in lines (find "install.sh" "scripts" "-name" "*.sh" "-type" "f") {
-    exec "shellcheck" ["--severity=warning", artifact]
+if exists shellcheck {
+  for artifact in lines (find install.sh scripts -name *.sh -type f) {
+    exec shellcheck ["--severity=warning", artifact]
   }
 }
 banner "preflight passed"
