@@ -10,6 +10,12 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- A `List<String>` or `List<Int>` argument of an external command passes each
+  element as an argument of its own, as `"${files[@]}"` does in bash. An empty
+  List adds no words, and predicates such as `test` still take single words.
+
 ## [0.19.0] — 2026-11-26
 
 ### Added

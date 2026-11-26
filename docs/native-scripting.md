@@ -195,6 +195,23 @@ computed values and nested calls, for example `echo (greet $name)`. Integer and
 boolean literals, lists, unit values, quantities, and function references keep
 their types. `label: value` remains named-argument syntax.
 
+A `List<String>` or `List<Int>` argument passes each element as an argument of
+its own, in order, so a computed set of files reaches a program the way a shell
+array does:
+
+```ush
+use $bin::{sha256sum}
+use std::fs::read_dir
+use std::path::extension
+
+let tarballs = [file for file in read_dir "pack" if (extension $file) == "tgz"]
+sha256sum $tarballs
+```
+
+Each element stays one word, even when it is empty or holds spaces or `*`, and
+an empty List adds no words. `test` and the other predicates still take single
+words.
+
 A call goes on to the next line when its line ends with a backslash after a
 space, as on a command line. The words of the next line join the call, and
 comments and blank lines between them are skipped:

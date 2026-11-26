@@ -6,6 +6,7 @@ mod builtin_methods;
 mod call_capture;
 mod call_support;
 pub(crate) mod calls;
+mod command_words;
 mod compare;
 pub(crate) mod comprehension;
 mod control;
