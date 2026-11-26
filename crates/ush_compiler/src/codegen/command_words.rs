@@ -1,6 +1,8 @@
 //! The words of an external command call. A List argument gives each of its
 //! elements a word of its own.
 
+use alloc::format;
+
 use crate::{
     ast::{Expr, Type},
     env::{Binding, Env, Storage},

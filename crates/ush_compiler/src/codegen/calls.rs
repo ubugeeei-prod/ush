@@ -17,7 +17,7 @@ use super::{
 };
 use crate::sourcemap::OutputBuffer;
 use crate::traits::TraitImplRegistry;
-use crate::types::OutputString as String;
+use crate::types::{HeapVec as Vec, OutputString as String};
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn compile_call(
