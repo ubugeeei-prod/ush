@@ -195,3 +195,24 @@ printf "<%s>\n" 300s 5m 10ms
         "<300s>\n<5m>\n<10ms>\n",
     );
 }
+
+#[test]
+fn a_list_argument_spreads_beside_functions_and_inside_them() {
+    // A program with functions is also checked by the contracts pass, which
+    // once rejected the List that codegen spreads.
+    outputs(
+        r#"
+use $bin::*
+
+fn spread(words: List<String>) -> () {
+  printf "[%s]" $words
+  printf "\n"
+}
+
+let args = ["a", "b"]
+printf "<%s>\n" $args
+spread ["c", "d"]
+"#,
+        "<a>\n<b>\n[c][d]\n",
+    );
+}

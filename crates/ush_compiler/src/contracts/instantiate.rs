@@ -104,8 +104,19 @@ impl Checker {
                 if self.symbolic && ty.name.starts_with("__T") {
                     continue;
                 }
+                // A List of words spreads into argv, one word per element.
+                let words = ty.name == "List"
+                    && ty
+                        .args
+                        .first()
+                        .is_some_and(|item| matches!(item.name.as_str(), "String" | "Int"));
                 ensure!(
-                    ty.name == "String" || (ty.name == "Int" && cmd.word != "cd"),
+                    !(words && cmd.output == crate::commands::Output::Predicate),
+                    "`{}` takes single words, not a List",
+                    cmd.word
+                );
+                ensure!(
+                    ty.name == "String" || (cmd.word != "cd" && (ty.name == "Int" || words)),
                     "invalid argument type for $bin::{}",
                     cmd.word
                 );

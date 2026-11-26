@@ -10,6 +10,14 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+- A List argument of an external command failed to compile with "invalid
+  argument type" in a program that defines a function or imports a module.
+  Such a program is also checked by the contracts pass, which still allowed
+  only String and Int. It now accepts a List of them too, as code generation
+  does.
+
 ## [0.20.0] — 2026-11-26
 
 ### Added
