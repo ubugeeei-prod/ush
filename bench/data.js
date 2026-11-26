@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795688409144,
+  "lastUpdate": 1795690189455,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -6773,6 +6773,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 216347,
             "range": "± 2568",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "52448bdf366aecc0134ba1d23d835eae53bd0820",
+          "message": "feat(lang): start a command that outlives the script with `detach` (#194)\n\nvize starts a test prebuild with `nohup … > log 2>&1 &` so that it keeps\nrunning after its step, overlapping the next one. A `spawn` handle cannot\ndo that: the scope waits for its tasks, and the task's wrapper keeps the\nscript's stdout and stderr open, so a reader such as a CI step waits for\nthe task anyway.\n\n`detach command` starts a command, a pipeline or a `()` function call in\na background subshell with stdin, stdout and stderr on `/dev/null`. The\ncommand's own redirections still send its output to a file. The scope\nnever joins it and its status never fails the script. It shares\n`allow_fail`'s operand rules, without `.await`. The editor grammar,\ncompletion, hover and highlighting know the keyword.\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-26T19:40:12+09:00",
+          "tree_id": "b0c6235fc10839435f830381f3903e309d4936fd",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/52448bdf366aecc0134ba1d23d835eae53bd0820"
+        },
+        "date": 1795690188860,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1529,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 237,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 573,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1175,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1197,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1114,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 199,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 124,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 231,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 107,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1307,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1160,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1086,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 810,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2637,
+            "range": "± 202",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 17,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 2022,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 10647,
+            "range": "± 164",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 34746,
+            "range": "± 196",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 10853868,
+            "range": "± 103639",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 212064,
+            "range": "± 1457",
             "unit": "ns/iter"
           }
         ]
