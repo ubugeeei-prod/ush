@@ -17,6 +17,14 @@ project adheres to [Semantic Versioning][semver].
   flag. Comments and blank lines between the lines are skipped, a continued
   call can go on as a pipeline, and `ush format` indents the continued lines.
 
+### Fixed
+
+- `std::path::from_source` returns the resolved path. It used to return an
+  internal reference that only ush's own path functions resolved, so a
+  source-relative path passed to an external command, interpolated or printed
+  arrived as `__ush_pathref__:source:…`. The source's directory is fixed for
+  the whole run, so resolving at once changes nothing else.
+
 ## [0.18.0] — 2026-11-26
 
 ### Added
