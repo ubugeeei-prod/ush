@@ -195,3 +195,44 @@ printf "<%s>\n" 300s 5m 10ms
         "<300s>\n<5m>\n<10ms>\n",
     );
 }
+
+#[test]
+fn a_list_argument_spreads_beside_functions_and_inside_them() {
+    // A program with functions is also checked by the contracts pass, which
+    // once rejected the List that codegen spreads.
+    outputs(
+        r#"
+use $bin::*
+
+fn spread(words: List<String>) -> () {
+  printf "[%s]" $words
+  printf "\n"
+}
+
+let args = ["a", "b"]
+printf "<%s>\n" $args
+spread ["c", "d"]
+"#,
+        "<a>\n<b>\n[c][d]\n",
+    );
+}
+
+#[test]
+fn a_number_like_word_reaches_a_program_as_written() {
+    // Only an integer written the way it prints is an Int: `xargs -0` once
+    // became `xargs 0`, and `chmod 0755` became `chmod 755`.
+    outputs(
+        r#"
+use $bin::*
+
+fn twice(n: Int) -> Int {
+  n + n
+}
+
+printf "<%s>" -0 -00 0755 007 -007 +1 42 -3 0
+printf "\n"
+echo (twice 21)
+"#,
+        "<-0><-00><0755><007><-007><+1><42><-3><0>\n42\n",
+    );
+}
