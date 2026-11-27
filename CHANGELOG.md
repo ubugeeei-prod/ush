@@ -10,6 +10,8 @@ project adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+## [0.20.1] — 2026-11-27
+
 ### Fixed
 
 - A List argument of an external command failed to compile with "invalid
@@ -701,7 +703,8 @@ for the full diff.
 For 0.6.0 and earlier, refer to the
 [GitHub releases page](https://github.com/ubugeeei/ush/releases).
 
-[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/ubugeeei-prod/ush/compare/v0.20.1...HEAD
+[0.20.1]: https://github.com/ubugeeei-prod/ush/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/ubugeeei-prod/ush/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/ubugeeei-prod/ush/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/ubugeeei-prod/ush/compare/v0.17.0...v0.18.0
