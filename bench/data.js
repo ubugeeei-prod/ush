@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795692156726,
+  "lastUpdate": 1795751877123,
   "repoUrl": "https://github.com/ubugeeei-prod/ush",
   "entries": {
     "Criterion microbenchmarks": [
@@ -7373,6 +7373,156 @@ window.BENCHMARK_DATA = {
             "name": "compile typed shell interop",
             "value": 216242,
             "range": "± 2291",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ubuge1122@gmail.com",
+            "name": "ubugeeei",
+            "username": "ubugeeei"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b67942aa7668a20fc3b31339413f15a9840486b5",
+          "message": "fix(lang): pass List and number-like words to programs as written (#198)\n\n* fix(contracts): accept a List argument of an external command\n\nv0.20.0 spreads a `List<String>` or `List<Int>` argument into argv, but\na program that defines a function or imports a module is also checked by\nthe contracts pass. That pass still allowed only String and Int, so\n`printf \"%s\\n\" $args` failed with \"invalid argument type for $bin::printf\"\nas soon as the file had a `fn`. It now accepts a List of words, and gives\nthe same \"takes single words\" error as code generation for `test`.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* fix(parse): read a word as an integer only when written the way it prints\n\nA bare word such as `-0`, `0755` or `007` parsed as an integer and\nreached a program as the normalized number. `xargs -0` became `xargs 0`\nand exited 127, and `chmod 0755` became `chmod 755`. `+1` failed to\ncompile. A word is an `Int` now only when it prints back as written;\nevery other number-like word stays text, so a program receives exactly\nwhat the script says.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-27T12:52:21+09:00",
+          "tree_id": "74998788ee3d35c7dafc78a1625499d049a335c9",
+          "url": "https://github.com/ubugeeei-prod/ush/commit/b67942aa7668a20fc3b31339413f15a9840486b5"
+        },
+        "date": 1795751876139,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "parse pipeline with helper",
+            "value": 1582,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/bare command",
+            "value": 248,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/command with flags",
+            "value": 574,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/long argument list",
+            "value": 1201,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/assignments",
+            "value": 1224,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse native line/quoted arguments",
+            "value": 1126,
+            "range": "± 55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/redirect",
+            "value": 199,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/command substitution",
+            "value": 123,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/shell keyword",
+            "value": 232,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse fallback line/subshell",
+            "value": 107,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/boolean chain",
+            "value": 1330,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/sequence",
+            "value": 1200,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse and-or list/or fallback",
+            "value": 1147,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse with alias table",
+            "value": 823,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse long pipeline",
+            "value": 2576,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "parse comment only",
+            "value": 17,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile empty ush program",
+            "value": 1950,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile small ush program",
+            "value": 10925,
+            "range": "± 59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile adt ush program",
+            "value": 36599,
+            "range": "± 186",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile 1000 functions",
+            "value": 11032495,
+            "range": "± 78210",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "compile typed shell interop",
+            "value": 216531,
+            "range": "± 3383",
             "unit": "ns/iter"
           }
         ]
